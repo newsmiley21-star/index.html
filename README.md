@@ -11,7 +11,6 @@
         }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--light); margin: 0; padding: 10px; }
         
-        /* LOGIN */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); display: flex; align-items: center; justify-content: center; z-index: 9999;
@@ -23,7 +22,6 @@
         .login-card input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
         .btn-login { width: 100%; padding: 15px; background: var(--gabon-vert); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        /* APP */
         #main-app { display: none; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 15px; border-radius: 15px; border-top: 10px solid var(--gabon-vert); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
@@ -76,7 +74,7 @@
                 <span id="btnDeconnecter" style="color:red; cursor:pointer; font-size: 11px; font-weight: bold;">Déconnexion</span>
             </header>
 
-            <nav>
+            <nav id="main-nav">
                 <button onclick="ouvrir('saisie')" id="tab-saisie" class="active">📊 SAISIE</button>
                 <button onclick="ouvrir('taches')" id="tab-taches">📦 TÂCHES</button>
                 <button onclick="ouvrir('reçus')" id="tab-reçus">📜 REÇUS</button>
@@ -106,7 +104,7 @@
 
             <div id="sec-reçus" class="section">
                 <div id="liste-reçus"></div>
-                <div class="summary-box">TOTAL ENCAISSÉ <b id="totalCom">0</b> FCFA</div>
+                <div id="box-total" class="summary-box">TOTAL ENCAISSÉ <b id="totalCom">0</b> FCFA</div>
             </div>
         </div>
     </div>
@@ -132,40 +130,43 @@
 
     document.getElementById('btnActionConnexion').onclick = () => {
         signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-        .catch(() => document.getElementById('error-msg').innerText = "Erreur de connexion.");
+        .catch(() => document.getElementById('error-msg').innerText = "Identifiants incorrects.");
     };
 
     document.getElementById('btnDeconnecter').onclick = () => signOut(auth);
 
-onAuthStateChanged(auth, (user) => {
-    document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
-    document.getElementById('main-app').style.display = user ? 'block' : 'none';
-    
-    if (user) { 
-        document.getElementById('user-info').innerText = user.email;
-        
-        const email = user.email.toLowerCase();
-        const btnSaisie = document.getElementById('tab-saisie');
-        const btnTaches = document.getElementById('tab-taches');
-        const btnRecus = document.getElementById('tab-reçus');
+    onAuthStateChanged(auth, (user) => {
+        const authScreen = document.getElementById('auth-screen');
+        const mainApp = document.getElementById('main-app');
+        if (user) {
+            authScreen.style.display = 'none';
+            mainApp.style.display = 'block';
+            document.getElementById('user-info').innerText = user.email;
+            
+            // GESTION DES RÔLES
+            const email = user.email.toLowerCase();
+            const btnSaisie = document.getElementById('tab-saisie');
+            const btnRecus = document.getElementById('tab-reçus');
+            const btnTaches = document.getElementById('tab-taches');
 
-        if (email.includes('admin')) {
-            ouvrir('saisie');
-        } 
-        else if (email.includes('livreur')) {
-            btnSaisie.style.display = 'none';
-            btnRecus.style.display = 'none';
-            ouvrir('taches');
-        } 
-        else if (email.includes('caisse')) {
-            btnSaisie.style.display = 'none';
-            btnTaches.style.display = 'none';
-            ouvrir('reçus');
+            if (email.includes('livreur')) {
+                btnSaisie.style.display = 'none';
+                btnRecus.style.display = 'none';
+                ouvrir('taches');
+            } else if (email.includes('caisse')) {
+                btnSaisie.style.display = 'none';
+                btnTaches.style.display = 'none';
+                ouvrir('reçus');
+            } else {
+                ouvrir('saisie');
+            }
+            ecouterMissions();
+        } else {
+            authScreen.style.display = 'flex';
+            mainApp.style.display = 'none';
         }
+    });
 
-        ecouterMissions(); 
-    }
-});
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -177,7 +178,7 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('btnCreer').onclick = () => {
         const nom = document.getElementById('mNom').value;
         const com = document.getElementById('mCom').value;
-        if(!nom || !com) return alert("Remplir Nom et Commission");
+        if(!nom || !com) return alert("Nom et Commission obligatoires");
         push(ref(db, 'missions'), {
             id: "OR-" + (dernierIndex + 1).toString().padStart(3, '0'),
             nom, tel: document.getElementById('mTel').value || "N/A",
@@ -203,7 +204,7 @@ onAuthStateChanged(auth, (user) => {
                     const num = parseInt(m.id.split('-')[1]); if(num > maxIdx) maxIdx = num;
                     bS.innerHTML += `<tr><td><span class="id-badge">${m.id}</span><br>${m.heure}</td><td><b>${m.nom}</b><a href="tel:${m.tel}" class="phone-link">📞 ${m.tel}</a></td><td>${m.com}</td></tr>`;
                     if(m.etape === 1) {
-                        lT.innerHTML += `<div class="card"><div><b>${m.nom}</b><br><small>📍 ${m.lieu} | 🕒 ${m.heure}</small></div><button onclick="validerLiv('${key}')" style="background:var(--gabon-vert); color:white; border:none; padding:10px; border-radius:8px; font-weight:bold;">LIVRER</button></div>`;
+                        lT.innerHTML += `<div class="card"><div><b>${m.nom}</b><br><small>📍 ${m.lieu} | 🕒 ${m.heure}</small></div><button onclick="validerLiv('${key}')" style="background:var(--gabon-vert); color:white; border:none; padding:10px; border-radius:8px;">LIVRER</button></div>`;
                     } else {
                         if(m.etape === 3) total += m.com;
                         lR.innerHTML += `<div class="card ${m.etape === 3 ? 'done' : ''}"><div><b>${m.nom}</b><br><small>${m.com} FCFA | ${m.etape === 3 ? '✅ Payé' : '⏳ Attente'}</small></div><div style="display:flex; gap:5px;">
