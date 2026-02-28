@@ -58,7 +58,7 @@
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
-            <button class="btn-login" id="btnConnect">SE CONNECTER</button>
+            <button class="btn-login" id="btnConnect">nouvelle session </button>
         </div>
     </div>
 
