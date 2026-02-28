@@ -137,12 +137,35 @@
 
     document.getElementById('btnDeconnecter').onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, (user) => {
-        document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
-        document.getElementById('main-app').style.display = user ? 'block' : 'none';
-        if (user) { document.getElementById('user-info').innerText = user.email; ecouterMissions(); }
-    });
+onAuthStateChanged(auth, (user) => {
+    document.getElementById('auth-screen').style.display = user ? 'none' : 'flex';
+    document.getElementById('main-app').style.display = user ? 'block' : 'none';
+    
+    if (user) { 
+        document.getElementById('user-info').innerText = user.email;
+        
+        const email = user.email.toLowerCase();
+        const btnSaisie = document.getElementById('tab-saisie');
+        const btnTaches = document.getElementById('tab-taches');
+        const btnRecus = document.getElementById('tab-reçus');
 
+        if (email.includes('admin')) {
+            ouvrir('saisie');
+        } 
+        else if (email.includes('livreur')) {
+            btnSaisie.style.display = 'none';
+            btnRecus.style.display = 'none';
+            ouvrir('taches');
+        } 
+        else if (email.includes('caisse')) {
+            btnSaisie.style.display = 'none';
+            btnTaches.style.display = 'none';
+            ouvrir('reçus');
+        }
+
+        ecouterMissions(); 
+    }
+});
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
