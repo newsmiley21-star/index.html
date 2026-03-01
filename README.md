@@ -47,16 +47,16 @@
 
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
         .btn-val { background: var(--gabon-vert); color: white; }
-        .btn-val:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-val:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.6; }
         .btn-enc { background: var(--gabon-bleu); color: white; }
 
         /* CONTROLES PHOTO */
-        .photo-area { background: #fff5f5; border: 2px dashed var(--danger); border-radius: 10px; padding: 15px; text-align: center; margin: 10px 0; }
+        .photo-area { background: #f9f9f9; border: 2px solid #eee; border-radius: 10px; padding: 15px; text-align: center; margin: 10px 0; }
         .btn-camera-trigger { background: var(--dark); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-camera-trigger:active { transform: scale(0.98); }
         
         .photo-preview { width: 100%; height: auto; max-height: 250px; object-fit: contain; border-radius: 8px; display: none; border: 3px solid var(--gabon-vert); margin-top: 10px; }
-        .status-photo { font-size: 11px; color: var(--danger); font-weight: bold; margin-top: 8px; display: block; }
+        .status-photo { font-size: 11px; color: #999; font-weight: bold; margin-top: 8px; display: block; }
         .status-photo.ok { color: var(--gabon-vert); }
 
         .admin-only { display: none; }
@@ -68,7 +68,7 @@
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
             <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Espace Livreurs & Staff</p>
-            <input type="email" id="login-email" placeholder="Email">
+            <input type="email" id="login-email" placeholder="Email (ex: livreur1@ct241.com)">
             <input type="password" id="login-pass" placeholder="Mot de passe">
             <button class="btn-login" id="btnConnect">SE CONNECTER</button>
         </div>
@@ -115,7 +115,6 @@
         </div>
     </div>
 
-    <!-- ÉLÉMENTS CACHÉS -->
     <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="compressCanvas" style="display:none"></canvas>
 
@@ -138,12 +137,11 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
     
-    let userRole = "livreur"; 
+    let userRole = "visiteur"; 
     let missions = [];
     let currentTaskKey = null;
     let tempPhotoData = "";
 
-    // AUTO CALCUL
     window.calcAuto = () => {
         const val = parseFloat(document.getElementById('mRetrait').value) || 0;
         let c = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
@@ -151,7 +149,6 @@
         document.getElementById('mComDisplay').innerText = `Commission Direction : ${c} F`;
     };
 
-    // AUTH
     document.getElementById('btnConnect').onclick = () => {
         const e = document.getElementById('login-email').value;
         const p = document.getElementById('login-pass').value;
@@ -162,13 +159,24 @@
     onAuthStateChanged(auth, (u) => {
         if(u) {
             const email = u.email.toLowerCase();
-            userRole = email.includes('admin') ? 'admin' : (email.includes('finance') ? 'finance' : 'livreur');
+            
+            // DÉTECTION ROBUSTE DES RÔLES
+            if (email.includes('admin')) {
+                userRole = 'admin';
+            } else if (email.includes('finance')) {
+                userRole = 'finance';
+            } else if (email.includes('livreur')) {
+                userRole = 'livreur';
+            } else {
+                userRole = 'visiteur';
+            }
+
             document.getElementById('user-role').innerText = userRole.toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
-            if(userRole === 'livreur') ouvrir('taches');
+            if(userRole !== 'admin') ouvrir('taches');
             ecouterMissions();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
@@ -176,7 +184,6 @@
         }
     });
 
-    // CAMERA & COMPRESSION (OBLIGATOIRE)
     window.lancerCamera = (key) => {
         currentTaskKey = key;
         document.getElementById('photoInput').click();
@@ -192,19 +199,12 @@
             img.onload = () => {
                 const canvas = document.getElementById('compressCanvas');
                 const ctx = canvas.getContext('2d');
-                
                 let width = img.width;
                 let height = img.height;
                 const maxSize = 900; 
-                
-                if (width > height) {
-                    if (width > maxSize) { height *= maxSize / width; width = maxSize; }
-                } else {
-                    if (height > maxSize) { width *= maxSize / height; height = maxSize; }
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
+                if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } }
+                else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
+                canvas.width = width; canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
                 
                 tempPhotoData = canvas.toDataURL('image/jpeg', 0.6);
@@ -216,9 +216,8 @@
                 if(preview) {
                     preview.src = tempPhotoData;
                     preview.style.display = 'block';
-                    status.innerText = "✅ PREUVE PHOTO OK";
+                    status.innerText = "✅ PHOTO SMS PRÊTE";
                     status.className = "status-photo ok";
-                    // DÉBLOQUER LE BOUTON
                     btnVal.disabled = false;
                 }
             };
@@ -227,7 +226,6 @@
         reader.readAsDataURL(file);
     };
 
-    // LOGIQUE MISSIONS
     window.lancerMission = () => {
         const nom = document.getElementById('mNom').value;
         const tel = document.getElementById('mTel').value;
@@ -260,13 +258,14 @@
         const listR = document.getElementById('list-reçus');
         listT.innerHTML = ""; listR.innerHTML = "";
         let tot = 0, count = 0;
-        const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
+        
+        const userEmail = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
 
         missions.slice().reverse().forEach(m => {
-            const estAdmin = (userRole === 'admin' || userRole === 'finance');
-            const estMaMission = (m.livreur === me || m.livreur === "Libre");
+            const isStaff = (userRole === 'admin' || userRole === 'finance' || userRole === 'livreur');
+            const isMyTask = (m.livreur === "Libre" || m.livreur === userEmail);
 
-            if(m.etape < 3 && (estAdmin || estMaMission)) {
+            if(m.etape < 3 && (userRole === 'admin' || isMyTask)) {
                 listT.innerHTML += `
                     <div class="card step${m.etape}">
                         <span class="badge-id">${m.id}</span>
@@ -275,30 +274,31 @@
                         
                         ${m.etape === 1 ? `
                             <div class="photo-area">
+                                <p style="font-size:10px; color:#666; margin-bottom:10px; font-weight:bold;">ACTION REQUISE : FILMER LE SMS DE TRANSACTION</p>
                                 <button class="btn-camera-trigger" onclick="lancerCamera('${m.key}')">
-                                    📸 FILMER LE SMS PREUVE
+                                    📸 OUVRIR L'APPAREIL PHOTO
                                 </button>
                                 <img id="img-${m.key}" class="photo-preview">
-                                <div id="status-${m.key}" class="status-photo">🚨 PHOTO DU SMS OBLIGATOIRE</div>
-                                <input type="text" id="tx-${m.key}" placeholder="Code de la transaction" style="margin-top:10px;">
+                                <div id="status-${m.key}" class="status-photo">Preuve photo obligatoire</div>
+                                <input type="text" id="tx-${m.key}" placeholder="Saisir le code du SMS" style="margin-top:10px;">
                             </div>
                             <button id="btnVal-${m.key}" class="btn-action btn-val" onclick="valider('${m.key}')" disabled>
-                                CONFIRMER LIVRAISON
+                                VALIDER LA LIVRAISON
                             </button>
                         ` : ""}
                         
-                        ${m.etape === 2 && estAdmin ? `
+                        ${m.etape === 2 && (userRole === 'admin' || userRole === 'finance') ? `
                             <div style="background:#eee; padding:10px; border-radius:8px; font-size:11px; margin-bottom:10px;">
-                                Livreur: <b>${m.livreur}</b><br>Code: <b>${m.transaction}</b>
+                                Par: <b>${m.livreur}</b> | SMS: <b>${m.transaction}</b>
                             </div>
-                            ${m.photo ? `<button onclick="ouvrirPhoto('${m.key}')" style="width:100%; border:1px solid var(--gabon-bleu); color:var(--gabon-bleu); background:white; padding:8px; border-radius:5px; font-size:10px; margin-bottom:5px; cursor:pointer;">👁️ VOIR PREUVE PHOTO</button>` : ""}
-                            <button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>
+                            <button onclick="ouvrirPhoto('${m.key}')" style="width:100%; border:1px solid var(--gabon-bleu); color:var(--gabon-bleu); background:white; padding:8px; border-radius:5px; font-size:10px; margin-bottom:5px; cursor:pointer;">VOIR LA PREUVE</button>
+                            ${userRole === 'admin' ? `<button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>` : ""}
                         ` : ""}
                     </div>
                 `;
             }
 
-            if(m.etape === 3 && (estAdmin || m.livreur === me)) {
+            if(m.etape === 3 && (userRole === 'admin' || userRole === 'finance' || m.livreur === userEmail)) {
                 listR.innerHTML += `
                     <div class="card step3">
                         <div class="card-title" style="font-size:12px;">${m.nom} <small>(${m.date})</small></div>
@@ -317,25 +317,19 @@
     window.ouvrirPhoto = (k) => {
         const m = missions.find(x => x.key === k);
         const win = window.open();
-        win.document.write(`
-            <title>Preuve CT241</title>
-            <body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;">
-                <img src="${m.photo}" style="max-width:100%; max-height:100vh;">
-            </body>
-        `);
+        win.document.write(`<body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;"><img src="${m.photo}" style="max-width:100%; max-height:100vh;"></body>`);
     };
 
     window.valider = (k) => {
         const tx = document.getElementById('tx-'+k).value;
-        if(!tx) return alert("Code transaction requis");
-        if(!tempPhotoData) return alert("Photo du SMS manquante !");
+        if(!tx || !tempPhotoData) return alert("Photo et Code SMS obligatoires !");
         
-        const me = auth.currentUser.email.split('@')[0].toUpperCase();
+        const userEmail = auth.currentUser.email.split('@')[0].toUpperCase();
         update(ref(db, 'missions/'+k), { 
-            etape: 2, livreur: me, transaction: tx, photo: tempPhotoData 
+            etape: 2, livreur: userEmail, transaction: tx, photo: tempPhotoData 
         }).then(() => {
             tempPhotoData = "";
-            alert("Livraison enregistrée !");
+            alert("Mission envoyée pour encaissement !");
         });
     };
 
@@ -349,8 +343,8 @@
     };
 
     window.shareWA = () => {
-        const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
-        let txt = `*BILAN CT241 - ${me}*\nLivraisons : ${document.getElementById('countDone').innerText}\nTotal Gain : ${document.getElementById('totalCom').innerText}`;
+        const userEmail = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
+        let txt = `*BILAN CT241 - ${userEmail}*\nLivraisons : ${document.getElementById('countDone').innerText}\nTotal Gain : ${document.getElementById('totalCom').innerText}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
     };
 </script>
