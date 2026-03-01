@@ -22,7 +22,6 @@
         }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         .btn-login { width: 100%; padding: 14px; background: var(--gabon-vert); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .error-msg { color: var(--danger); font-size: 11px; margin-top: 10px; display: none; }
 
         /* MAIN APP */
         #main-app { display: none; max-width: 600px; margin: auto; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 90vh; }
@@ -37,11 +36,11 @@
         .active-sec { display: block; }
 
         /* MISSION CARDS */
-        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; }
+        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; transition: 0.3s; }
         .card.step-1 { border-left-color: var(--gabon-bleu); }
-        .card.step-2 { border-left-color: var(--gabon-jaune); }
+        .card.step-2 { border-left-color: var(--gabon-jaune); background: #fffdf5; }
         
-        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; color: var(--dark); }
         .card-info { font-size: 12px; color: #555; line-height: 1.4; }
         .badge-id { position: absolute; top: 10px; right: 10px; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
 
@@ -49,18 +48,22 @@
         .btn-accept { background: var(--gabon-bleu); color: white; }
         .btn-photo { background: var(--dark); color: white; }
         .btn-confirm { background: var(--gabon-vert); color: white; }
+        .btn-verify { background: #6c5ce7; color: white; }
+
+        /* SEARCH BAR */
+        .search-box { position: sticky; top: 0; background: white; z-index: 10; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #eee; }
 
         /* PHOTO PREVIEW */
         .photo-box { margin-top: 10px; border: 2px dashed #ddd; border-radius: 8px; padding: 10px; text-align: center; }
         .preview-img { width: 100%; border-radius: 5px; display: none; margin-top: 8px; border: 2px solid var(--gabon-vert); }
+        .finance-verify-img { width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ddd; }
 
         /* BILAN */
         .bilan-item { padding: 15px 0; border-bottom: 1px solid #eee; }
         .bilan-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .bilan-client { font-weight: 800; font-size: 14px; }
         .bilan-gain { color: var(--gabon-vert); font-weight: 900; }
-        .proof-img-container { display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
-        .proof-img-container img { width: 100%; height: auto; }
+        .bilan-meta { font-size: 11px; color: #777; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -68,11 +71,10 @@
     <div id="auth-screen">
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
-            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Interface Logistique</p>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Portail Administratif & Logistique</p>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
-            <button class="btn-login" id="btnConnect">SE CONNECTER</button>
-            <div id="auth-error" class="error-msg"></div>
+            <button class="btn-login" id="btnConnect">ACCÉDER AU SYSTÈME</button>
         </div>
     </div>
 
@@ -92,25 +94,31 @@
             <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
         </nav>
 
+        <!-- SECTION CREATION (ADMIN SEUL) -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
-                <h4 style="margin-top:0">Lancer une Mission</h4>
+                <h4 style="margin-top:0">Nouvelle Mission</h4>
                 <input type="text" id="mNom" placeholder="Nom du Client">
                 <input type="tel" id="mTel" placeholder="Téléphone Client">
-                <input type="text" id="mLieu" placeholder="Destination">
+                <input type="text" id="mLieu" placeholder="Destination (Quartier)">
                 <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
-                <button onclick="creerMission()" class="btn-action btn-confirm">VALIDER LA CRÉATION</button>
+                <button onclick="creerMission()" class="btn-action btn-confirm">LANCER LA MISSION</button>
             </div>
         </div>
 
+        <!-- SECTION MISSIONS -->
         <div id="sec-missions" class="section active-sec">
             <div id="container-missions"></div>
         </div>
 
+        <!-- SECTION BILAN -->
         <div id="sec-bilan" class="section">
+            <div id="search-container" class="search-box" style="display:none">
+                <input type="text" id="bilanSearch" placeholder="Rechercher Client ou Code SMS..." oninput="renderUI()">
+            </div>
             <div id="container-bilan"></div>
             <div style="background:var(--dark); color:white; padding:15px; border-radius:12px; margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                <span>VOTRE TOTAL</span>
+                <span id="label-total">VOTRE GAIN</span>
                 <b id="stat-total" style="color:var(--gabon-jaune); font-size:18px">0 F</b>
             </div>
         </div>
@@ -138,21 +146,18 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    let userRole = "livreur";
+    let userRole = "livreur"; // admin, finance, livreur
     let allMissions = [];
     let currentPhotoKey = null;
     let currentPhotoData = "";
 
-    // AUTH LOGIC
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
         try {
             await signInWithEmailAndPassword(auth, email, pass);
         } catch (e) {
-            document.getElementById('auth-error').innerText = "Erreur: " + e.message;
-            document.getElementById('auth-error').style.display = 'block';
-            if(confirm("Connexion échouée. Entrer en mode Démo ?")) await signInAnonymously(auth);
+            alert("Accès refusé. Vérifiez vos identifiants.");
         }
     };
 
@@ -160,15 +165,20 @@
 
     onAuthStateChanged(auth, (u) => {
         if(u) {
-            const email = (u.email || "demo@ct241.com").toLowerCase();
-            if(email.includes('admin') || email.includes('finance')) userRole = "admin";
+            const email = u.email.toLowerCase();
+            if(email.includes('admin')) userRole = "admin";
+            else if(email.includes('finance')) userRole = "finance";
             else userRole = "livreur";
 
             document.getElementById('user-role').innerText = userRole.toUpperCase();
-            document.getElementById('user-display').innerText = email;
+            document.getElementById('user-display').innerText = u.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            
+            // Affichage conditionnel des outils admin/finance
             document.getElementById('nav-creer').style.display = (userRole === 'admin') ? 'block' : 'none';
+            document.getElementById('search-container').style.display = (userRole === 'finance' || userRole === 'admin') ? 'block' : 'none';
+            document.getElementById('label-total').innerText = (userRole === 'admin' || userRole === 'finance') ? "TOTAL CAISSE" : "MON GAIN";
 
             chargerDonnees();
         } else {
@@ -188,29 +198,46 @@
     function renderUI() {
         const contM = document.getElementById('container-missions');
         const contB = document.getElementById('container-bilan');
+        const searchTerm = document.getElementById('bilanSearch').value.toLowerCase();
+        
         contM.innerHTML = ""; contB.innerHTML = "";
-        let total = 0;
-        const myId = auth.currentUser.email ? auth.currentUser.email.split('@')[0].toUpperCase() : "DEMO";
+        let totalCaisse = 0;
+        const myName = auth.currentUser?.email ? auth.currentUser.email.split('@')[0].toUpperCase() : "INVITÉ";
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            // Liste active
+            
+            // --- LOGIQUE ONGLET MISSIONS ---
             if(m.etape < 3) {
-                const canSee = (userRole === 'admin' || m.livreur === "Libre" || m.livreur === myId);
+                const canSee = (userRole === 'admin' || userRole === 'finance' || m.livreur === "Libre" || m.livreur === myName);
                 if(canSee) {
                     let actions = "";
-                    if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
-                        actions = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA MISSION</button>`;
-                    } else if(m.etape === 1 && m.livreur === myId) {
+                    
+                    // Cas Livreur : Accepter ou Livrer
+                    if(userRole === 'livreur') {
+                        if(m.etape === 1 && m.livreur === "Libre") {
+                            actions = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+                        } else if(m.etape === 1 && m.livreur === myName) {
+                            actions = `
+                                <div class="photo-box">
+                                    <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 FILMER SMS</button>
+                                    <img id="pre-${m.key}" class="preview-img">
+                                    <input type="text" id="sms-${m.key}" placeholder="Code SMS du retrait">
+                                    <button id="val-${m.key}" class="btn-action btn-confirm" onclick="livrer('${m.key}')" disabled>TERMINER LA LIVRAISON</button>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    // Cas Finance/Admin : Vérifier et Encaisser
+                    if((userRole === 'finance' || userRole === 'admin') && m.etape === 2) {
                         actions = `
-                            <div class="photo-box">
-                                <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 FILMER PREUVE SMS</button>
-                                <img id="pre-${m.key}" class="preview-img">
-                                <input type="text" id="sms-${m.key}" placeholder="Code SMS du retrait" style="margin-top:10px">
-                                <button id="val-${m.key}" class="btn-action btn-confirm" onclick="livrer('${m.key}')" disabled>CONFIRMER LIVRAISON</button>
+                            <div style="background:#f1f2f6; padding:10px; border-radius:10px; margin-top:10px">
+                                <p style="font-size:11px; margin:0; font-weight:bold; color:var(--gabon-bleu)">VÉRIFICATION FINANCE :</p>
+                                <img src="${m.photo}" class="finance-verify-img">
+                                <p style="font-size:14px; font-weight:bold; color:red; text-align:center; margin:5px 0">CODE : ${m.codeSMS}</p>
+                                <button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">VALIDER & ENCAISSER (${m.com} F)</button>
                             </div>
                         `;
-                    } else if(m.etape === 2 && userRole === 'admin') {
-                        actions = `<button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">ENCAISSER (${m.com} F)</button>`;
                     }
 
                     contM.innerHTML += `
@@ -218,8 +245,9 @@
                             <span class="badge-id">${m.id}</span>
                             <div class="card-title">${m.nom}</div>
                             <div class="card-info">
-                                📍 <b>${m.lieu || 'Non précisé'}</b><br>
-                                💰 Montant: <b>${m.retrait} F</b> | 🛵: ${m.livreur}
+                                📍 <b>${m.lieu || 'Zone libre'}</b><br>
+                                💰 Retrait : <b>${m.retrait.toLocaleString()} F</b><br>
+                                🛵 Livreur : <b>${m.livreur}</b>
                             </div>
                             ${actions}
                         </div>
@@ -227,48 +255,71 @@
                 }
             }
 
-            // Bilan
+            // --- LOGIQUE ONGLET BILAN (ARCHIVES) ---
             if(m.etape === 3) {
-                if(userRole === 'admin' || m.livreur === myId) {
+                // Filtre de recherche
+                const matchSearch = m.nom.toLowerCase().includes(searchTerm) || (m.codeSMS && m.codeSMS.toLowerCase().includes(searchTerm));
+                
+                // Restriction par rôle
+                const canViewBilan = (userRole === 'admin' || userRole === 'finance' || m.livreur === myName);
+                
+                if(canViewBilan && matchSearch) {
                     const gain = (userRole === 'livreur') ? 800 : m.com;
-                    total += gain;
+                    totalCaisse += gain;
+
                     contB.innerHTML += `
                         <div class="bilan-item">
                             <div class="bilan-header">
-                                <span class="bilan-client">${m.nom} <small>#${m.id}</small></span>
-                                <span class="bilan-gain">+ ${gain} F</span>
+                                <span class="bilan-client">${m.nom} <small style="color:var(--gabon-bleu)">#${m.id}</small></span>
+                                <span class="bilan-gain">+ ${gain.toLocaleString()} F</span>
                             </div>
-                            <div style="font-size:11px; color:#666">📍 ${m.lieu} | 🛵 ${m.livreur}</div>
-                            ${m.photo ? `<button class="btn-action" style="font-size:10px; padding:5px" onclick="this.nextElementSibling.style.display='block'">VOIR PHOTO</button>
-                            <div class="proof-img-container"><img src="${m.photo}"></div>` : ''}
+                            <div class="bilan-meta">
+                                📅 ${m.date || ''} à ${m.heure || ''}<br>
+                                🔑 Code SMS : <b>${m.codeSMS || 'N/A'}</b><br>
+                                🛵 Livreur : ${m.livreur}
+                            </div>
+                            ${(userRole === 'admin' || userRole === 'finance') ? 
+                                `<button onclick="this.nextElementSibling.style.display='block'" style="background:none; border:none; color:var(--gabon-bleu); font-size:10px; padding:0; cursor:pointer; text-decoration:underline">Voir preuve photo</button>
+                                <div style="display:none; margin-top:10px"><img src="${m.photo}" style="width:100%; border-radius:5px"></div>` : ''}
                         </div>
                     `;
                 }
             }
         });
-        document.getElementById('stat-total').innerText = total + " F";
+        document.getElementById('stat-total').innerText = totalCaisse.toLocaleString() + " F";
     }
 
-    // ACTIONS
+    // --- FONCTIONS ACTIONS ---
+
     window.creerMission = () => {
         const nom = document.getElementById('mNom').value;
-        const mnt = document.getElementById('mRetrait').value;
-        if(!nom || !mnt) return alert("Nom et Montant requis");
+        const mnt = parseInt(document.getElementById('mRetrait').value);
+        if(!nom || !mnt) return alert("Nom et Montant obligatoires");
+
+        const d = new Date();
         push(ref(db, 'missions'), {
-            id: "CT" + Math.floor(100+Math.random()*900),
-            nom, lieu: document.getElementById('mLieu').value, tel: document.getElementById('mTel').value,
-            retrait: parseInt(mnt), com: (parseInt(mnt) >= 15000 ? 390 : 190), 
-            etape: 1, livreur: "Libre", timestamp: Date.now()
+            id: "CT" + Math.floor(100 + Math.random() * 899),
+            nom, tel: document.getElementById('mTel').value, lieu: document.getElementById('mLieu').value,
+            retrait: mnt, com: (mnt >= 15000 ? 390 : 190),
+            etape: 1, livreur: "Libre", codeSMS: "", photo: "",
+            date: d.toLocaleDateString('fr-FR'),
+            heure: d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+            timestamp: Date.now()
         });
+        alert("Mission lancée !");
+        document.getElementById('mNom').value = ""; document.getElementById('mRetrait').value = "";
         ouvrir('missions');
     };
 
     window.accepter = (k) => {
-        const myId = auth.currentUser.email ? auth.currentUser.email.split('@')[0].toUpperCase() : "DEMO";
-        update(ref(db, `missions/${k}`), { livreur: myId });
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${k}`), { livreur: myName });
     };
 
-    window.triggerCam = (k) => { currentPhotoKey = k; document.getElementById('camInput').click(); };
+    window.triggerCam = (k) => {
+        currentPhotoKey = k;
+        document.getElementById('camInput').click();
+    };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0];
@@ -279,8 +330,9 @@
             img.onload = () => {
                 const can = document.getElementById('canvas');
                 const ctx = can.getContext('2d');
-                can.width = 600; can.height = (img.height/img.width)*600;
-                ctx.drawImage(img, 0,0,600,can.height);
+                const ratio = img.height / img.width;
+                can.width = 600; can.height = 600 * ratio;
+                ctx.drawImage(img, 0, 0, 600, can.height);
                 currentPhotoData = can.toDataURL('image/jpeg', 0.6);
                 document.getElementById('pre-'+currentPhotoKey).src = currentPhotoData;
                 document.getElementById('pre-'+currentPhotoKey).style.display = 'block';
@@ -293,12 +345,14 @@
 
     window.livrer = (k) => {
         const code = document.getElementById('sms-'+k).value;
-        if(!code) return alert("Code SMS Requis");
+        if(!code) return alert("Le code SMS est obligatoire pour justifier le retrait.");
         update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: currentPhotoData });
     };
 
     window.encaisser = (k) => {
-        if(confirm("Confirmer l'encaissement final ?")) update(ref(db, `missions/${k}`), { etape: 3 });
+        if(confirm("Confirmez-vous que la photo et le code sont corrects ?")) {
+            update(ref(db, `missions/${k}`), { etape: 3 });
+        }
     };
 
     window.ouvrir = (id) => {
@@ -307,7 +361,6 @@
         document.getElementById('sec-'+id).classList.add('active-sec');
         document.getElementById('nav-'+id).classList.add('active');
     };
-
 </script>
 </body>
 </html>
