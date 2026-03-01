@@ -36,10 +36,7 @@
         .section { display: none; }
         .active-sec { display: block; }
 
-        .form-box { background: #fdfdfd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee; }
-        #mComDisplay { background: #e8f5e9; font-weight: bold; padding: 10px; border-radius: 8px; text-align: center; color: var(--gabon-vert); margin-bottom: 10px; border: 1px dashed var(--gabon-vert); font-size: 12px; }
-
-        /* CARTES */
+        /* CARTES MISSIONS */
         .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 6px solid var(--gabon-bleu); position: relative; }
         .card.step2 { border-left-color: var(--gabon-jaune); }
         .card.step3 { border-left-color: var(--gabon-vert); background: #f0fff4; }
@@ -50,16 +47,17 @@
 
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
         .btn-val { background: var(--gabon-vert); color: white; }
+        .btn-val:disabled { background: #ccc; cursor: not-allowed; }
         .btn-enc { background: var(--gabon-bleu); color: white; }
 
-        .footer-stats { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-top: 20px; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+        /* CONTROLES PHOTO */
+        .photo-area { background: #fff5f5; border: 2px dashed var(--danger); border-radius: 10px; padding: 15px; text-align: center; margin: 10px 0; }
+        .btn-camera-trigger { background: var(--dark); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-camera-trigger:active { transform: scale(0.98); }
         
-        /* PHOTO PREUVE */
-        .photo-container { margin: 10px 0; }
-        .photo-preview { width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 8px; display: none; border: 2px solid var(--gabon-vert); margin-top: 5px; }
-        .btn-cam { background: #eee; border: 1px solid #ddd; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 50px; }
-        .status-photo { font-size: 10px; color: var(--gabon-vert); font-weight: bold; margin-top: 5px; display: none; }
+        .photo-preview { width: 100%; height: auto; max-height: 250px; object-fit: contain; border-radius: 8px; display: none; border: 3px solid var(--gabon-vert); margin-top: 10px; }
+        .status-photo { font-size: 11px; color: var(--danger); font-weight: bold; margin-top: 8px; display: block; }
+        .status-photo.ok { color: var(--gabon-vert); }
 
         .admin-only { display: none; }
     </style>
@@ -69,7 +67,7 @@
     <div id="auth-screen">
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
-            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Accès sécurisé par profil</p>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Espace Livreurs & Staff</p>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
             <button class="btn-login" id="btnConnect">SE CONNECTER</button>
@@ -92,14 +90,14 @@
         </nav>
 
         <div id="sec-saisie" class="section admin-only active-sec">
-            <div class="form-box">
-                <div id="mComDisplay">Saisissez un montant</div>
+            <div style="background: #fdfdfd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee;">
                 <input type="text" id="mNom" placeholder="Nom du Client">
                 <input type="tel" id="mTel" placeholder="Téléphone">
-                <input type="text" id="mLieu" placeholder="Quartier">
+                <input type="text" id="mLieu" placeholder="Quartier / Lieu">
                 <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)" oninput="calcAuto()">
+                <div id="mComDisplay" style="font-size:12px; color:var(--gabon-vert); margin-top:5px; font-weight:bold">Com: 0 F</div>
                 <input type="hidden" id="mComCalculated">
-                <button onclick="lancerMission()" class="btn-action" style="background:var(--dark); color:white">CRÉER MISSION</button>
+                <button onclick="lancerMission()" class="btn-action" style="background:var(--dark); color:white">LANCER LA MISSION</button>
             </div>
         </div>
 
@@ -109,15 +107,15 @@
 
         <div id="sec-reçus" class="section">
             <div id="list-reçus"></div>
-            <div class="footer-stats">
-                <div class="stat-row"><span>Missions terminées</span><b id="countDone">0</b></div>
-                <div class="stat-row"><span id="label-total">Total Bilan</span><b id="totalCom" style="color: var(--gabon-jaune); font-size: 16px;">0 F</b></div>
-                <button id="btn-wa-share" class="btn-action" onclick="shareWA()" style="background:#25D366; color:white">📲 PARTAGER SUR WHATSAPP</button>
+            <div style="background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;"><span>Terminées</span><b id="countDone">0</b></div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Total</span><b id="totalCom" style="color: var(--gabon-jaune); font-size: 16px;">0 F</b></div>
+                <button onclick="shareWA()" class="btn-action" style="background:#25D366; color:white">PARTAGER BILAN WA</button>
             </div>
         </div>
     </div>
 
-    <!-- ÉLÉMENTS TECHNIQUES CACHÉS -->
+    <!-- ÉLÉMENTS CACHÉS -->
     <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="compressCanvas" style="display:none"></canvas>
 
@@ -139,22 +137,25 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
+    
     let userRole = "livreur"; 
     let missions = [];
     let currentTaskKey = null;
     let tempPhotoData = "";
 
+    // AUTO CALCUL
     window.calcAuto = () => {
         const val = parseFloat(document.getElementById('mRetrait').value) || 0;
         let c = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
         document.getElementById('mComCalculated').value = c;
-        document.getElementById('mComDisplay').innerHTML = `Com Direction : <b>${c} F</b>`;
+        document.getElementById('mComDisplay').innerText = `Commission Direction : ${c} F`;
     };
 
+    // AUTH
     document.getElementById('btnConnect').onclick = () => {
         const e = document.getElementById('login-email').value;
         const p = document.getElementById('login-pass').value;
-        signInWithEmailAndPassword(auth, e, p).catch(() => alert("Accès refusé"));
+        signInWithEmailAndPassword(auth, e, p).catch(() => alert("Identifiants incorrects"));
     };
     document.getElementById('btnOut').onclick = () => signOut(auth);
 
@@ -166,9 +167,7 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
-            const adminEls = document.querySelectorAll('.admin-only');
-            adminEls.forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
-            
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
             if(userRole === 'livreur') ouvrir('taches');
             ecouterMissions();
         } else {
@@ -177,8 +176,8 @@
         }
     });
 
-    // COMPRESSION ET CAPTURE PHOTO
-    window.ouvrirCamera = (key) => {
+    // CAMERA & COMPRESSION (OBLIGATOIRE)
+    window.lancerCamera = (key) => {
         currentTaskKey = key;
         document.getElementById('photoInput').click();
     };
@@ -194,10 +193,9 @@
                 const canvas = document.getElementById('compressCanvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Redimensionnement intelligent (Max 800px)
                 let width = img.width;
                 let height = img.height;
-                const maxSize = 800;
+                const maxSize = 900; 
                 
                 if (width > height) {
                     if (width > maxSize) { height *= maxSize / width; width = maxSize; }
@@ -209,17 +207,19 @@
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Compression JPG à 60%
                 tempPhotoData = canvas.toDataURL('image/jpeg', 0.6);
                 
-                // Mise à jour interface
                 const preview = document.getElementById('img-'+currentTaskKey);
                 const status = document.getElementById('status-'+currentTaskKey);
+                const btnVal = document.getElementById('btnVal-'+currentTaskKey);
+
                 if(preview) {
                     preview.src = tempPhotoData;
                     preview.style.display = 'block';
-                    status.style.display = 'block';
-                    status.innerText = "✅ Image capturée et prête";
+                    status.innerText = "✅ PREUVE PHOTO OK";
+                    status.className = "status-photo ok";
+                    // DÉBLOQUER LE BOUTON
+                    btnVal.disabled = false;
                 }
             };
             img.src = event.target.result;
@@ -227,15 +227,16 @@
         reader.readAsDataURL(file);
     };
 
+    // LOGIQUE MISSIONS
     window.lancerMission = () => {
         const nom = document.getElementById('mNom').value;
         const tel = document.getElementById('mTel').value;
         const retrait = document.getElementById('mRetrait').value;
-        if(!nom || !retrait) return alert("Champs vides");
+        if(!nom || !retrait) return alert("Infos manquantes");
 
         push(ref(db, 'missions'), {
-            id: "OR" + Math.floor(100 + Math.random() * 899),
-            nom, tel, lieu: document.getElementById('mLieu').value || "-",
+            id: "CT" + Math.floor(100 + Math.random() * 899),
+            nom, tel, lieu: document.getElementById('mLieu').value || "Non précisé",
             retrait: parseFloat(retrait), com: parseFloat(document.getElementById('mComCalculated').value),
             etape: 1, livreur: "Libre", transaction: "",
             date: new Date().toLocaleDateString('fr-FR'),
@@ -270,26 +271,27 @@
                     <div class="card step${m.etape}">
                         <span class="badge-id">${m.id}</span>
                         <div class="card-title">${m.nom}</div>
-                        <div class="card-info">📍 ${m.lieu} | 💰 ${m.retrait} F</div>
-                        
-                        <div style="display:flex; gap:5px; margin-top:10px;">
-                            <a href="tel:${m.tel}" style="text-decoration:none; background:#eee; padding:8px; border-radius:5px; font-size:11px; color:var(--gabon-bleu); font-weight:bold; flex:1; text-align:center;">📞 Appeler</a>
-                            ${m.etape === 1 ? `
-                                <input type="text" id="tx-${m.key}" placeholder="Code SMS..." style="flex:2; margin:0; padding:5px;">
-                                <button class="btn-cam" onclick="ouvrirCamera('${m.key}')">📸</button>
-                            ` : ""}
-                        </div>
+                        <div class="card-info">📍 ${m.lieu} | 💰 <b>${m.retrait} F</b></div>
                         
                         ${m.etape === 1 ? `
-                            <div class="photo-container">
-                                <div id="status-${m.key}" class="status-photo"></div>
+                            <div class="photo-area">
+                                <button class="btn-camera-trigger" onclick="lancerCamera('${m.key}')">
+                                    📸 FILMER LE SMS PREUVE
+                                </button>
                                 <img id="img-${m.key}" class="photo-preview">
+                                <div id="status-${m.key}" class="status-photo">🚨 PHOTO DU SMS OBLIGATOIRE</div>
+                                <input type="text" id="tx-${m.key}" placeholder="Code de la transaction" style="margin-top:10px;">
                             </div>
-                            <button class="btn-action btn-val" onclick="valider('${m.key}')">VALIDER LA LIVRAISON</button>
+                            <button id="btnVal-${m.key}" class="btn-action btn-val" onclick="valider('${m.key}')" disabled>
+                                CONFIRMER LIVRAISON
+                            </button>
                         ` : ""}
                         
                         ${m.etape === 2 && estAdmin ? `
-                            ${m.photo ? `<button onclick="window.open().document.write('<img src=\\'${m.photo}\\'>')" style="width:100%; border:1px solid var(--gabon-vert); background:none; color:var(--gabon-vert); padding:5px; margin:5px 0; border-radius:5px; font-size:10px; cursor:pointer;">🖼️ Voir la preuve image</button>` : ""}
+                            <div style="background:#eee; padding:10px; border-radius:8px; font-size:11px; margin-bottom:10px;">
+                                Livreur: <b>${m.livreur}</b><br>Code: <b>${m.transaction}</b>
+                            </div>
+                            ${m.photo ? `<button onclick="ouvrirPhoto('${m.key}')" style="width:100%; border:1px solid var(--gabon-bleu); color:var(--gabon-bleu); background:white; padding:8px; border-radius:5px; font-size:10px; margin-bottom:5px; cursor:pointer;">👁️ VOIR PREUVE PHOTO</button>` : ""}
                             <button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>
                         ` : ""}
                     </div>
@@ -300,7 +302,7 @@
                 listR.innerHTML += `
                     <div class="card step3">
                         <div class="card-title" style="font-size:12px;">${m.nom} <small>(${m.date})</small></div>
-                        <div style="font-size:10px; color:#666">Code: ${m.transaction} | Livreur: ${m.livreur}</div>
+                        <div style="font-size:10px; color:#666">Code: ${m.transaction} | Par: ${m.livreur}</div>
                     </div>
                 `;
                 tot += (userRole === 'livreur') ? (m.retrait >= 15000 ? 800 : 400) : m.com;
@@ -312,17 +314,29 @@
         document.getElementById('countDone').innerText = count;
     }
 
+    window.ouvrirPhoto = (k) => {
+        const m = missions.find(x => x.key === k);
+        const win = window.open();
+        win.document.write(`
+            <title>Preuve CT241</title>
+            <body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;">
+                <img src="${m.photo}" style="max-width:100%; max-height:100vh;">
+            </body>
+        `);
+    };
+
     window.valider = (k) => {
         const tx = document.getElementById('tx-'+k).value;
-        if(!tx) return alert("Code SMS requis");
-        if(!tempPhotoData) return alert("📸 Prenez d'abord une photo de preuve !");
+        if(!tx) return alert("Code transaction requis");
+        if(!tempPhotoData) return alert("Photo du SMS manquante !");
         
         const me = auth.currentUser.email.split('@')[0].toUpperCase();
         update(ref(db, 'missions/'+k), { 
             etape: 2, livreur: me, transaction: tx, photo: tempPhotoData 
         }).then(() => {
             tempPhotoData = "";
-        }).catch(err => alert("Erreur d'envoi. Essayez une autre photo."));
+            alert("Livraison enregistrée !");
+        });
     };
 
     window.encaisser = (k) => update(ref(db, 'missions/'+k), { etape: 3 });
@@ -336,7 +350,7 @@
 
     window.shareWA = () => {
         const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
-        let txt = `*BILAN CT241 - ${me}*\nMissions : ${document.getElementById('countDone').innerText}\nTotal : ${document.getElementById('totalCom').innerText}`;
+        let txt = `*BILAN CT241 - ${me}*\nLivraisons : ${document.getElementById('countDone').innerText}\nTotal Gain : ${document.getElementById('totalCom').innerText}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
     };
 </script>
