@@ -11,7 +11,7 @@
         }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* AUTH SCREEN */
+        /* AUTH */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #1e272e; display: flex; align-items: center; justify-content: center; z-index: 9999;
@@ -22,41 +22,53 @@
         }
         input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .btn-login { width: 100%; padding: 14px; background: var(--gabon-vert); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .error-msg { color: var(--danger); font-size: 11px; margin-top: 10px; display: none; }
 
-        /* MAIN APP */
+        /* APP */
         #main-app { display: none; max-width: 600px; margin: auto; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 90vh; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .role-badge { font-size: 10px; padding: 3px 10px; border-radius: 12px; background: var(--dark); color: white; font-weight: bold; }
 
         nav { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; position: relative; }
-        nav button { flex: 1; padding: 12px 5px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; cursor: pointer; }
+        nav button { flex: 1; padding: 12px 5px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; cursor: pointer; position: relative; }
         nav button.active { background: white; color: var(--gabon-vert); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
+        /* Notification Dot */
+        .dot { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+        #notif-banner { display: none; background: var(--gabon-bleu); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: bold; text-align: center; cursor: pointer; }
+
         .section { display: none; }
         .active-sec { display: block; }
 
-        /* MISSION CARDS */
+        /* CARDS */
         .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; }
         .card.step-1 { border-left-color: var(--gabon-bleu); }
         .card.step-2 { border-left-color: var(--gabon-jaune); }
+        .card.step-3 { border-left-color: var(--gabon-vert); background: #f0fff4; }
         
-        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; }
         .card-info { font-size: 12px; color: #555; line-height: 1.4; }
         .badge-id { position: absolute; top: 10px; right: 10px; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
 
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px; }
+        .btn-accept { background: var(--gabon-bleu); color: white; }
+        .btn-photo { background: var(--dark); color: white; }
         .btn-confirm { background: var(--gabon-vert); color: white; }
 
-        /* BILAN STYLING */
+        /* BILAN IMPROVED */
         .bilan-item { padding: 15px 0; border-bottom: 1px solid #eee; }
-        .bilan-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .bilan-client { font-weight: 800; font-size: 14px; }
-        .bilan-gain { color: var(--gabon-vert); font-weight: 900; }
+        .bilan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .bilan-client { font-weight: 800; font-size: 14px; color: var(--dark); }
+        .bilan-meta { font-size: 11px; color: #777; margin-top: 4px; }
+        .bilan-gain { color: var(--gabon-vert); font-weight: 900; font-size: 15px; }
         
-        .btn-view-proof { background: #f1f2f6; border: none; padding: 8px 12px; border-radius: 6px; font-size: 10px; font-weight: bold; color: var(--gabon-bleu); cursor: pointer; margin-top: 10px; }
+        .btn-view-proof { background: #f1f2f6; border: none; padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; color: var(--gabon-bleu); cursor: pointer; margin-top: 8px; }
         .proof-img-container { display: none; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
-        .proof-img-container img { width: 100%; height: auto; display: block; }
+        .proof-img-container img { width: 100%; display: block; }
+
+        .photo-box { margin-top: 10px; border: 2px dashed #ddd; border-radius: 8px; padding: 10px; text-align: center; }
+        .preview-img { width: 100%; border-radius: 5px; display: none; margin-top: 8px; border: 2px solid var(--gabon-vert); }
     </style>
 </head>
 <body>
@@ -64,12 +76,10 @@
     <div id="auth-screen">
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
-            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Interface de Gestion</p>
-            <input type="email" id="login-email" placeholder="Email (ex: admin@ct241.com)">
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Portail Logistique</p>
+            <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
-            <button class="btn-login" id="btnConnect">SE CONNECTER</button>
-            <div id="auth-error" class="error-msg">Identifiants incorrects ou problème réseau.</div>
-            <p style="font-size: 10px; color: #999; margin-top: 15px;">Note: Utilisez un email contenant 'admin', 'finance' ou 'livreur'.</p>
+            <button class="btn-login" id="btnConnect">ACCÉDER</button>
         </div>
     </div>
 
@@ -78,47 +88,61 @@
             <div>
                 <h3 style="margin:0; color:var(--gabon-vert)">CT241 OPS</h3>
                 <span id="user-display" style="font-size:10px; color:#888"></span>
-                <span id="user-role" class="role-badge">CHARGEMENT...</span>
+                <span id="user-role" class="role-badge">...</span>
             </div>
-            <button id="btnOut" style="font-size:10px; color:var(--danger); background:none; border:none; font-weight:bold;">DECONNEXION</button>
+            <button id="btnOut" style="font-size:10px; color:var(--danger); background:none; border:none; font-weight:bold;">SORTIR</button>
         </header>
 
+        <div id="notif-banner" onclick="ouvrir('missions')">🔔 NOUVELLE MISSION !</div>
+
         <nav id="navbar">
-            <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">CRÉER</button>
-            <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS</button>
+            <button onclick="ouvrir('creer')" id="nav-creer" class="role-hide finance-only admin-only">CRÉER</button>
+            <button onclick="ouvrir('missions')" id="nav-missions">MISSIONS <span id="mission-dot" class="dot"></span></button>
             <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
         </nav>
 
+        <!-- CRÉATION -->
         <div id="sec-creer" class="section">
-            <div style="background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
+            <div style="background: #fff; padding: 10px; border: 1px solid #eee; border-radius: 12px;">
                 <h4 style="margin-top:0">Nouvelle Mission</h4>
                 <input type="text" id="mNom" placeholder="Nom du Client">
                 <input type="tel" id="mTel" placeholder="Téléphone Client">
-                <input type="text" id="mLieu" placeholder="Quartier / Destination">
-                <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
-                <button onclick="creerMission()" class="btn-action btn-confirm">LANCER LA MISSION</button>
+                <input type="text" id="mLieu" placeholder="Quartier (Destination)">
+                <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)" oninput="calculerCom()">
+                <div id="comLabel" style="font-size:11px; color:var(--gabon-vert); font-weight:bold; margin: 5px 0;">Com Direction: 0 F</div>
+                <button onclick="creerMission()" class="btn-action btn-confirm">LANCER MISSION</button>
             </div>
         </div>
 
+        <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
             <div id="container-missions"></div>
         </div>
 
+        <!-- BILAN -->
         <div id="sec-bilan" class="section">
-            <h4 style="margin:0 0 10px 0;">HISTORIQUE & GAINS</h4>
-            <div id="container-bilan" style="background:white; border-radius:12px; border:1px solid #eee; padding:0 15px;"></div>
-            <div style="background:var(--dark); color:white; padding:15px; border-radius:12px; margin-top:15px; display:flex; justify-content:space-between; align-items:center;">
-                <span id="label-total">TOTAL</span>
-                <b id="stat-total" style="color:var(--gabon-jaune); font-size:18px">0 F</b>
+            <h4 style="margin:0 0 10px 0; color:var(--dark); font-size: 14px; text-transform: uppercase;">Récapitulatif des Gains</h4>
+            <div id="container-bilan" style="background:white; border-radius:12px; border:1px solid #eee; padding:0 15px; max-height:450px; overflow-y:auto;"></div>
+            
+            <div style="background:var(--dark); color:white; padding:15px; border-radius:12px; margin-top:15px;">
+                <div style="display:flex; justify-content:space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #aaa;">Missions terminées</span> 
+                    <b id="stat-count">0</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items: center; margin-top:10px;">
+                    <span style="font-size:14px; font-weight: bold;">TOTAL CUMULÉ</span> 
+                    <b id="stat-total" style="color:var(--gabon-jaune); font-size:20px">0 F</b>
+                </div>
             </div>
         </div>
     </div>
 
+    <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="canvas" style="display:none"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
@@ -135,130 +159,199 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    let userRole = "livreur"; 
-    let allMissions = [];
+    let userRole = "visiteur";
+    let myMissions = [];
+    let currentPhotoKey = null;
+    let currentPhotoData = "";
 
-    // Connexion
-    document.getElementById('btnConnect').onclick = async () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        const errDiv = document.getElementById('auth-error');
-        
-        errDiv.style.display = 'none';
-
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-        } catch (error) {
-            console.error(error);
-            errDiv.innerText = "Erreur: " + error.message;
-            errDiv.style.display = 'block';
-            
-            // Secours : Mode Démo/Anonyme si les identifiants échouent pour l'instant
-            if(confirm("Échec de connexion. Voulez-vous entrer en mode 'Démo Invité' ?")) {
-                await signInAnonymously(auth);
-            }
-        }
+    document.getElementById('btnConnect').onclick = () => {
+        const e = document.getElementById('login-email').value;
+        const p = document.getElementById('login-pass').value;
+        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Erreur d'accès"));
     };
-
     document.getElementById('btnOut').onclick = () => signOut(auth);
 
-    onAuthStateChanged(auth, (user) => {
-        if(user) {
-            const email = (user.email || "livreur-demo@ct241.com").toLowerCase();
-            
+    onAuthStateChanged(auth, (u) => {
+        if(u) {
+            const email = u.email.toLowerCase();
             if(email.includes('admin')) userRole = "admin";
             else if(email.includes('finance')) userRole = "finance";
-            else userRole = "livreur";
+            else if(email.includes('livreur')) userRole = "livreur";
 
             document.getElementById('user-role').innerText = userRole.toUpperCase();
-            document.getElementById('user-display').innerText = email;
+            document.getElementById('user-display').innerText = u.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
 
-            // Visibilité Menu
-            if(userRole === 'admin' || userRole === 'finance') {
-                document.getElementById('nav-creer').style.display = 'block';
-            }
+            document.querySelectorAll('.role-hide').forEach(el => el.style.display = 'none');
+            if(userRole === 'admin') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            if(userRole === 'finance') document.querySelectorAll('.finance-only').forEach(el => el.style.display = 'block');
 
             chargerDonnees();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('main-app').style.display = 'none';
         }
     });
+
+    window.calculerCom = () => {
+        const val = parseFloat(document.getElementById('mRetrait').value) || 0;
+        const com = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
+        document.getElementById('comLabel').innerText = `Com Direction: ${com} F`;
+        return com;
+    };
+
+    window.creerMission = () => {
+        const nom = document.getElementById('mNom').value;
+        const tel = document.getElementById('mTel').value;
+        const lieu = document.getElementById('mLieu').value;
+        const mnt = document.getElementById('mRetrait').value;
+        if(!nom || !mnt) return alert("Champs obligatoires !");
+
+        const now = new Date();
+        push(ref(db, 'missions'), {
+            id: "CT" + Math.floor(100 + Math.random() * 899),
+            nom, tel, lieu, retrait: parseFloat(mnt), com: calculerCom(),
+            etape: 1, livreur: "Libre", codeSMS: "", photo: "",
+            date: now.toLocaleDateString('fr-FR'),
+            heure: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now()
+        });
+
+        alert("Mission créée !");
+        ['mNom','mTel','mLieu','mRetrait'].forEach(id => document.getElementById(id).value = "");
+        ouvrir('missions');
+    };
 
     function chargerDonnees() {
         onValue(ref(db, 'missions'), (snap) => {
             const data = snap.val();
-            allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
-            renderUI();
+            myMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+            renderMissions();
         });
     }
 
-    function renderUI() {
+    function renderMissions() {
         const contM = document.getElementById('container-missions');
         const contB = document.getElementById('container-bilan');
         contM.innerHTML = ""; contB.innerHTML = "";
         
-        let total = 0;
-        const myId = auth.currentUser.email ? auth.currentUser.email.split('@')[0].toUpperCase() : "DEMO";
+        let totalGain = 0; let countDone = 0;
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
 
-        allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            // Liste active
+        myMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+            // Vue Missions en cours
             if(m.etape < 3) {
-                if(userRole !== 'livreur' || m.livreur === "Libre" || m.livreur === myId) {
+                const canSee = (userRole !== 'livreur' || m.livreur === "Libre" || m.livreur === myName);
+                if(canSee) {
+                    let actions = "";
+                    if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
+                        actions = `<button class="btn-action btn-accept" onclick="accepterMission('${m.key}')">ACCEPTER</button>`;
+                    } else if(m.etape === 1 && m.livreur === myName && userRole === 'livreur') {
+                        actions = `
+                            <div class="photo-box">
+                                <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 FILMER SMS</button>
+                                <img id="pre-${m.key}" class="preview-img">
+                                <input type="text" id="sms-${m.key}" placeholder="Code SMS" style="margin-top:10px">
+                                <button id="val-${m.key}" class="btn-action btn-confirm" onclick="finaliserLivreur('${m.key}')" disabled>VALIDER LIVRAISON</button>
+                            </div>
+                        `;
+                    } else if(m.etape === 2 && userRole !== 'livreur') {
+                        actions = `<button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">ENCAISSER (${m.com} F)</button>`;
+                    }
+
                     contM.innerHTML += `
                         <div class="card step-${m.etape}">
                             <span class="badge-id">${m.id}</span>
                             <div class="card-title">${m.nom}</div>
                             <div class="card-info">
-                                📍 <b>${m.lieu || 'N/A'}</b> | 💰 <b>${m.retrait} F</b><br>
-                                🛵 Livreur: ${m.livreur}
+                                📍 Dest: <b>${m.lieu || 'Non spécifié'}</b><br>
+                                💰 Retrait: <b>${m.retrait.toLocaleString()} F</b>
                             </div>
+                            ${actions}
                         </div>
                     `;
                 }
             }
 
-            // Bilan (Missions terminées)
+            // Vue Bilan (Archives)
             if(m.etape === 3) {
-                const gain = (userRole === 'livreur') ? 800 : m.com;
-                total += gain;
-                
-                contB.innerHTML += `
-                    <div class="bilan-item">
-                        <div class="bilan-header">
-                            <span class="bilan-client">${m.nom} <small>#${m.id}</small></span>
-                            <span class="bilan-gain">+ ${gain} F</span>
+                const isMine = (m.livreur === myName || userRole !== 'livreur');
+                if(isMine) {
+                    const gain = (userRole === 'livreur') ? 800 : m.com;
+                    totalGain += gain; countDone++;
+
+                    contB.innerHTML += `
+                        <div class="bilan-item">
+                            <div class="bilan-header">
+                                <div class="bilan-client">
+                                    ${m.nom} <span style="font-size:10px; color:var(--gabon-bleu)">#${m.id}</span>
+                                </div>
+                                <div class="bilan-gain">+ ${gain} F</div>
+                            </div>
+                            <div class="bilan-meta">
+                                📍 Destination : <b>${m.lieu || 'Quartier N/A'}</b><br>
+                                📅 ${m.date} à ${m.heure}
+                            </div>
+                            ${m.photo ? `
+                                <button class="btn-view-proof" onclick="toggleProof('${m.key}')">👁️ VOIR PREUVE SMS</button>
+                                <div id="proof-box-${m.key}" class="proof-img-container">
+                                    <img src="${m.photo}" alt="Preuve SMS">
+                                </div>
+                            ` : ''}
                         </div>
-                        <div style="font-size:11px; color:#666; margin-top:4px">
-                            📍 Destination: <b>${m.lieu || 'N/A'}</b><br>
-                            🛵 Livreur: ${m.livreur} | SMS: ${m.codeSMS}
-                        </div>
-                        ${m.photo ? `
-                            <button class="btn-view-proof" onclick="this.nextElementSibling.style.display='block'">👁️ VOIR PREUVE</button>
-                            <div class="proof-img-container"><img src="${m.photo}"></div>
-                        ` : ''}
-                    </div>
-                `;
+                    `;
+                }
             }
         });
-        document.getElementById('stat-total').innerText = total + " F";
+
+        document.getElementById('stat-count').innerText = countDone;
+        document.getElementById('stat-total').innerText = totalGain.toLocaleString() + " F";
     }
 
-    window.creerMission = () => {
-        const nom = document.getElementById('mNom').value;
-        const mnt = document.getElementById('mRetrait').value;
-        if(!nom || !mnt) return alert("Nom et Montant requis");
-        
-        push(ref(db, 'missions'), {
-            id: "CT" + Math.floor(100+Math.random()*900),
-            nom, lieu: document.getElementById('mLieu').value,
-            retrait: parseInt(mnt), com: 390, etape: 1, 
-            livreur: "Libre", timestamp: Date.now(), date: new Date().toLocaleDateString()
-        });
-        alert("Mission créée");
-        ouvrir('missions');
+    window.toggleProof = (key) => {
+        const box = document.getElementById(`proof-box-${key}`);
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    };
+
+    window.accepterMission = (k) => {
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${k}`), { livreur: myName });
+    };
+
+    window.triggerCam = (k) => {
+        currentPhotoKey = k;
+        document.getElementById('camInput').click();
+    };
+
+    document.getElementById('camInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            const img = new Image();
+            img.onload = () => {
+                const can = document.getElementById('canvas');
+                const ctx = can.getContext('2d');
+                can.width = 600; can.height = (img.height / img.width) * 600;
+                ctx.drawImage(img, 0, 0, can.width, can.height);
+                currentPhotoData = can.toDataURL('image/jpeg', 0.6);
+                document.getElementById('pre-'+currentPhotoKey).src = currentPhotoData;
+                document.getElementById('pre-'+currentPhotoKey).style.display = 'block';
+                document.getElementById('val-'+currentPhotoKey).disabled = false;
+            };
+            img.src = re.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.finaliserLivreur = (k) => {
+        const code = document.getElementById('sms-'+k).value;
+        if(!code) return alert("Code SMS obligatoire");
+        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: currentPhotoData });
+    };
+
+    window.encaisser = (k) => {
+        if(confirm("Confirmer la clôture de cette mission ?")) update(ref(db, `missions/${k}`), { etape: 3 });
     };
 
     window.ouvrir = (id) => {
@@ -267,7 +360,6 @@
         document.getElementById('sec-'+id).classList.add('active-sec');
         document.getElementById('nav-'+id).classList.add('active');
     };
-
 </script>
 </body>
 </html>
