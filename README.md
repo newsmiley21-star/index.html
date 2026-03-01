@@ -55,13 +55,13 @@
         .footer-stats { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-top: 20px; }
         .stat-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
         
-        /* PHOTO PREUVE CSS */
-        .photo-preview { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin: 10px 0; display: none; border: 2px solid var(--gabon-vert); }
-        .btn-cam { background: #eee; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .btn-cam:active { background: #ddd; }
+        /* PHOTO PREUVE */
+        .photo-container { margin: 10px 0; }
+        .photo-preview { width: 100%; height: auto; max-height: 200px; object-fit: contain; border-radius: 8px; display: none; border: 2px solid var(--gabon-vert); margin-top: 5px; }
+        .btn-cam { background: #eee; border: 1px solid #ddd; padding: 10px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 50px; }
+        .status-photo { font-size: 10px; color: var(--gabon-vert); font-weight: bold; margin-top: 5px; display: none; }
 
-        /* RESTRICTION CSS */
-        .admin-only, .finance-only { display: none; }
+        .admin-only { display: none; }
     </style>
 </head>
 <body>
@@ -91,7 +91,6 @@
             <button onclick="ouvrir('reçus')" id="t-reçus">BILAN</button>
         </nav>
 
-        <!-- SECTION CRÉATION (Admin Uniquement) -->
         <div id="sec-saisie" class="section admin-only active-sec">
             <div class="form-box">
                 <div id="mComDisplay">Saisissez un montant</div>
@@ -104,31 +103,23 @@
             </div>
         </div>
 
-        <!-- SECTION MISSIONS (Visible par tous, filtrage par livreur) -->
         <div id="sec-taches" class="section">
             <div id="list-taches"></div>
         </div>
 
-        <!-- SECTION BILAN (Visible par tous, filtrage données par livreur) -->
         <div id="sec-reçus" class="section">
             <div id="list-reçus"></div>
-            
             <div class="footer-stats">
-                <div class="stat-row">
-                    <span>Missions terminées</span>
-                    <b id="countDone">0</b>
-                </div>
-                <div class="stat-row">
-                    <span id="label-total">Total Bilan</span>
-                    <b id="totalCom" style="color: var(--gabon-jaune); font-size: 16px;">0 F</b>
-                </div>
+                <div class="stat-row"><span>Missions terminées</span><b id="countDone">0</b></div>
+                <div class="stat-row"><span id="label-total">Total Bilan</span><b id="totalCom" style="color: var(--gabon-jaune); font-size: 16px;">0 F</b></div>
                 <button id="btn-wa-share" class="btn-action" onclick="shareWA()" style="background:#25D366; color:white">📲 PARTAGER SUR WHATSAPP</button>
             </div>
         </div>
     </div>
 
-    <!-- INPUT PHOTO CACHÉ -->
+    <!-- ÉLÉMENTS TECHNIQUES CACHÉS -->
     <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none">
+    <canvas id="compressCanvas" style="display:none"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -153,7 +144,6 @@
     let currentTaskKey = null;
     let tempPhotoData = "";
 
-    // CALCUL AUTO (390 F)
     window.calcAuto = () => {
         const val = parseFloat(document.getElementById('mRetrait').value) || 0;
         let c = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
@@ -161,26 +151,25 @@
         document.getElementById('mComDisplay').innerHTML = `Com Direction : <b>${c} F</b>`;
     };
 
-    // AUTH & RÔLES
     document.getElementById('btnConnect').onclick = () => {
         const e = document.getElementById('login-email').value;
         const p = document.getElementById('login-pass').value;
-        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Accès refusé"));
+        signInWithEmailAndPassword(auth, e, p).catch(() => alert("Accès refusé"));
     };
     document.getElementById('btnOut').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (u) => {
         if(u) {
             const email = u.email.toLowerCase();
-            if(email.includes('admin')) userRole = 'admin';
-            else if(email.includes('finance')) userRole = 'finance';
-            else userRole = 'livreur';
-
+            userRole = email.includes('admin') ? 'admin' : (email.includes('finance') ? 'finance' : 'livreur');
             document.getElementById('user-role').innerText = userRole.toUpperCase();
-            appliquerRestrictions();
-            
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            
+            const adminEls = document.querySelectorAll('.admin-only');
+            adminEls.forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
+            
+            if(userRole === 'livreur') ouvrir('taches');
             ecouterMissions();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
@@ -188,27 +177,7 @@
         }
     });
 
-    function appliquerRestrictions() {
-        const adminEls = document.querySelectorAll('.admin-only');
-        adminEls.forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
-        if(userRole === 'livreur') {
-            ouvrir('taches');
-            document.getElementById('label-total').innerText = "Mon Gain Estimé";
-        } else {
-            document.getElementById('label-total').innerText = "Total Com Direction";
-        }
-    }
-
-    window.ouvrir = (id) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        const sec = document.getElementById('sec-'+id);
-        if(sec) sec.classList.add('active-sec');
-        const btn = document.getElementById('t-'+id);
-        if(btn) btn.classList.add('active');
-    };
-
-    // GESTION PHOTO
+    // COMPRESSION ET CAPTURE PHOTO
     window.ouvrirCamera = (key) => {
         currentTaskKey = key;
         document.getElementById('photoInput').click();
@@ -217,19 +186,47 @@
     document.getElementById('photoInput').onchange = (e) => {
         const file = e.target.files[0];
         if(!file) return;
+
         const reader = new FileReader();
         reader.onload = (event) => {
-            tempPhotoData = event.target.result;
-            const imgPreview = document.getElementById('img-'+currentTaskKey);
-            if(imgPreview) {
-                imgPreview.src = tempPhotoData;
-                imgPreview.style.display = 'block';
-            }
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.getElementById('compressCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Redimensionnement intelligent (Max 800px)
+                let width = img.width;
+                let height = img.height;
+                const maxSize = 800;
+                
+                if (width > height) {
+                    if (width > maxSize) { height *= maxSize / width; width = maxSize; }
+                } else {
+                    if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compression JPG à 60%
+                tempPhotoData = canvas.toDataURL('image/jpeg', 0.6);
+                
+                // Mise à jour interface
+                const preview = document.getElementById('img-'+currentTaskKey);
+                const status = document.getElementById('status-'+currentTaskKey);
+                if(preview) {
+                    preview.src = tempPhotoData;
+                    preview.style.display = 'block';
+                    status.style.display = 'block';
+                    status.innerText = "✅ Image capturée et prête";
+                }
+            };
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     };
 
-    // GESTION MISSIONS
     window.lancerMission = () => {
         const nom = document.getElementById('mNom').value;
         const tel = document.getElementById('mTel').value;
@@ -245,7 +242,6 @@
             heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             photo: ""
         });
-
         ['mNom', 'mTel', 'mLieu', 'mRetrait'].forEach(i => document.getElementById(i).value = "");
         ouvrir('taches');
     };
@@ -262,13 +258,12 @@
         const listT = document.getElementById('list-taches');
         const listR = document.getElementById('list-reçus');
         listT.innerHTML = ""; listR.innerHTML = "";
-        
-        let tot = 0; let count = 0;
+        let tot = 0, count = 0;
         const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
 
         missions.slice().reverse().forEach(m => {
-            const estMaMission = (m.livreur === me || m.livreur === "Libre");
             const estAdmin = (userRole === 'admin' || userRole === 'finance');
+            const estMaMission = (m.livreur === me || m.livreur === "Libre");
 
             if(m.etape < 3 && (estAdmin || estMaMission)) {
                 listT.innerHTML += `
@@ -278,24 +273,25 @@
                         <div class="card-info">📍 ${m.lieu} | 💰 ${m.retrait} F</div>
                         
                         <div style="display:flex; gap:5px; margin-top:10px;">
-                            <a href="tel:${m.tel}" style="text-decoration:none; background:#eee; padding:5px 10px; border-radius:5px; font-size:11px; color:var(--gabon-bleu); font-weight:bold;">📞 Appeler</a>
+                            <a href="tel:${m.tel}" style="text-decoration:none; background:#eee; padding:8px; border-radius:5px; font-size:11px; color:var(--gabon-bleu); font-weight:bold; flex:1; text-align:center;">📞 Appeler</a>
                             ${m.etape === 1 ? `
-                                <input type="text" id="tx-${m.key}" placeholder="Code SMS..." style="flex:1; margin:0; padding:5px;">
+                                <input type="text" id="tx-${m.key}" placeholder="Code SMS..." style="flex:2; margin:0; padding:5px;">
                                 <button class="btn-cam" onclick="ouvrirCamera('${m.key}')">📸</button>
                             ` : ""}
                         </div>
                         
                         ${m.etape === 1 ? `
-                            <img id="img-${m.key}" class="photo-preview" src="${m.photo || ''}" style="${m.photo ? 'display:block' : ''}">
+                            <div class="photo-container">
+                                <div id="status-${m.key}" class="status-photo"></div>
+                                <img id="img-${m.key}" class="photo-preview">
+                            </div>
                             <button class="btn-action btn-val" onclick="valider('${m.key}')">VALIDER LA LIVRAISON</button>
                         ` : ""}
                         
                         ${m.etape === 2 && estAdmin ? `
-                            ${m.photo ? `<div onclick="window.open('${m.photo}')" style="font-size:10px; color:var(--gabon-vert); cursor:pointer; margin:5px 0;">🖼️ Voir la photo de preuve</div>` : ""}
+                            ${m.photo ? `<button onclick="window.open().document.write('<img src=\\'${m.photo}\\'>')" style="width:100%; border:1px solid var(--gabon-vert); background:none; color:var(--gabon-vert); padding:5px; margin:5px 0; border-radius:5px; font-size:10px; cursor:pointer;">🖼️ Voir la preuve image</button>` : ""}
                             <button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>
                         ` : ""}
-                        
-                        ${m.etape === 2 && !estAdmin ? `<div style="font-size:10px; color:orange; margin-top:10px; text-align:center;">Attente encaissement direction...</div>` : ""}
                     </div>
                 `;
             }
@@ -303,16 +299,11 @@
             if(m.etape === 3 && (estAdmin || m.livreur === me)) {
                 listR.innerHTML += `
                     <div class="card step3">
-                        <div class="card-title" style="font-size:12px;">${m.nom} <small style="color:gray">(${m.date})</small></div>
+                        <div class="card-title" style="font-size:12px;">${m.nom} <small>(${m.date})</small></div>
                         <div style="font-size:10px; color:#666">Code: ${m.transaction} | Livreur: ${m.livreur}</div>
-                        ${estAdmin && m.photo ? `<div onclick="window.open('${m.photo}')" style="font-size:9px; color:blue; margin-top:5px; cursor:pointer;">📎 Photo archivée</div>` : ""}
                     </div>
                 `;
-                if(userRole === 'livreur') {
-                    tot += (m.retrait >= 15000 ? 800 : 400); 
-                } else {
-                    tot += m.com; 
-                }
+                tot += (userRole === 'livreur') ? (m.retrait >= 15000 ? 800 : 400) : m.com;
                 count++;
             }
         });
@@ -324,25 +315,28 @@
     window.valider = (k) => {
         const tx = document.getElementById('tx-'+k).value;
         if(!tx) return alert("Code SMS requis");
-        if(!tempPhotoData) return alert("📸 Prenez une photo de preuve (client ou bordereau)");
+        if(!tempPhotoData) return alert("📸 Prenez d'abord une photo de preuve !");
         
         const me = auth.currentUser.email.split('@')[0].toUpperCase();
         update(ref(db, 'missions/'+k), { 
-            etape: 2, 
-            livreur: me, 
-            transaction: tx,
-            photo: tempPhotoData 
-        });
-        tempPhotoData = ""; // Reset
+            etape: 2, livreur: me, transaction: tx, photo: tempPhotoData 
+        }).then(() => {
+            tempPhotoData = "";
+        }).catch(err => alert("Erreur d'envoi. Essayez une autre photo."));
     };
 
     window.encaisser = (k) => update(ref(db, 'missions/'+k), { etape: 3 });
 
+    window.ouvrir = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-'+id).classList.add('active-sec');
+        document.getElementById('t-'+id).classList.add('active');
+    };
+
     window.shareWA = () => {
         const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
-        let txt = `*BILAN CT241 - ${me}*\n`;
-        txt += `Missions : ${document.getElementById('countDone').innerText}\n`;
-        txt += `Total : ${document.getElementById('totalCom').innerText}`;
+        let txt = `*BILAN CT241 - ${me}*\nMissions : ${document.getElementById('countDone').innerText}\nTotal : ${document.getElementById('totalCom').innerText}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
     };
 </script>
