@@ -3,63 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CT241 - GESTION SÉCURISÉE</title>
+    <title>CT241 - SYSTÈME DE DISTRIBUTION</title>
     <style>
         :root {
             --gabon-vert: #009E60; --gabon-jaune: #FCD116; --gabon-bleu: #3A75C4;
             --danger: #e74c3c; --dark: #1a1a1a; --light: #f8f9fa;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); margin: 0; padding: 10px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--light); margin: 0; padding: 10px; overflow-x: hidden; }
         
-        /* AUTHENTIFICATION */
+        /* AUTH */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #1e272e; display: flex; align-items: center; justify-content: center; z-index: 9999;
         }
         .login-card {
             background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 320px;
-            text-align: center; border-top: 8px solid var(--gabon-jaune); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center; border-top: 8px solid var(--gabon-jaune);
         }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; outline: none; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .btn-login { width: 100%; padding: 14px; background: var(--gabon-vert); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* INTERFACE */
+        /* APP */
         #main-app { display: none; max-width: 600px; margin: auto; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 90vh; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
-        
-        .role-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #eee; color: #666; font-weight: bold; }
+        .role-badge { font-size: 10px; padding: 3px 10px; border-radius: 12px; background: var(--dark); color: white; font-weight: bold; }
 
         nav { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; }
-        nav button { flex: 1; padding: 10px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; }
+        nav button { flex: 1; padding: 10px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; cursor: pointer; }
         nav button.active { background: white; color: var(--gabon-vert); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
         .section { display: none; }
         .active-sec { display: block; }
 
-        /* CARTES MISSIONS */
-        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 6px solid var(--gabon-bleu); position: relative; }
-        .card.step2 { border-left-color: var(--gabon-jaune); }
-        .card.step3 { border-left-color: var(--gabon-vert); background: #f0fff4; }
+        /* CARDS */
+        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; }
+        .card.step-1 { border-left-color: var(--gabon-bleu); } /* En attente / Libre */
+        .card.step-2 { border-left-color: var(--gabon-jaune); } /* Livré, attente encaissement */
+        .card.step-3 { border-left-color: var(--gabon-vert); background: #f0fff4; } /* Terminé */
         
-        .card-title { font-weight: bold; font-size: 14px; color: var(--dark); }
-        .card-info { font-size: 11px; color: #666; margin: 5px 0; }
-        .badge-id { position: absolute; top: 10px; right: 10px; background: #f1f2f6; color: #2f3542; padding: 2px 5px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .card-info { font-size: 12px; color: #555; line-height: 1.4; }
+        .badge-id { position: absolute; top: 10px; right: 10px; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
 
-        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-        .btn-val { background: var(--gabon-vert); color: white; }
-        .btn-val:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.6; }
-        .btn-enc { background: var(--gabon-bleu); color: white; }
+        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px; }
+        .btn-accept { background: var(--gabon-bleu); color: white; }
+        .btn-photo { background: var(--dark); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-confirm { background: var(--gabon-vert); color: white; }
+        .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* CONTROLES PHOTO */
-        .photo-area { background: #f9f9f9; border: 2px solid #eee; border-radius: 10px; padding: 15px; text-align: center; margin: 10px 0; }
-        .btn-camera-trigger { background: var(--dark); color: white; border: none; padding: 12px 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
-        .btn-camera-trigger:active { transform: scale(0.98); }
-        
-        .photo-preview { width: 100%; height: auto; max-height: 250px; object-fit: contain; border-radius: 8px; display: none; border: 3px solid var(--gabon-vert); margin-top: 10px; }
-        .status-photo { font-size: 11px; color: #999; font-weight: bold; margin-top: 8px; display: block; }
-        .status-photo.ok { color: var(--gabon-vert); }
-
-        .admin-only { display: none; }
+        /* PHOTO PREVIEW */
+        .photo-box { margin-top: 10px; border: 2px dashed #ddd; border-radius: 8px; padding: 10px; text-align: center; }
+        .preview-img { width: 100%; border-radius: 5px; display: none; margin-top: 8px; border: 2px solid var(--gabon-vert); }
     </style>
 </head>
 <body>
@@ -67,10 +61,10 @@
     <div id="auth-screen">
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
-            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Espace Livreurs & Staff</p>
-            <input type="email" id="login-email" placeholder="Email (ex: livreur1@ct241.com)">
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">Connectez-vous pour accéder au réseau</p>
+            <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
-            <button class="btn-login" id="btnConnect">SE CONNECTER</button>
+            <button class="btn-login" id="btnConnect">ACCÉDER</button>
         </div>
     </div>
 
@@ -78,50 +72,54 @@
         <header>
             <div>
                 <h3 style="margin:0; color:var(--gabon-vert)">CT241 OPS</h3>
-                <span id="user-role" class="role-badge">Chargement...</span>
+                <span id="user-display" style="font-size:10px; color:#888"></span>
+                <span id="user-role" class="role-badge">...</span>
             </div>
-            <button id="btnOut" style="font-size:10px; color:var(--danger); background:none; border:none; font-weight:bold; cursor:pointer">SORTIR</button>
+            <button id="btnOut" style="font-size:10px; color:var(--danger); background:none; border:none; font-weight:bold; cursor:pointer">DÉCONNEXION</button>
         </header>
 
-        <nav id="main-nav">
-            <button onclick="ouvrir('saisie')" id="t-saisie" class="admin-only active">CRÉER</button>
-            <button onclick="ouvrir('taches')" id="t-taches">MISSIONS</button>
-            <button onclick="ouvrir('reçus')" id="t-reçus">BILAN</button>
+        <nav id="navbar">
+            <button onclick="ouvrir('creer')" id="nav-creer" class="role-hide finance-only admin-only">CRÉER</button>
+            <button onclick="ouvrir('missions')" id="nav-missions">MISSIONS</button>
+            <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
         </nav>
 
-        <div id="sec-saisie" class="section admin-only active-sec">
-            <div style="background: #fdfdfd; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #eee;">
+        <!-- SECTION CRÉATION (Finance & Admin) -->
+        <div id="sec-creer" class="section">
+            <div style="background: #fff; padding: 10px; border: 1px solid #eee; border-radius: 12px;">
+                <h4 style="margin-top:0">Nouvelle Mission de Retrait</h4>
                 <input type="text" id="mNom" placeholder="Nom du Client">
-                <input type="tel" id="mTel" placeholder="Téléphone">
-                <input type="text" id="mLieu" placeholder="Quartier / Lieu">
-                <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)" oninput="calcAuto()">
-                <div id="mComDisplay" style="font-size:12px; color:var(--gabon-vert); margin-top:5px; font-weight:bold">Com: 0 F</div>
-                <input type="hidden" id="mComCalculated">
-                <button onclick="lancerMission()" class="btn-action" style="background:var(--dark); color:white">LANCER LA MISSION</button>
+                <input type="tel" id="mTel" placeholder="Téléphone Client">
+                <input type="text" id="mLieu" placeholder="Quartier / Emplacement">
+                <input type="number" id="mRetrait" placeholder="Montant à retirer (FCFA)" oninput="calculerCom()">
+                <div id="comLabel" style="font-size:11px; color:var(--gabon-vert); font-weight:bold; margin: 5px 0;">Com Direction: 0 F</div>
+                <button onclick="creerMission()" class="btn-action btn-confirm">LANCER LA MISSION</button>
             </div>
         </div>
 
-        <div id="sec-taches" class="section">
-            <div id="list-taches"></div>
+        <!-- SECTION MISSIONS (Tout le monde) -->
+        <div id="sec-missions" class="section active-sec">
+            <div id="container-missions"></div>
         </div>
 
-        <div id="sec-reçus" class="section">
-            <div id="list-reçus"></div>
-            <div style="background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-top: 20px;">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;"><span>Terminées</span><b id="countDone">0</b></div>
-                <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>Total</span><b id="totalCom" style="color: var(--gabon-jaune); font-size: 16px;">0 F</b></div>
-                <button onclick="shareWA()" class="btn-action" style="background:#25D366; color:white">PARTAGER BILAN WA</button>
+        <!-- SECTION BILAN (Tout le monde) -->
+        <div id="sec-bilan" class="section">
+            <div id="container-bilan"></div>
+            <div style="background:var(--dark); color:white; padding:15px; border-radius:12px; margin-top:15px;">
+                <div style="display:flex; justify-content:space-between"><span>Terminées</span> <b id="stat-count">0</b></div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="font-size:18px">TOTAL GAIN</span> <b id="stat-total" style="color:var(--gabon-jaune); font-size:20px">0 F</b></div>
             </div>
         </div>
     </div>
 
-    <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none">
-    <canvas id="compressCanvas" style="display:none"></canvas>
+    <!-- Hidden Elements for Logic -->
+    <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
+    <canvas id="canvas" style="display:none"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -136,217 +134,224 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    
-    let userRole = "visiteur"; 
-    let missions = [];
-    let currentTaskKey = null;
-    let tempPhotoData = "";
 
-    window.calcAuto = () => {
-        const val = parseFloat(document.getElementById('mRetrait').value) || 0;
-        let c = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
-        document.getElementById('mComCalculated').value = c;
-        document.getElementById('mComDisplay').innerText = `Commission Direction : ${c} F`;
-    };
+    let userRole = "visiteur";
+    let myMissions = [];
+    let currentPhotoKey = null;
+    let currentPhotoData = "";
 
+    // --- AUTHENTIFICATION ---
     document.getElementById('btnConnect').onclick = () => {
         const e = document.getElementById('login-email').value;
         const p = document.getElementById('login-pass').value;
-        signInWithEmailAndPassword(auth, e, p).catch(() => alert("Identifiants incorrects"));
+        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Erreur d'accès : " + err.message));
     };
     document.getElementById('btnOut').onclick = () => signOut(auth);
 
     onAuthStateChanged(auth, (u) => {
         if(u) {
             const email = u.email.toLowerCase();
-            
-            // DÉTECTION ROBUSTE DES RÔLES
-            if (email.includes('admin')) {
-                userRole = 'admin';
-            } else if (email.includes('finance')) {
-                userRole = 'finance';
-            } else if (email.includes('livreur')) {
-                userRole = 'livreur';
-            } else {
-                userRole = 'visiteur';
-            }
+            if(email.includes('admin')) userRole = "admin";
+            else if(email.includes('finance')) userRole = "finance";
+            else if(email.includes('livreur')) userRole = "livreur";
 
             document.getElementById('user-role').innerText = userRole.toUpperCase();
+            document.getElementById('user-display').innerText = u.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
-            if(userRole !== 'admin') ouvrir('taches');
-            ecouterMissions();
+
+            // Visibilité des onglets
+            document.querySelectorAll('.role-hide').forEach(el => el.style.display = 'none');
+            if(userRole === 'admin') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+            if(userRole === 'finance') document.querySelectorAll('.finance-only').forEach(el => el.style.display = 'block');
+
+            ouvrir(userRole === 'livreur' ? 'missions' : (userRole === 'finance' ? 'creer' : 'missions'));
+            chargerDonnees();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('main-app').style.display = 'none';
         }
     });
 
-    window.lancerCamera = (key) => {
-        currentTaskKey = key;
-        document.getElementById('photoInput').click();
+    // --- LOGIQUE METIER ---
+    window.calculerCom = () => {
+        const val = parseFloat(document.getElementById('mRetrait').value) || 0;
+        const com = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
+        document.getElementById('comLabel').innerText = `Com Direction: ${com} F`;
+        return com;
     };
 
-    document.getElementById('photoInput').onchange = (e) => {
+    window.creerMission = () => {
+        const nom = document.getElementById('mNom').value;
+        const tel = document.getElementById('mTel').value;
+        const lieu = document.getElementById('mLieu').value;
+        const mnt = document.getElementById('mRetrait').value;
+        if(!nom || !mnt) return alert("Nom et Montant requis");
+
+        push(ref(db, 'missions'), {
+            id: "CT" + Math.floor(100 + Math.random() * 899),
+            nom, tel, lieu, retrait: parseFloat(mnt), com: calculerCom(),
+            etape: 1, livreur: "Libre", codeSMS: "", photo: "",
+            date: new Date().toLocaleDateString('fr-FR'),
+            timestamp: Date.now()
+        });
+
+        alert("Mission lancée !");
+        ['mNom','mTel','mLieu','mRetrait'].forEach(id => document.getElementById(id).value = "");
+        ouvrir('missions');
+    };
+
+    function chargerDonnees() {
+        onValue(ref(db, 'missions'), (snap) => {
+            const data = snap.val();
+            myMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+            renderMissions();
+        });
+    }
+
+    function renderMissions() {
+        const contM = document.getElementById('container-missions');
+        const contB = document.getElementById('container-bilan');
+        contM.innerHTML = ""; contB.innerHTML = "";
+        
+        let totalGain = 0; let countDone = 0;
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+
+        myMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+            
+            // --- ONGLET MISSIONS ---
+            if(m.etape < 3) {
+                // Filtrage : Admin voit tout, Finance voit tout, Livreur voit Libre OU ses missions
+                const canSee = (userRole === 'admin' || userRole === 'finance' || m.livreur === "Libre" || m.livreur === myName);
+                
+                if(canSee) {
+                    let actions = "";
+                    
+                    // CAS 1 : Mission Libre (Pour Livreur uniquement)
+                    if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
+                        actions = `<button class="btn-action btn-accept" onclick="accepterMission('${m.key}')">ACCEPTER LA MISSION</button>`;
+                    }
+                    
+                    // CAS 2 : Mission en cours (Pour le livreur qui a accepté)
+                    else if(m.etape === 1 && m.livreur === myName && userRole === 'livreur') {
+                        actions = `
+                            <div class="photo-box">
+                                <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 FILMER LE SMS</button>
+                                <img id="pre-${m.key}" class="preview-img">
+                                <input type="text" id="sms-${m.key}" placeholder="Code de transaction SMS" style="margin-top:10px">
+                                <button id="val-${m.key}" class="btn-action btn-confirm" onclick="finaliserLivreur('${m.key}')" disabled>CONFIRMER LIVRAISON</button>
+                            </div>
+                        `;
+                    }
+
+                    // CAS 3 : Attente Encaissement (Pour Finance et Admin)
+                    else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+                        actions = `
+                            <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px; font-size:11px;">
+                                <b>Livreur :</b> ${m.livreur}<br>
+                                <b>Code SMS :</b> <span style="color:var(--gabon-bleu)">${m.codeSMS}</span>
+                            </div>
+                            <button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">ENCAISSER (${m.com} F)</button>
+                        `;
+                    }
+
+                    contM.innerHTML += `
+                        <div class="card step-${m.etape}">
+                            <span class="badge-id">${m.id}</span>
+                            <div class="card-title">${m.nom}</div>
+                            <div class="card-info">
+                                📍 ${m.lieu || 'Non précisé'}<br>
+                                💰 Montant : <b>${m.retrait.toLocaleString()} F</b><br>
+                                👤 Statut : <b>${m.livreur === 'Libre' ? 'DISPONIBLE' : 'Prise par ' + m.livreur}</b>
+                            </div>
+                            ${actions}
+                        </div>
+                    `;
+                }
+            }
+
+            // --- ONGLET BILAN ---
+            if(m.etape === 3) {
+                const canSeeBilan = (userRole === 'admin' || userRole === 'finance' || m.livreur === myName);
+                if(canSeeBilan) {
+                    contB.innerHTML += `
+                        <div class="card step-3">
+                            <div class="card-title" style="font-size:12px">${m.nom}</div>
+                            <div style="font-size:10px; color:#666">${m.date} | Livré par ${m.livreur}</div>
+                        </div>
+                    `;
+                    countDone++;
+                    // Calcul gain : Livreur gagne sa prime fixe, Finance/Admin voient la commission direction
+                    if(userRole === 'livreur') totalGain += (m.retrait >= 15000 ? 800 : 400);
+                    else totalGain += m.com;
+                }
+            }
+        });
+
+        document.getElementById('stat-count').innerText = countDone;
+        document.getElementById('stat-total').innerText = totalGain.toLocaleString() + " F";
+    }
+
+    // --- ACTIONS BOUTONS ---
+    window.accepterMission = (k) => {
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${k}`), { livreur: myName });
+    };
+
+    window.triggerCam = (k) => {
+        currentPhotoKey = k;
+        document.getElementById('camInput').click();
+    };
+
+    document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0];
         if(!file) return;
-
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = (re) => {
             const img = new Image();
             img.onload = () => {
-                const canvas = document.getElementById('compressCanvas');
-                const ctx = canvas.getContext('2d');
-                let width = img.width;
-                let height = img.height;
-                const maxSize = 900; 
-                if (width > height) { if (width > maxSize) { height *= maxSize / width; width = maxSize; } }
-                else { if (height > maxSize) { width *= maxSize / height; height = maxSize; } }
-                canvas.width = width; canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
+                const can = document.getElementById('canvas');
+                const ctx = can.getContext('2d');
+                can.width = 600; can.height = (img.height / img.width) * 600;
+                ctx.drawImage(img, 0, 0, can.width, can.height);
+                currentPhotoData = can.toDataURL('image/jpeg', 0.7);
                 
-                tempPhotoData = canvas.toDataURL('image/jpeg', 0.6);
-                
-                const preview = document.getElementById('img-'+currentTaskKey);
-                const status = document.getElementById('status-'+currentTaskKey);
-                const btnVal = document.getElementById('btnVal-'+currentTaskKey);
-
-                if(preview) {
-                    preview.src = tempPhotoData;
-                    preview.style.display = 'block';
-                    status.innerText = "✅ PHOTO SMS PRÊTE";
-                    status.className = "status-photo ok";
-                    btnVal.disabled = false;
-                }
+                const preview = document.getElementById('pre-'+currentPhotoKey);
+                preview.src = currentPhotoData;
+                preview.style.display = 'block';
+                document.getElementById('val-'+currentPhotoKey).disabled = false;
             };
-            img.src = event.target.result;
+            img.src = re.target.result;
         };
         reader.readAsDataURL(file);
     };
 
-    window.lancerMission = () => {
-        const nom = document.getElementById('mNom').value;
-        const tel = document.getElementById('mTel').value;
-        const retrait = document.getElementById('mRetrait').value;
-        if(!nom || !retrait) return alert("Infos manquantes");
-
-        push(ref(db, 'missions'), {
-            id: "CT" + Math.floor(100 + Math.random() * 899),
-            nom, tel, lieu: document.getElementById('mLieu').value || "Non précisé",
-            retrait: parseFloat(retrait), com: parseFloat(document.getElementById('mComCalculated').value),
-            etape: 1, livreur: "Libre", transaction: "",
-            date: new Date().toLocaleDateString('fr-FR'),
-            heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            photo: ""
-        });
-        ['mNom', 'mTel', 'mLieu', 'mRetrait'].forEach(i => document.getElementById(i).value = "");
-        ouvrir('taches');
-    };
-
-    function ecouterMissions() {
-        onValue(ref(db, 'missions'), (s) => {
-            const data = s.val();
-            missions = data ? Object.keys(data).map(k => ({...data[k], key: k})) : [];
-            afficherMissions();
-        });
-    }
-
-    function afficherMissions() {
-        const listT = document.getElementById('list-taches');
-        const listR = document.getElementById('list-reçus');
-        listT.innerHTML = ""; listR.innerHTML = "";
-        let tot = 0, count = 0;
-        
-        const userEmail = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
-
-        missions.slice().reverse().forEach(m => {
-            const isStaff = (userRole === 'admin' || userRole === 'finance' || userRole === 'livreur');
-            const isMyTask = (m.livreur === "Libre" || m.livreur === userEmail);
-
-            if(m.etape < 3 && (userRole === 'admin' || isMyTask)) {
-                listT.innerHTML += `
-                    <div class="card step${m.etape}">
-                        <span class="badge-id">${m.id}</span>
-                        <div class="card-title">${m.nom}</div>
-                        <div class="card-info">📍 ${m.lieu} | 💰 <b>${m.retrait} F</b></div>
-                        
-                        ${m.etape === 1 ? `
-                            <div class="photo-area">
-                                <p style="font-size:10px; color:#666; margin-bottom:10px; font-weight:bold;">ACTION REQUISE : FILMER LE SMS DE TRANSACTION</p>
-                                <button class="btn-camera-trigger" onclick="lancerCamera('${m.key}')">
-                                    📸 OUVRIR L'APPAREIL PHOTO
-                                </button>
-                                <img id="img-${m.key}" class="photo-preview">
-                                <div id="status-${m.key}" class="status-photo">Preuve photo obligatoire</div>
-                                <input type="text" id="tx-${m.key}" placeholder="Saisir le code du SMS" style="margin-top:10px;">
-                            </div>
-                            <button id="btnVal-${m.key}" class="btn-action btn-val" onclick="valider('${m.key}')" disabled>
-                                VALIDER LA LIVRAISON
-                            </button>
-                        ` : ""}
-                        
-                        ${m.etape === 2 && (userRole === 'admin' || userRole === 'finance') ? `
-                            <div style="background:#eee; padding:10px; border-radius:8px; font-size:11px; margin-bottom:10px;">
-                                Par: <b>${m.livreur}</b> | SMS: <b>${m.transaction}</b>
-                            </div>
-                            <button onclick="ouvrirPhoto('${m.key}')" style="width:100%; border:1px solid var(--gabon-bleu); color:var(--gabon-bleu); background:white; padding:8px; border-radius:5px; font-size:10px; margin-bottom:5px; cursor:pointer;">VOIR LA PREUVE</button>
-                            ${userRole === 'admin' ? `<button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>` : ""}
-                        ` : ""}
-                    </div>
-                `;
-            }
-
-            if(m.etape === 3 && (userRole === 'admin' || userRole === 'finance' || m.livreur === userEmail)) {
-                listR.innerHTML += `
-                    <div class="card step3">
-                        <div class="card-title" style="font-size:12px;">${m.nom} <small>(${m.date})</small></div>
-                        <div style="font-size:10px; color:#666">Code: ${m.transaction} | Par: ${m.livreur}</div>
-                    </div>
-                `;
-                tot += (userRole === 'livreur') ? (m.retrait >= 15000 ? 800 : 400) : m.com;
-                count++;
-            }
-        });
-
-        document.getElementById('totalCom').innerText = tot.toLocaleString() + " F";
-        document.getElementById('countDone').innerText = count;
-    }
-
-    window.ouvrirPhoto = (k) => {
-        const m = missions.find(x => x.key === k);
-        const win = window.open();
-        win.document.write(`<body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;"><img src="${m.photo}" style="max-width:100%; max-height:100vh;"></body>`);
-    };
-
-    window.valider = (k) => {
-        const tx = document.getElementById('tx-'+k).value;
-        if(!tx || !tempPhotoData) return alert("Photo et Code SMS obligatoires !");
-        
-        const userEmail = auth.currentUser.email.split('@')[0].toUpperCase();
-        update(ref(db, 'missions/'+k), { 
-            etape: 2, livreur: userEmail, transaction: tx, photo: tempPhotoData 
+    window.finaliserLivreur = (k) => {
+        const code = document.getElementById('sms-'+k).value;
+        if(!code) return alert("Entrez le code SMS !");
+        update(ref(db, `missions/${k}`), {
+            etape: 2,
+            codeSMS: code,
+            photo: currentPhotoData
         }).then(() => {
-            tempPhotoData = "";
-            alert("Mission envoyée pour encaissement !");
+            currentPhotoData = "";
+            alert("Preuve envoyée ! En attente d'encaissement.");
         });
     };
 
-    window.encaisser = (k) => update(ref(db, 'missions/'+k), { etape: 3 });
+    window.encaisser = (k) => {
+        if(confirm("Confirmez-vous avoir reçu les fonds ?")) {
+            update(ref(db, `missions/${k}`), { etape: 3 });
+        }
+    };
 
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-'+id).classList.add('active-sec');
-        document.getElementById('t-'+id).classList.add('active');
+        document.getElementById('nav-'+id).classList.add('active');
     };
 
-    window.shareWA = () => {
-        const userEmail = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
-        let txt = `*BILAN CT241 - ${userEmail}*\nLivraisons : ${document.getElementById('countDone').innerText}\nTotal Gain : ${document.getElementById('totalCom').innerText}`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
-    };
 </script>
 </body>
 </html>
