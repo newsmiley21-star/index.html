@@ -28,30 +28,42 @@
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .role-badge { font-size: 10px; padding: 3px 10px; border-radius: 12px; background: var(--dark); color: white; font-weight: bold; }
 
-        nav { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; }
-        nav button { flex: 1; padding: 10px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; cursor: pointer; }
+        nav { display: flex; gap: 5px; margin-bottom: 15px; background: #eee; padding: 5px; border-radius: 10px; position: relative; }
+        nav button { flex: 1; padding: 12px 5px; border: none; border-radius: 7px; background: transparent; font-weight: bold; font-size: 11px; color: #666; cursor: pointer; position: relative; }
         nav button.active { background: white; color: var(--gabon-vert); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Notification Dot & Banner */
+        .dot { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; background: var(--danger); border-radius: 50%; border: 2px solid white; display: none; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+        #notif-banner { display: none; background: var(--gabon-bleu); color: white; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: bold; text-align: center; cursor: pointer; animation: slideDown 0.4s ease; }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .section { display: none; }
         .active-sec { display: block; }
 
         /* CARDS */
-        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; }
-        .card.step-1 { border-left-color: var(--gabon-bleu); } /* En attente / Libre */
-        .card.step-2 { border-left-color: var(--gabon-jaune); } /* Livré, attente encaissement */
-        .card.step-3 { border-left-color: var(--gabon-vert); background: #f0fff4; } /* Terminé */
+        .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .card.step-1 { border-left-color: var(--gabon-bleu); }
+        .card.step-2 { border-left-color: var(--gabon-jaune); }
+        .card.step-3 { border-left-color: var(--gabon-vert); background: #f0fff4; }
+        
+        .new-label { background: var(--danger); color: white; font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; }
         .card-info { font-size: 12px; color: #555; line-height: 1.4; }
         .badge-id { position: absolute; top: 10px; right: 10px; background: #f1f2f6; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
 
-        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px; }
+        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px; transition: 0.2s; }
+        .btn-action:active { transform: scale(0.98); }
         .btn-accept { background: var(--gabon-bleu); color: white; }
         .btn-photo { background: var(--dark); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-confirm { background: var(--gabon-vert); color: white; }
         .btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* PHOTO PREVIEW */
         .photo-box { margin-top: 10px; border: 2px dashed #ddd; border-radius: 8px; padding: 10px; text-align: center; }
         .preview-img { width: 100%; border-radius: 5px; display: none; margin-top: 8px; border: 2px solid var(--gabon-vert); }
     </style>
@@ -78,13 +90,18 @@
             <button id="btnOut" style="font-size:10px; color:var(--danger); background:none; border:none; font-weight:bold; cursor:pointer">DÉCONNEXION</button>
         </header>
 
+        <!-- Banner Notification -->
+        <div id="notif-banner" onclick="ouvrir('missions')">
+            🔔 NOUVELLE MISSION DISPONIBLE ! (Cliquez pour voir)
+        </div>
+
         <nav id="navbar">
             <button onclick="ouvrir('creer')" id="nav-creer" class="role-hide finance-only admin-only">CRÉER</button>
-            <button onclick="ouvrir('missions')" id="nav-missions">MISSIONS</button>
+            <button onclick="ouvrir('missions')" id="nav-missions">MISSIONS <span id="mission-dot" class="dot"></span></button>
             <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
         </nav>
 
-        <!-- SECTION CRÉATION (Finance & Admin) -->
+        <!-- SECTION CRÉATION -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 10px; border: 1px solid #eee; border-radius: 12px;">
                 <h4 style="margin-top:0">Nouvelle Mission de Retrait</h4>
@@ -97,12 +114,12 @@
             </div>
         </div>
 
-        <!-- SECTION MISSIONS (Tout le monde) -->
+        <!-- SECTION MISSIONS -->
         <div id="sec-missions" class="section active-sec">
             <div id="container-missions"></div>
         </div>
 
-        <!-- SECTION BILAN (Tout le monde) -->
+        <!-- SECTION BILAN -->
         <div id="sec-bilan" class="section">
             <div id="container-bilan"></div>
             <div style="background:var(--dark); color:white; padding:15px; border-radius:12px; margin-top:15px;">
@@ -112,14 +129,13 @@
         </div>
     </div>
 
-    <!-- Hidden Elements for Logic -->
     <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="canvas" style="display:none"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -139,12 +155,27 @@
     let myMissions = [];
     let currentPhotoKey = null;
     let currentPhotoData = "";
+    let lastAvailableCount = -1;
 
-    // --- AUTHENTIFICATION ---
+    const playAlert = () => {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.15);
+        } catch(e) {}
+    };
+
     document.getElementById('btnConnect').onclick = () => {
         const e = document.getElementById('login-email').value;
         const p = document.getElementById('login-pass').value;
-        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Erreur d'accès : " + err.message));
+        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Erreur : " + err.message));
     };
     document.getElementById('btnOut').onclick = () => signOut(auth);
 
@@ -160,12 +191,11 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
 
-            // Visibilité des onglets
             document.querySelectorAll('.role-hide').forEach(el => el.style.display = 'none');
             if(userRole === 'admin') document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             if(userRole === 'finance') document.querySelectorAll('.finance-only').forEach(el => el.style.display = 'block');
 
-            ouvrir(userRole === 'livreur' ? 'missions' : (userRole === 'finance' ? 'creer' : 'missions'));
+            ouvrir(userRole === 'finance' ? 'creer' : 'missions');
             chargerDonnees();
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
@@ -173,7 +203,6 @@
         }
     });
 
-    // --- LOGIQUE METIER ---
     window.calculerCom = () => {
         const val = parseFloat(document.getElementById('mRetrait').value) || 0;
         const com = val >= 15000 ? 390 : (val > 0 ? 190 : 0);
@@ -204,7 +233,24 @@
     function chargerDonnees() {
         onValue(ref(db, 'missions'), (snap) => {
             const data = snap.val();
-            myMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+            const newList = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+            
+            // LOGIQUE DE NOTIFICATION DOUCE (Non-intrusive)
+            if (userRole === 'livreur') {
+                const currentAvailable = newList.filter(m => m.etape === 1 && m.livreur === "Libre").length;
+                
+                if (lastAvailableCount !== -1 && currentAvailable > lastAvailableCount) {
+                    playAlert();
+                    document.getElementById('mission-dot').style.display = 'block';
+                    // On affiche la bannière au lieu de rediriger brutalement
+                    if (document.querySelector('.section.active-sec').id !== 'sec-missions') {
+                        document.getElementById('notif-banner').style.display = 'block';
+                    }
+                }
+                lastAvailableCount = currentAvailable;
+            }
+            
+            myMissions = newList;
             renderMissions();
         });
     }
@@ -218,51 +264,39 @@
         const myName = auth.currentUser.email.split('@')[0].toUpperCase();
 
         myMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            
-            // --- ONGLET MISSIONS ---
+            const isVeryNew = (Date.now() - m.timestamp) < 600000;
+
             if(m.etape < 3) {
-                // Filtrage : Admin voit tout, Finance voit tout, Livreur voit Libre OU ses missions
                 const canSee = (userRole === 'admin' || userRole === 'finance' || m.livreur === "Libre" || m.livreur === myName);
                 
                 if(canSee) {
                     let actions = "";
-                    
-                    // CAS 1 : Mission Libre (Pour Livreur uniquement)
                     if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
                         actions = `<button class="btn-action btn-accept" onclick="accepterMission('${m.key}')">ACCEPTER LA MISSION</button>`;
                     }
-                    
-                    // CAS 2 : Mission en cours (Pour le livreur qui a accepté)
                     else if(m.etape === 1 && m.livreur === myName && userRole === 'livreur') {
                         actions = `
                             <div class="photo-box">
                                 <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 FILMER LE SMS</button>
                                 <img id="pre-${m.key}" class="preview-img">
-                                <input type="text" id="sms-${m.key}" placeholder="Code de transaction SMS" style="margin-top:10px">
+                                <input type="text" id="sms-${m.key}" placeholder="Code SMS" style="margin-top:10px">
                                 <button id="val-${m.key}" class="btn-action btn-confirm" onclick="finaliserLivreur('${m.key}')" disabled>CONFIRMER LIVRAISON</button>
                             </div>
                         `;
                     }
-
-                    // CAS 3 : Attente Encaissement (Pour Finance et Admin)
                     else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-                        actions = `
-                            <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px; font-size:11px;">
-                                <b>Livreur :</b> ${m.livreur}<br>
-                                <b>Code SMS :</b> <span style="color:var(--gabon-bleu)">${m.codeSMS}</span>
-                            </div>
-                            <button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">ENCAISSER (${m.com} F)</button>
-                        `;
+                        actions = `<button class="btn-action btn-confirm" onclick="encaisser('${m.key}')">ENCAISSER (${m.com} F)</button>`;
                     }
 
                     contM.innerHTML += `
                         <div class="card step-${m.etape}">
                             <span class="badge-id">${m.id}</span>
-                            <div class="card-title">${m.nom}</div>
+                            <div class="card-title">
+                                ${m.nom} ${isVeryNew && m.livreur === 'Libre' ? '<span class="new-label">NOUVEAU</span>' : ''}
+                            </div>
                             <div class="card-info">
-                                📍 ${m.lieu || 'Non précisé'}<br>
-                                💰 Montant : <b>${m.retrait.toLocaleString()} F</b><br>
-                                👤 Statut : <b>${m.livreur === 'Libre' ? 'DISPONIBLE' : 'Prise par ' + m.livreur}</b>
+                                📍 ${m.lieu || 'N/A'}<br>
+                                💰 <b>${m.retrait.toLocaleString()} F</b> | 👤 ${m.livreur}
                             </div>
                             ${actions}
                         </div>
@@ -270,18 +304,16 @@
                 }
             }
 
-            // --- ONGLET BILAN ---
             if(m.etape === 3) {
                 const canSeeBilan = (userRole === 'admin' || userRole === 'finance' || m.livreur === myName);
                 if(canSeeBilan) {
                     contB.innerHTML += `
                         <div class="card step-3">
                             <div class="card-title" style="font-size:12px">${m.nom}</div>
-                            <div style="font-size:10px; color:#666">${m.date} | Livré par ${m.livreur}</div>
+                            <div style="font-size:10px; color:#666">${m.date} | ${m.livreur}</div>
                         </div>
                     `;
                     countDone++;
-                    // Calcul gain : Livreur gagne sa prime fixe, Finance/Admin voient la commission direction
                     if(userRole === 'livreur') totalGain += (m.retrait >= 15000 ? 800 : 400);
                     else totalGain += m.com;
                 }
@@ -292,7 +324,6 @@
         document.getElementById('stat-total').innerText = totalGain.toLocaleString() + " F";
     }
 
-    // --- ACTIONS BOUTONS ---
     window.accepterMission = (k) => {
         const myName = auth.currentUser.email.split('@')[0].toUpperCase();
         update(ref(db, `missions/${k}`), { livreur: myName });
@@ -315,7 +346,6 @@
                 can.width = 600; can.height = (img.height / img.width) * 600;
                 ctx.drawImage(img, 0, 0, can.width, can.height);
                 currentPhotoData = can.toDataURL('image/jpeg', 0.7);
-                
                 const preview = document.getElementById('pre-'+currentPhotoKey);
                 preview.src = currentPhotoData;
                 preview.style.display = 'block';
@@ -328,21 +358,12 @@
 
     window.finaliserLivreur = (k) => {
         const code = document.getElementById('sms-'+k).value;
-        if(!code) return alert("Entrez le code SMS !");
-        update(ref(db, `missions/${k}`), {
-            etape: 2,
-            codeSMS: code,
-            photo: currentPhotoData
-        }).then(() => {
-            currentPhotoData = "";
-            alert("Preuve envoyée ! En attente d'encaissement.");
-        });
+        if(!code) return alert("Code SMS requis !");
+        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: currentPhotoData });
     };
 
     window.encaisser = (k) => {
-        if(confirm("Confirmez-vous avoir reçu les fonds ?")) {
-            update(ref(db, `missions/${k}`), { etape: 3 });
-        }
+        if(confirm("Confirmer encaissement ?")) update(ref(db, `missions/${k}`), { etape: 3 });
     };
 
     window.ouvrir = (id) => {
@@ -350,8 +371,11 @@
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-'+id).classList.add('active-sec');
         document.getElementById('nav-'+id).classList.add('active');
+        if(id === 'missions') {
+            document.getElementById('mission-dot').style.display = 'none';
+            document.getElementById('notif-banner').style.display = 'none';
+        }
     };
-
 </script>
 </body>
 </html>
