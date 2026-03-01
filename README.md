@@ -55,6 +55,11 @@
         .footer-stats { background: var(--dark); color: white; padding: 15px; border-radius: 12px; margin-top: 20px; }
         .stat-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
         
+        /* PHOTO PREUVE CSS */
+        .photo-preview { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin: 10px 0; display: none; border: 2px solid var(--gabon-vert); }
+        .btn-cam { background: #eee; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .btn-cam:active { background: #ddd; }
+
         /* RESTRICTION CSS */
         .admin-only, .finance-only { display: none; }
     </style>
@@ -122,6 +127,9 @@
         </div>
     </div>
 
+    <!-- INPUT PHOTO CACHÉ -->
+    <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none">
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -140,8 +148,10 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    let userRole = "livreur"; // admin, finance, livreur
+    let userRole = "livreur"; 
     let missions = [];
+    let currentTaskKey = null;
+    let tempPhotoData = "";
 
     // CALCUL AUTO (390 F)
     window.calcAuto = () => {
@@ -179,11 +189,8 @@
     });
 
     function appliquerRestrictions() {
-        // Cacher les rubriques Admin
         const adminEls = document.querySelectorAll('.admin-only');
         adminEls.forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
-
-        // Si livreur, on force l'onglet Missions
         if(userRole === 'livreur') {
             ouvrir('taches');
             document.getElementById('label-total').innerText = "Mon Gain Estimé";
@@ -201,6 +208,27 @@
         if(btn) btn.classList.add('active');
     };
 
+    // GESTION PHOTO
+    window.ouvrirCamera = (key) => {
+        currentTaskKey = key;
+        document.getElementById('photoInput').click();
+    };
+
+    document.getElementById('photoInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            tempPhotoData = event.target.result;
+            const imgPreview = document.getElementById('img-'+currentTaskKey);
+            if(imgPreview) {
+                imgPreview.src = tempPhotoData;
+                imgPreview.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     // GESTION MISSIONS
     window.lancerMission = () => {
         const nom = document.getElementById('mNom').value;
@@ -214,7 +242,8 @@
             retrait: parseFloat(retrait), com: parseFloat(document.getElementById('mComCalculated').value),
             etape: 1, livreur: "Libre", transaction: "",
             date: new Date().toLocaleDateString('fr-FR'),
-            heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+            heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            photo: ""
         });
 
         ['mNom', 'mTel', 'mLieu', 'mRetrait'].forEach(i => document.getElementById(i).value = "");
@@ -235,44 +264,54 @@
         listT.innerHTML = ""; listR.innerHTML = "";
         
         let tot = 0; let count = 0;
-        const me = auth.currentUser.email.split('@')[0].toUpperCase();
+        const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
 
         missions.slice().reverse().forEach(m => {
-            // LOGIQUE DE FILTRAGE
             const estMaMission = (m.livreur === me || m.livreur === "Libre");
             const estAdmin = (userRole === 'admin' || userRole === 'finance');
 
-            // 1. Onglet Missions en cours
             if(m.etape < 3 && (estAdmin || estMaMission)) {
                 listT.innerHTML += `
                     <div class="card step${m.etape}">
                         <span class="badge-id">${m.id}</span>
                         <div class="card-title">${m.nom}</div>
                         <div class="card-info">📍 ${m.lieu} | 💰 ${m.retrait} F</div>
+                        
                         <div style="display:flex; gap:5px; margin-top:10px;">
                             <a href="tel:${m.tel}" style="text-decoration:none; background:#eee; padding:5px 10px; border-radius:5px; font-size:11px; color:var(--gabon-bleu); font-weight:bold;">📞 Appeler</a>
-                            ${m.etape === 1 ? `<input type="text" id="tx-${m.key}" placeholder="Code SMS..." style="flex:1; margin:0; padding:5px;">` : ""}
+                            ${m.etape === 1 ? `
+                                <input type="text" id="tx-${m.key}" placeholder="Code SMS..." style="flex:1; margin:0; padding:5px;">
+                                <button class="btn-cam" onclick="ouvrirCamera('${m.key}')">📸</button>
+                            ` : ""}
                         </div>
-                        ${m.etape === 1 ? `<button class="btn-action btn-val" onclick="valider('${m.key}')">LIVRER</button>` : ""}
-                        ${m.etape === 2 && estAdmin ? `<button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>` : ""}
+                        
+                        ${m.etape === 1 ? `
+                            <img id="img-${m.key}" class="photo-preview" src="${m.photo || ''}" style="${m.photo ? 'display:block' : ''}">
+                            <button class="btn-action btn-val" onclick="valider('${m.key}')">VALIDER LA LIVRAISON</button>
+                        ` : ""}
+                        
+                        ${m.etape === 2 && estAdmin ? `
+                            ${m.photo ? `<div onclick="window.open('${m.photo}')" style="font-size:10px; color:var(--gabon-vert); cursor:pointer; margin:5px 0;">🖼️ Voir la photo de preuve</div>` : ""}
+                            <button class="btn-action btn-enc" onclick="encaisser('${m.key}')">ENCAISSER (${m.com}F)</button>
+                        ` : ""}
+                        
                         ${m.etape === 2 && !estAdmin ? `<div style="font-size:10px; color:orange; margin-top:10px; text-align:center;">Attente encaissement direction...</div>` : ""}
                     </div>
                 `;
             }
 
-            // 2. Onglet Bilan (Fermé)
             if(m.etape === 3 && (estAdmin || m.livreur === me)) {
                 listR.innerHTML += `
                     <div class="card step3">
                         <div class="card-title" style="font-size:12px;">${m.nom} <small style="color:gray">(${m.date})</small></div>
                         <div style="font-size:10px; color:#666">Code: ${m.transaction} | Livreur: ${m.livreur}</div>
+                        ${estAdmin && m.photo ? `<div onclick="window.open('${m.photo}')" style="font-size:9px; color:blue; margin-top:5px; cursor:pointer;">📎 Photo archivée</div>` : ""}
                     </div>
                 `;
-                // Calcul du bilan selon le rôle
                 if(userRole === 'livreur') {
-                    tot += (m.retrait >= 15000 ? 800 : 400); // Gain livreur
+                    tot += (m.retrait >= 15000 ? 800 : 400); 
                 } else {
-                    tot += m.com; // Gain direction
+                    tot += m.com; 
                 }
                 count++;
             }
@@ -285,14 +324,22 @@
     window.valider = (k) => {
         const tx = document.getElementById('tx-'+k).value;
         if(!tx) return alert("Code SMS requis");
+        if(!tempPhotoData) return alert("📸 Prenez une photo de preuve (client ou bordereau)");
+        
         const me = auth.currentUser.email.split('@')[0].toUpperCase();
-        update(ref(db, 'missions/'+k), { etape: 2, livreur: me, transaction: tx });
+        update(ref(db, 'missions/'+k), { 
+            etape: 2, 
+            livreur: me, 
+            transaction: tx,
+            photo: tempPhotoData 
+        });
+        tempPhotoData = ""; // Reset
     };
 
     window.encaisser = (k) => update(ref(db, 'missions/'+k), { etape: 3 });
 
     window.shareWA = () => {
-        const me = auth.currentUser.email.split('@')[0].toUpperCase();
+        const me = auth.currentUser?.email?.split('@')[0].toUpperCase() || "USER";
         let txt = `*BILAN CT241 - ${me}*\n`;
         txt += `Missions : ${document.getElementById('countDone').innerText}\n`;
         txt += `Total : ${document.getElementById('totalCom').innerText}`;
