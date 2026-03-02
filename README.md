@@ -126,6 +126,7 @@
 
         .preview-img { width: 100%; margin-top: 15px; border-radius: 15px; display: none; }
         .search-area { background: #f8fafc; padding: 20px; border-radius: 22px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .sms-badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -251,7 +252,7 @@
         <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
             <div class="search-area">
-                <input type="text" id="archSearch" placeholder="Rechercher (Nom, ID, Date...)" oninput="renderUI()" style="margin:0">
+                <input type="text" id="archSearch" placeholder="Rechercher par Nom, ID, SMS, Date..." oninput="renderUI()" style="margin:0">
             </div>
             <div id="list-archives"></div>
         </div>
@@ -295,18 +296,23 @@
     onAuthStateChanged(auth, (u) => {
         if(u) {
             const email = u.email.toLowerCase();
-            if(email.includes('admin')) userRole = "admin";
-            else if(email.includes('finance')) userRole = "finance";
-            else userRole = "livreur";
+            if(email.includes('admin')) {
+                userRole = "admin";
+            } else if(email.includes('finance')) {
+                userRole = "finance";
+            } else {
+                userRole = "livreur";
+            }
 
             document.getElementById('user-role').innerText = userRole;
             document.getElementById('user-display').innerText = u.email.split('@')[0].toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
-            document.getElementById('nav-creer').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
+            const canManage = (userRole === 'admin' || userRole === 'finance');
+            document.getElementById('nav-creer').style.display = canManage ? 'block' : 'none';
+            document.getElementById('nav-archives').style.display = canManage ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
-            document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
             onValue(ref(db, 'missions'), (snap) => {
@@ -344,13 +350,21 @@
             if(m.etape === 3) countTerminees++;
             else countEnCours++;
 
-            // Filtre Archives
+            // Archives (Admin et Finance) - Ajout du Code SMS dans la recherche
             if(userRole === 'admin' || userRole === 'finance') {
-                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur}`.toLowerCase();
+                const codeSms = m.codeSMS ? m.codeSMS.toString().toLowerCase() : "";
+                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur} ${codeSms}`.toLowerCase();
+                
                 if(searchStr.includes(archSearch)) {
                     listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
-                        <div class="card-title"><span>${m.nom}</span> <span class="badge-id">${m.id}</span></div>
-                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>📅 ${m.dateHeure}</div>
+                        <div class="card-title">
+                            <span>${m.nom}</span> 
+                            <span class="badge-id">${m.id}</span>
+                        </div>
+                        <div class="card-info">
+                            💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>
+                            📅 ${m.dateHeure} ${m.codeSMS ? `| <span class="sms-badge">SMS: ${m.codeSMS}</span>` : ""}
+                        </div>
                     </div>`;
                 }
             }
