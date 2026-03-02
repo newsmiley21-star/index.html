@@ -103,6 +103,11 @@
         .btn-validate { background: var(--gabon-vert); color: white; }
         .btn-accept { background: var(--gabon-bleu); color: white; }
         .btn-photo { background: var(--dark); color: white; }
+        .btn-delete { 
+            background: rgba(231, 76, 60, 0.1); color: var(--danger); 
+            border: none; padding: 6px 10px; border-radius: 8px; font-weight: 800; 
+            font-size: 10px; cursor: pointer; margin-left: 10px;
+        }
 
         /* COMPTA GRID */
         .compta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
@@ -264,7 +269,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -350,15 +355,16 @@
             if(m.etape === 3) countTerminees++;
             else countEnCours++;
 
-            // Archives (Admin et Finance) - Ajout du Code SMS dans la recherche
+            // Archives (Admin et Finance)
             if(userRole === 'admin' || userRole === 'finance') {
                 const codeSms = m.codeSMS ? m.codeSMS.toString().toLowerCase() : "";
                 const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur} ${codeSms}`.toLowerCase();
                 
                 if(searchStr.includes(archSearch)) {
+                    const deleteBtn = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                     listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
                         <div class="card-title">
-                            <span>${m.nom}</span> 
+                            <span>${m.nom} ${deleteBtn}</span> 
                             <span class="badge-id">${m.id}</span>
                         </div>
                         <div class="card-info">
@@ -394,8 +400,9 @@
             }
 
             // Flux Actif
+            const deleteBtnHeader = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
             const cardHtml = `<div class="card etape-${m.etape}">
-                    <div class="card-title"><span>${m.nom}</span> <span class="badge-id">${m.id}</span></div>
+                    <div class="card-title"><span>${m.nom} ${deleteBtnHeader}</span> <span class="badge-id">${m.id}</span></div>
                     <div class="card-info">
                         📞 <b>${m.tel}</b> | 📍 <b>${m.lieu}</b><br>
                         💰 Retrait : <b style="color:var(--dark)">${m.retrait.toLocaleString()} F</b><br>
@@ -464,6 +471,13 @@
     window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
     window.accepter = (k) => update(ref(db, `missions/${k}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase() });
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
+
+    window.supprimerMission = (k) => {
+        if(userRole !== 'admin') return alert("Action réservée à l'administrateur");
+        if(confirm("🚨 Voulez-vous vraiment supprimer cette mission ? Cette action est irréversible.")) {
+            remove(ref(db, `missions/${k}`));
+        }
+    };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0]; if(!file) return;
