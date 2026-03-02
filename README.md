@@ -37,6 +37,7 @@
 
         /* MISSION CARDS */
         .card { border: 1px solid #eee; padding: 15px; border-radius: 12px; margin-bottom: 12px; position: relative; border-left: 6px solid #ccc; transition: 0.3s; }
+        .card.pending { border-left-color: #95a5a6; background: #fcfcfc; border-style: dotted; }
         .card.available { border-left-color: var(--gabon-bleu); background: #f0f7ff; border-style: dashed; }
         .card.step-1 { border-left-color: var(--gabon-jaune); }
         .card.step-2 { border-left-color: var(--dark); background: #fffdf5; }
@@ -47,6 +48,7 @@
         .status-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
 
         .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 13px; }
+        .btn-validate { background: var(--gabon-vert); color: white; }
         .btn-accept { background: var(--gabon-bleu); color: white; animation: pulse 2s infinite; }
         .btn-photo { background: var(--dark); color: white; }
         .btn-confirm { background: var(--gabon-vert); color: white; }
@@ -87,15 +89,17 @@
         </header>
 
         <nav id="navbar">
+            <!-- Bouton NOUVEAU accessible aux Admins ET Finances -->
             <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">NOUVEAU</button>
             <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS</button>
             <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
         </nav>
 
-        <!-- SECTION CREATION ADMIN -->
+        <!-- SECTION CREATION (ADMIN OU FINANCE) -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 12px;">
-                <h4 style="margin:0 0 10px 0">Créer une Mission</h4>
+                <h4 style="margin:0 0 10px 0">Enregistrer une Mission</h4>
+                <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Saisie manuelle ou réception de commande externe.</p>
                 <input type="text" id="mNom" placeholder="Nom du Client">
                 <input type="tel" id="mTel" placeholder="Téléphone">
                 <input type="text" id="mLieu" placeholder="Destination (Quartier)">
@@ -106,18 +110,28 @@
                     <div style="display:flex; justify-content:space-between"><span>Livraison :</span> <b>1000 F</b></div>
                 </div>
 
-                <button id="btnLancerMission" class="btn-action btn-confirm">LANCER IMMÉDIATEMENT</button>
+                <button id="btnLancerMission" class="btn-action btn-confirm">ENVOYER POUR VALIDATION</button>
+                <p style="font-size: 10px; color: #888; margin-top: 5px; text-align: center;">Toute mission créée doit être approuvée avant diffusion aux livreurs.</p>
             </div>
         </div>
 
         <!-- SECTION MISSIONS (CORE) -->
         <div id="sec-missions" class="section active-sec">
-            <div id="container-dispo" style="margin-bottom: 20px;">
-                <!-- Les nouvelles missions non acceptées s'afficheront ici -->
+            <div id="container-validation" style="display:none; margin-bottom: 25px;">
+                <h5 style='margin:0 0 10px 0; color:var(--danger)'>🛡️ FILE DE VALIDATION (ADMIN/FINANCE)</h5>
+                <div id="list-validation"></div>
             </div>
+
+            <div id="container-dispo" style="margin-bottom: 20px;">
+                <h5 style='margin:0 0 10px 0; color:var(--gabon-bleu)'>🚨 MISSIONS PUBLIÉES (LIBRES)</h5>
+                <div id="list-dispo"></div>
+            </div>
+            
             <hr style="border:0; border-top:1px solid #eee; margin: 20px 0">
+            
             <div id="container-en-cours">
-                <!-- Les missions en cours de traitement s'afficheront ici -->
+                <h5 style='margin:0 0 10px 0; color:#666'>⏳ MISSIONS EN COURS DE LIVRAISON</h5>
+                <div id="list-en-cours"></div>
             </div>
         </div>
 
@@ -191,14 +205,17 @@
             else if(email.includes('finance')) userRole = "finance";
             else userRole = "livreur";
 
+            const isAdminOrFinance = (userRole === 'admin' || userRole === 'finance');
+
             document.getElementById('user-role').innerText = userRole.toUpperCase();
             document.getElementById('user-display').innerText = u.email;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            document.getElementById('nav-creer').style.display = (userRole === 'admin') ? 'block' : 'none';
+            
+            // Le bouton Nouveau est désormais disponible pour Admin ET Finance
+            document.getElementById('nav-creer').style.display = isAdminOrFinance ? 'block' : 'none';
             document.getElementById('admin-stats-grid').style.display = (userRole === 'admin') ? 'grid' : 'none';
             
-            // Écouteur de données TEMPS RÉEL
             onValue(ref(db, 'missions'), (snap) => {
                 const data = snap.val();
                 allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
@@ -211,72 +228,26 @@
     });
 
     function renderUI() {
-        const contDispo = document.getElementById('container-dispo');
-        const contCours = document.getElementById('container-en-cours');
+        const listVal = document.getElementById('list-validation');
+        const listDispo = document.getElementById('list-dispo');
+        const listCours = document.getElementById('list-en-cours');
         const contBilan = document.getElementById('container-bilan');
         const search = document.getElementById('bilanSearch').value.toLowerCase();
         
-        contDispo.innerHTML = "<h5 style='margin:0 0 10px 0; color:var(--gabon-bleu)'>🚨 NOUVELLES MISSIONS (DISPONIBLES)</h5>";
-        contCours.innerHTML = "<h5 style='margin:0 0 10px 0; color:#666'>⏳ MISSIONS EN COURS</h5>";
+        listVal.innerHTML = "";
+        listDispo.innerHTML = "";
+        listCours.innerHTML = "";
         contBilan.innerHTML = "";
         
         let tRetrait = 0, tCom = 0, tLiv = 0;
         const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        const isAdminOrFinance = (userRole === 'admin' || userRole === 'finance');
+
+        document.getElementById('container-validation').style.display = isAdminOrFinance ? 'block' : 'none';
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            if(m.etape < 3) {
-                const isLibre = m.livreur === "Libre";
-                const isMine = m.livreur === myName;
-                const isAdmin = (userRole === 'admin' || userRole === 'finance');
-
-                let cardHTML = `
-                    <div class="card ${isLibre ? 'available' : 'step-'+m.etape}">
-                        <span class="badge-id">${m.id}</span>
-                        <div class="status-pill" style="background:${isLibre ? 'var(--gabon-bleu)' : 'var(--gabon-jaune)'}; color:white">
-                            ${isLibre ? 'Disponible' : 'En cours'}
-                        </div>
-                        <div class="card-title">${m.nom}</div>
-                        <div class="card-info">
-                            📍 <b>${m.lieu || 'Non spécifié'}</b><br>
-                            💰 Retrait : <b>${m.retrait.toLocaleString()} F</b><br>
-                            🛵 Livreur : <b>${m.livreur}</b>
-                        </div>
-                `;
-
-                // ACTIONS SELON LE ROLE ET L'ETAT
-                if(isLibre) {
-                    // Tout le monde voit les missions libres, mais seul le livreur peut l'accepter
-                    if(userRole === 'livreur') {
-                        cardHTML += `<button class="btn-action btn-accept" onclick="window.accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-                    } else {
-                        cardHTML += `<div style="font-size:10px; color:var(--gabon-bleu); margin-top:5px; font-weight:bold italic">En attente d'un livreur...</div>`;
-                    }
-                    cardHTML += `</div>`;
-                    contDispo.innerHTML += cardHTML;
-                } 
-                else if(isMine || isAdmin) {
-                    if(isMine && m.etape === 1) {
-                        cardHTML += `
-                            <button class="btn-action btn-photo" onclick="window.triggerCam('${m.key}')">📸 PHOTO SMS</button>
-                            <img id="pre-${m.key}" class="preview-img">
-                            <input type="text" id="sms-${m.key}" placeholder="Code SMS" style="margin-top:10px">
-                            <button id="val-${m.key}" class="btn-action btn-confirm" onclick="window.livrer('${m.key}')" disabled>VALIDER LIVRAISON</button>
-                        `;
-                    } else if(isAdmin && m.etape === 2) {
-                        cardHTML += `
-                            <div style="background:#f1f2f6; padding:10px; border-radius:10px; margin-top:10px">
-                                <img src="${m.photo}" style="width:100%; border-radius:8px">
-                                <p style="font-weight:bold; color:red; text-align:center; margin:5px 0">CODE : ${m.codeSMS}</p>
-                                <button class="btn-action btn-confirm" onclick="window.encaisser('${m.key}')">ENCAISSER & CLÔTURER</button>
-                            </div>
-                        `;
-                    }
-                    cardHTML += `</div>`;
-                    contCours.innerHTML += cardHTML;
-                }
-            } else {
-                // BILAN
-                if(userRole === 'admin' || userRole === 'finance' || m.livreur === myName) {
+            if(m.etape === 3) {
+                if(isAdminOrFinance || m.livreur === myName) {
                     if(m.nom.toLowerCase().includes(search) || (m.codeSMS && m.codeSMS.toLowerCase().includes(search))) {
                         tRetrait += m.retrait; tCom += m.com; tLiv += 1000;
                         contBilan.innerHTML += `
@@ -286,10 +257,63 @@
                             </div>`;
                     }
                 }
+                return;
+            }
+
+            let cardHTML = `
+                <div class="card ${m.etape === 0 ? 'pending' : (m.livreur === 'Libre' ? 'available' : 'step-'+m.etape)}">
+                    <span class="badge-id">${m.id}</span>
+                    <div class="status-pill" style="background:${m.etape === 0 ? '#7f8c8d' : (m.livreur === 'Libre' ? 'var(--gabon-bleu)' : 'var(--gabon-jaune)')}; color:white">
+                        ${m.etape === 0 ? 'À Valider' : (m.livreur === 'Libre' ? 'Disponible' : 'En cours')}
+                    </div>
+                    <div class="card-title">${m.nom}</div>
+                    <div class="card-info">
+                        📍 <b>${m.lieu || 'Non spécifié'}</b><br>
+                        💰 Retrait : <b>${m.retrait.toLocaleString()} F</b><br>
+                        👤 Créé par : <small>${m.auteur || 'Système'}</small>
+                    </div>
+            `;
+
+            if(m.etape === 0) {
+                if(isAdminOrFinance) {
+                    cardHTML += `<button class="btn-action btn-validate" onclick="window.publier('${m.key}')">APPROUVER & PUBLIER</button></div>`;
+                    listVal.innerHTML += cardHTML;
+                }
+            } 
+            else if(m.livreur === "Libre") {
+                if(userRole === 'livreur') {
+                    cardHTML += `<button class="btn-action btn-accept" onclick="window.accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+                } else {
+                    cardHTML += `<div style="font-size:10px; color:var(--gabon-bleu); margin-top:5px; font-weight:bold; font-style:italic">En attente de livreur...</div>`;
+                }
+                cardHTML += `</div>`;
+                listDispo.innerHTML += cardHTML;
+            }
+            else {
+                const isMine = m.livreur === myName;
+                if(isMine || isAdminOrFinance) {
+                    if(isMine && m.etape === 1) {
+                        cardHTML += `
+                            <button class="btn-action btn-photo" onclick="window.triggerCam('${m.key}')">📸 PHOTO SMS</button>
+                            <img id="pre-${m.key}" class="preview-img">
+                            <input type="text" id="sms-${m.key}" placeholder="Code SMS" style="margin-top:10px">
+                            <button id="val-${m.key}" class="btn-action btn-confirm" onclick="window.livrer('${m.key}')" disabled>VALIDER LIVRAISON</button>
+                        `;
+                    } else if(isAdminOrFinance && m.etape === 2) {
+                        cardHTML += `
+                            <div style="background:#f1f2f6; padding:10px; border-radius:10px; margin-top:10px">
+                                <img src="${m.photo}" style="width:100%; border-radius:8px">
+                                <p style="font-weight:bold; color:red; text-align:center; margin:5px 0">CODE : ${m.codeSMS}</p>
+                                <button class="btn-action btn-confirm" onclick="window.encaisser('${m.key}')">ENCAISSER & CLÔTURER</button>
+                            </div>
+                        `;
+                    }
+                    cardHTML += `</div>`;
+                    listCours.innerHTML += cardHTML;
+                }
             }
         });
 
-        // Mise à jour des compteurs
         if(userRole === 'admin') {
             document.getElementById('stat-total').innerText = tRetrait.toLocaleString() + " F";
             document.getElementById('stat-com').innerText = tCom.toLocaleString() + " F";
@@ -303,6 +327,12 @@
             document.getElementById('label-total').innerText = "VOS GAINS";
         }
     }
+
+    window.publier = (k) => {
+        if(confirm("Confirmer l'approbation de cette mission ?")) {
+            update(ref(db, `missions/${k}`), { etape: 1 });
+        }
+    };
 
     window.accepter = (k) => {
         const myName = auth.currentUser.email.split('@')[0].toUpperCase();
@@ -341,7 +371,7 @@
     };
 
     window.encaisser = (k) => {
-        if(confirm("Confirmer l'encaissement et fermer la mission ?")) {
+        if(confirm("Confirmer l'encaissement définitif ?")) {
             update(ref(db, `missions/${k}`), { etape: 3 });
         }
     };
@@ -349,14 +379,18 @@
     document.getElementById('btnLancerMission').onclick = () => {
         const nom = document.getElementById('mNom').value;
         const mnt = parseInt(document.getElementById('mRetrait').value);
-        if(!nom || !mnt) return alert("Remplir les champs !");
+        if(!nom || !mnt) return alert("Remplir les champs obligatoires !");
         
+        const auteur = auth.currentUser.email.split('@')[0].toUpperCase();
+
         push(ref(db, 'missions'), {
             id: "CT" + Math.floor(100 + Math.random() * 899),
             nom, tel: document.getElementById('mTel').value, 
             lieu: document.getElementById('mLieu').value,
             retrait: mnt, com: (mnt >= 15000 ? 390 : 190), 
-            etape: 1, livreur: "Libre",
+            etape: 0, 
+            livreur: "Libre",
+            auteur: auteur,
             timestamp: Date.now(), date: new Date().toLocaleDateString('fr-FR')
         });
         
