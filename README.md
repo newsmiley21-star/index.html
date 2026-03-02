@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CT241 - SYSTÈME DE DISTRIBUTION</title>
+    <title>CT241 - LOGISTIQUE GABON</title>
     <style>
         :root {
             --gabon-vert: #009E60; 
@@ -12,18 +12,14 @@
             --gabon-vert-light: rgba(0, 158, 96, 0.1);
             --gabon-bleu-light: rgba(58, 117, 196, 0.1);
             --danger: #e74c3c; 
-            --dark: #2c3e50; 
-            --light: #f4f7f6;
+            --dark: #1a252f; 
             --white: #ffffff;
         }
         
         body { 
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
-            background: linear-gradient(135deg, #f4f7f6 0%, #e9eeee 100%);
-            margin: 0; 
-            padding: 10px; 
-            color: var(--dark);
-            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: linear-gradient(135deg, #f4f7f6 0%, #eef2f3 100%);
+            margin: 0; padding: 10px; color: var(--dark); min-height: 100vh;
         }
         
         /* AUTH SCREEN */
@@ -33,121 +29,114 @@
             display: flex; align-items: center; justify-content: center; z-index: 9999; 
         }
         .login-card { 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 30px; border-radius: 24px; width: 85%; max-width: 340px; 
-            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.98); 
+            padding: 40px 30px; border-radius: 28px; width: 85%; max-width: 350px; 
+            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
         }
-        .login-card h2 { color: var(--gabon-vert); font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; }
+        .login-card h2 { color: var(--gabon-vert); font-weight: 900; margin-bottom: 5px; font-size: 26px; }
 
-        input { 
-            width: 100%; padding: 14px; margin: 10px 0; border: 2px solid #eee; 
-            border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
+        input, select { 
+            width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #edf2f7; 
+            border-radius: 14px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
+            background: #f8fafc;
         }
-        input:focus { border-color: var(--gabon-bleu); outline: none; box-shadow: 0 0 0 4px var(--gabon-bleu-light); }
+        input:focus { border-color: var(--gabon-bleu); outline: none; background: white; box-shadow: 0 0 0 4px var(--gabon-bleu-light); }
         
         .btn-login { 
             width: 100%; padding: 16px; background: var(--gabon-vert); color: white; 
-            border: none; border-radius: 12px; font-weight: bold; cursor: pointer; 
-            font-size: 16px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0, 158, 96, 0.3);
+            border: none; border-radius: 14px; font-weight: 800; cursor: pointer; 
+            font-size: 16px; margin-top: 15px; box-shadow: 0 6px 15px rgba(0, 158, 96, 0.3);
         }
 
-        /* MAIN APP STRUCTURE */
+        /* MAIN APP */
         #main-app { 
             display: none; max-width: 500px; margin: auto; background: var(--white); 
-            border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            min-height: 92vh; position: relative;
+            border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
+            min-height: 90vh; position: relative;
         }
 
         header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;
         }
-        header h3 { margin: 0; font-size: 20px; font-weight: 800; background: linear-gradient(to right, var(--gabon-vert), var(--gabon-bleu)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header h3 { margin: 0; font-size: 22px; font-weight: 900; color: var(--gabon-bleu); }
+        .role-badge { font-size: 10px; padding: 5px 12px; border-radius: 50px; background: var(--gabon-jaune); color: #744210; font-weight: 800; text-transform: uppercase; }
 
-        .role-badge { font-size: 9px; padding: 4px 10px; border-radius: 20px; background: var(--gabon-jaune); color: #856404; font-weight: bold; }
-
-        /* NAVIGATION */
+        /* NAV */
         nav { 
-            display: flex; overflow-x: auto; gap: 8px; margin-bottom: 20px; 
-            padding: 6px; background: #f8f9fa; border-radius: 16px; scrollbar-width: none;
+            display: flex; overflow-x: auto; gap: 10px; margin-bottom: 25px; 
+            padding: 8px; background: #f1f5f9; border-radius: 18px; scrollbar-width: none;
         }
-        nav::-webkit-scrollbar { display: none; }
         nav button { 
-            flex: 0 0 auto; padding: 10px 16px; border: none; border-radius: 12px; 
-            background: transparent; font-weight: 700; font-size: 11px; color: #7f8c8d; 
-            cursor: pointer; transition: 0.2s; white-space: nowrap;
+            flex: 0 0 auto; padding: 12px 20px; border: none; border-radius: 14px; 
+            background: transparent; font-weight: 700; font-size: 12px; color: #64748b; 
+            cursor: pointer; transition: 0.2s;
         }
-        nav button.active { background: var(--white); color: var(--gabon-bleu); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        nav button.active { background: var(--white); color: var(--gabon-bleu); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* SECTIONS */
-        .section { display: none; animation: fadeIn 0.3s ease-out; }
+        .section { display: none; animation: slideUp 0.4s ease-out; }
         .active-sec { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         /* CARDS */
         .card { 
-            background: var(--white); border: 1px solid #f0f0f0; padding: 18px; 
-            border-radius: 20px; margin-bottom: 15px; position: relative; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 8px solid #ddd;
+            background: var(--white); border: 1px solid #f1f5f9; padding: 20px; 
+            border-radius: 22px; margin-bottom: 15px; position: relative; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 10px solid #cbd5e1;
         }
-        .card.etape-0 { border-left-color: #95a5a6; border-style: dashed; background: #fafafa; }
+        .card.etape-0 { border-left-color: #94a3b8; background: #f8fafc; }
         .card.etape-1 { border-left-color: var(--gabon-bleu); background: var(--gabon-bleu-light); }
-        .card.etape-2 { border-left-color: var(--gabon-jaune); background: rgba(252, 209, 22, 0.05); }
+        .card.etape-2 { border-left-color: var(--gabon-jaune); background: rgba(252, 209, 22, 0.08); }
         .card.etape-3 { border-left-color: var(--gabon-vert); background: var(--gabon-vert-light); }
 
-        .card-title { font-weight: 800; font-size: 15px; color: var(--dark); margin-bottom: 6px; }
-        .card-info { font-size: 13px; color: #5d6d7e; line-height: 1.5; }
-        .badge-id { position: absolute; top: 15px; right: 15px; background: #edf2f7; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 900; color: var(--gabon-bleu); }
+        .card-title { font-weight: 800; font-size: 16px; color: var(--dark); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .card-info { font-size: 14px; color: #475569; line-height: 1.6; }
+        .badge-id { background: #e2e8f0; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; color: var(--gabon-bleu); }
 
         /* BUTTONS */
         .btn-action { 
-            width: 100%; padding: 14px; border: none; border-radius: 12px; 
-            font-weight: 800; cursor: pointer; margin-top: 12px; font-size: 13px;
-            transition: 0.2s;
+            width: 100%; padding: 16px; border: none; border-radius: 14px; 
+            font-weight: 800; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s;
         }
-        .btn-action:active { transform: scale(0.98); }
-        .btn-validate { background: var(--gabon-vert); color: white; box-shadow: 0 4px 10px rgba(0, 158, 96, 0.2); }
-        .btn-accept { background: var(--gabon-bleu); color: white; box-shadow: 0 4px 10px rgba(58, 117, 196, 0.2); }
+        .btn-validate { background: var(--gabon-vert); color: white; }
+        .btn-accept { background: var(--gabon-bleu); color: white; }
         .btn-photo { background: var(--dark); color: white; }
 
         /* COMPTA GRID */
-        .compta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .compta-stat-box { 
-            background: var(--white); border: 1px solid #f0f0f0; padding: 15px; 
-            border-radius: 18px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        .compta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { 
+            background: var(--white); border: 1px solid #f1f5f9; padding: 20px; 
+            border-radius: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
-        .compta-stat-box span { font-size: 10px; font-weight: 700; color: #95a5a6; text-transform: uppercase; letter-spacing: 1px; }
-        .compta-stat-box b { font-size: 24px; display: block; margin-top: 5px; }
+        .stat-box span { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .stat-box b { font-size: 26px; color: var(--dark); }
 
-        /* FOOTER STATS */
         .stats-footer { 
-            background: var(--dark); color: white; padding: 20px; 
-            border-radius: 20px; margin-top: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            background: var(--dark); color: white; padding: 25px; 
+            border-radius: 25px; margin-top: 25px;
         }
-        .stats-footer span { font-size: 11px; opacity: 0.7; font-weight: 600; }
-        .stats-footer b { font-size: 1.4em; color: var(--gabon-jaune); }
+        .stats-footer div { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; font-weight: 600; }
+        .stats-footer b { color: var(--gabon-jaune); font-size: 18px; }
 
-        .table-compta { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .table-compta th { text-align: left; padding: 12px 8px; color: #95a5a6; font-weight: 600; border-bottom: 2px solid #f0f0f0; }
-        .table-compta td { padding: 12px 8px; border-bottom: 1px solid #f9f9f9; }
+        .table-compta { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .table-compta th { text-align: left; padding: 15px 10px; color: #64748b; border-bottom: 2px solid #f1f5f9; }
+        .table-compta td { padding: 15px 10px; border-bottom: 1px solid #f8fafc; }
 
-        .preview-img { width: 100%; margin-top: 15px; border-radius: 12px; display: none; border: 2px solid #eee; }
-        .time-badge { font-size: 10px; color: #bdc3c7; display: block; margin-top: 8px; font-weight: 500; }
-
-        .search-box { background: var(--gabon-bleu-light); border: 1px solid var(--gabon-bleu); border-radius: 16px; padding: 15px; margin-bottom: 20px; }
+        .preview-img { width: 100%; margin-top: 15px; border-radius: 15px; display: none; }
+        .search-area { background: #f8fafc; padding: 20px; border-radius: 22px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="login-card">
             <h2>CT241 OPS</h2>
-            <p style="font-size: 11px; color: #7f8c8d; margin-bottom: 20px; font-weight: 600;">LOGISTIQUE & CASH GABON</p>
-            <input type="email" id="login-email" placeholder="Email professionnel">
+            <p style="font-size: 12px; color: #64748b; margin-bottom: 25px; font-weight: 600;">PORTAIL LOGISTIQUE GABONAIS</p>
+            <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
-            <button class="btn-login" id="btnConnect">OUVRIR SESSION</button>
+            <button class="btn-login" id="btnConnect">SE CONNECTER</button>
         </div>
     </div>
 
@@ -155,103 +144,114 @@
         <header>
             <div>
                 <h3>CT241 OPS</h3>
-                <div style="display:flex; align-items:center; gap:8px; margin-top:2px">
+                <div style="margin-top:5px">
                     <span id="user-role" class="role-badge">...</span>
-                    <span id="user-display" style="font-size:10px; color:#95a5a6; font-weight:600"></span>
+                    <span id="user-display" style="font-size:11px; color:#94a3b8; margin-left:8px; font-weight:700"></span>
                 </div>
             </div>
-            <button id="btnOut" style="font-size:11px; color:var(--danger); background:rgba(231, 76, 60, 0.1); border:none; font-weight:800; cursor:pointer; padding:6px 12px; border-radius:8px">QUITTER</button>
+            <button id="btnOut" style="background:rgba(231, 76, 60, 0.1); color:var(--danger); border:none; padding:8px 15px; border-radius:10px; font-weight:800; font-size:11px; cursor:pointer">DECONNEXION</button>
         </header>
 
         <nav id="navbar">
             <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">NOUVEAU</button>
             <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS <span id="count-missions"></span></button>
-            <button onclick="ouvrir('bilan')" id="nav-bilan">BILAN</button>
-            <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">COMPTA</button>
+            <button onclick="ouvrir('bilan')" id="nav-bilan">MON BILAN</button>
+            <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">ADMIN COMPTA</button>
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
         <!-- CRÉATION -->
         <div id="sec-creer" class="section">
-            <div style="background: #fff; padding: 20px; border-radius: 20px; border: 1px solid #eee">
-                <h4 style="margin:0 0 15px 0; font-weight:800">Nouvelle Commande</h4>
-                <input type="text" id="mNom" placeholder="Nom complet du client">
+            <div style="background: #fff; padding: 10px;">
+                <h4 style="margin:0 0 20px 0; font-weight:900; color:var(--gabon-vert)">CRÉER UNE MISSION</h4>
+                <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
                 <input type="tel" id="mTel" placeholder="Numéro de téléphone">
-                <input type="text" id="mLieu" placeholder="Quartier de livraison">
-                <input type="number" id="mRetrait" placeholder="Montant du retrait (FCFA)">
-                <button onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
+                <input type="text" id="mLieu" placeholder="Quartier / Lieu de livraison">
+                <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                    <div>
+                        <label style="font-size:10px; font-weight:800; color:#94a3b8; margin-left:5px">COMMISSION (F)</label>
+                        <input type="number" id="mCom" value="390">
+                    </div>
+                    <div>
+                        <label style="font-size:10px; font-weight:800; color:#94a3b8; margin-left:5px">LIVRAISON (F)</label>
+                        <input type="number" id="mLiv" value="1000">
+                    </div>
+                </div>
+                
+                <button onclick="creerMission()" class="btn-action btn-validate">DÉPLOYER LA MISSION</button>
             </div>
         </div>
 
-        <!-- LISTE MISSIONS -->
+        <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
-            <div id="div-validation" style="display:none; margin-bottom:25px;">
-                <h5 style="color:var(--danger); margin:0 0 12px 0; font-weight:800; display:flex; align-items:center; gap:5px">
-                    <span style="width:8px; height:8px; background:var(--danger); border-radius:50%"></span> EN ATTENTE DE VALIDATION
-                </h5>
+            <div id="div-validation" style="display:none; margin-bottom:30px;">
+                <h5 style="color:var(--danger); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">⚠️ EN ATTENTE DE VALIDATION</h5>
                 <div id="list-validation"></div>
             </div>
 
-            <h5 style="color:var(--gabon-bleu); margin:0 0 12px 0; font-weight:800">FLUX OPÉRATIONNEL</h5>
+            <h5 style="color:var(--gabon-bleu); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">🚀 MISSIONS EN COURS</h5>
             <div id="list-active"></div>
         </div>
 
-        <!-- BILAN (VUE LIVREUR) -->
+        <!-- BILAN LIVREUR -->
         <div id="sec-bilan" class="section">
-            <h4 style="margin:0 0 15px 0; font-weight:800">Historique Personnel</h4>
+            <h4 style="margin:0 0 20px 0; font-weight:900">SUIVI DES GAINS</h4>
             <div id="list-bilan"></div>
             <div class="stats-footer">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <span>MES REVENUS LIVRAISON :</span>
+                <div>
+                    <span>REVENUS CUMULÉS :</span>
                     <b id="stat-total">0 F</b>
                 </div>
             </div>
         </div>
 
-        <!-- COMPTABILITÉ (ADMIN) -->
+        <!-- COMPTA ADMIN -->
         <div id="sec-compta" class="section">
-            <h4 style="margin:0 0 15px 0; font-weight:800">Tableau de Bord Finance</h4>
+            <h4 style="margin:0 0 20px 0; font-weight:900">CONTRÔLE FINANCIER</h4>
             
             <div class="compta-grid">
-                <div class="compta-stat-box">
-                    <span>EN COURS</span>
-                    <b id="compta-count-encours" style="color:var(--gabon-bleu)">0</b>
-                </div>
-                <div class="compta-stat-box">
-                    <span>TERMINÉES</span>
+                <div class="stat-box">
+                    <span>RECOUVREMENT</span>
                     <b id="compta-count-finish" style="color:var(--gabon-vert)">0</b>
+                </div>
+                <div class="stat-box">
+                    <span>OPS ACTIVES</span>
+                    <b id="compta-count-encours" style="color:var(--gabon-bleu)">0</b>
                 </div>
             </div>
 
-            <div style="overflow-x:auto; background:white; border-radius:18px; border:1px solid #eee">
+            <div style="background:white; border-radius:22px; border:1px solid #f1f5f9; overflow:hidden">
                 <table class="table-compta">
                     <thead>
                         <tr>
                             <th>CLIENT</th>
                             <th>RETRAIT</th>
-                            <th>COMM.</th>
+                            <th>LIV.</th>
+                            <th>COM.</th>
                         </tr>
                     </thead>
                     <tbody id="list-compta"></tbody>
                 </table>
             </div>
-            <div class="stats-footer">
-                <div style="display:flex; justify-content:space-between; margin-bottom:8px">
+
+            <div class="stats-footer" style="background:var(--gabon-vert)">
+                <div>
                     <span>TOTAL COMMISSIONS :</span>
-                    <b id="compta-total-com" style="color:var(--gabon-jaune)">0 F</b>
+                    <b id="compta-total-com" style="color:white">0 F</b>
                 </div>
-                <div style="display:flex; justify-content:space-between">
-                    <span>VOLUME RETRAITS :</span>
-                    <b id="compta-total-retrait" style="color:var(--white); font-size:1.1em">0 F</b>
+                <div>
+                    <span>VOLUME DE RETRAIT :</span>
+                    <b id="compta-total-retrait" style="color:var(--gabon-jaune)">0 F</b>
                 </div>
             </div>
         </div>
 
         <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
-            <div class="search-box">
-                <h5 style="margin:0 0 10px 0; color:var(--gabon-bleu); font-weight:800">MOTEUR DE RECHERCHE</h5>
-                <input type="text" id="archSearch" placeholder="Nom, ID, Date, SMS..." oninput="renderUI()" style="margin:0">
+            <div class="search-area">
+                <input type="text" id="archSearch" placeholder="Rechercher (Nom, ID, Date...)" oninput="renderUI()" style="margin:0">
             </div>
             <div id="list-archives"></div>
         </div>
@@ -287,7 +287,7 @@
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé"); }
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès non autorisé"); }
     };
 
     document.getElementById('btnOut').onclick = () => signOut(auth);
@@ -299,8 +299,8 @@
             else if(email.includes('finance')) userRole = "finance";
             else userRole = "livreur";
 
-            document.getElementById('user-role').innerText = userRole.toUpperCase();
-            document.getElementById('user-display').innerText = u.email.split('@')[0];
+            document.getElementById('user-role').innerText = userRole;
+            document.getElementById('user-display').innerText = u.email.split('@')[0].toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
@@ -333,98 +333,94 @@
 
         let totalGainsLivreur = 0;
         let totalComAdmin = 0;
-        let totalRetraitsClient = 0;
+        let totalRetraitsAdmin = 0;
         let countEnCours = 0;
         let countTerminees = 0;
 
-        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "INVITÉ";
+        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "LIBRE";
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
             
             if(m.etape === 3) countTerminees++;
             else countEnCours++;
 
+            // Filtre Archives
             if(userRole === 'admin' || userRole === 'finance') {
-                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.codeSMS || ''} ${m.livreur}`.toLowerCase();
+                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur}`.toLowerCase();
                 if(searchStr.includes(archSearch)) {
-                    listArc.innerHTML += `<div class="card" style="border-left:4px solid var(--dark); opacity:0.8">
-                        <span class="badge-id">${m.id}</span>
-                        <div class="card-title">${m.nom}</div>
-                        <div class="card-info" style="font-size:11px">
-                            📞 ${m.tel || 'N/A'} | 📅 ${m.dateHeure}<br>
-                            💰 ${m.retrait.toLocaleString()} F | Code: <b>${m.codeSMS || 'N/A'}</b><br>
-                            🛵 Livreur: ${m.livreur} | Statut: ${m.etape === 3 ? '✅ Terminé' : '⏳ En cours'}
-                        </div>
+                    listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
+                        <div class="card-title"><span>${m.nom}</span> <span class="badge-id">${m.id}</span></div>
+                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>📅 ${m.dateHeure}</div>
                     </div>`;
                 }
             }
 
+            // Compta Admin
             if(m.etape === 3 && userRole === 'admin') {
                 totalComAdmin += m.com;
-                totalRetraitsClient += m.retrait;
+                totalRetraitsAdmin += m.retrait;
                 listCpt.innerHTML += `<tr>
-                    <td><b style="color:var(--dark)">${m.nom}</b><br><small style="color:#95a5a6">${m.id}</small></td>
+                    <td><b>${m.nom}</b></td>
                     <td>${m.retrait.toLocaleString()} F</td>
-                    <td style="color:var(--gabon-vert); font-weight:bold">${m.com.toLocaleString()} F</td>
+                    <td>${m.fraisLivraison} F</td>
+                    <td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td>
                 </tr>`;
             }
 
+            // Bilan Livreur
             if(m.etape === 3) {
                 if(m.livreur === myName) {
                     totalGainsLivreur += m.fraisLivraison;
-                    listBil.innerHTML += `<div style="padding:15px; border-bottom:1px solid #f9f9f9; display:flex; justify-content:space-between; align-items:center">
-                            <div><b style="font-size:13px">${m.nom}</b><br><small style="color:#bdc3c7">${m.id} • ${m.dateHeure}</small></div>
-                            <b style="color:var(--gabon-vert); font-weight:bold">+${m.fraisLivraison.toLocaleString()} F</b>
+                    listBil.innerHTML += `<div style="padding:15px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between">
+                            <div><b>${m.nom}</b><br><small style="color:#94a3b8">${m.dateHeure}</small></div>
+                            <b style="color:var(--gabon-vert)">+${m.fraisLivraison.toLocaleString()} F</b>
                         </div>`;
                 }
                 return;
             }
 
+            // Flux Actif
             const cardHtml = `<div class="card etape-${m.etape}">
-                    <span class="badge-id">${m.id}</span>
-                    <div class="card-title">${m.nom} <span style="font-weight:600; font-size:11px; color:var(--gabon-bleu); margin-left:5px">(${m.tel || 'N/A'})</span></div>
+                    <div class="card-title"><span>${m.nom}</span> <span class="badge-id">${m.id}</span></div>
                     <div class="card-info">
-                        📍 <b>${m.lieu}</b><br>💰 Retrait : <b style="color:var(--dark)">${m.retrait.toLocaleString()} F</b><br>
-                        🛵 Livreur : <span style="background:var(--dark); color:white; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800">${m.livreur}</span>
-                        <span class="time-badge">🕒 ${m.dateHeure}</span>
+                        📞 <b>${m.tel}</b> | 📍 <b>${m.lieu}</b><br>
+                        💰 Retrait : <b style="color:var(--dark)">${m.retrait.toLocaleString()} F</b><br>
+                        🛵 Livreur : <span style="background:var(--dark); color:white; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800">${m.livreur}</span><br>
+                        <small style="color:#94a3b8">🕒 ${m.dateHeure}</small>
                     </div>`;
 
             if(m.etape === 0 && userRole === 'admin') {
                 listVal.innerHTML += cardHtml + `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button></div>`;
-            }
-
-            if(m.etape > 0) {
-                let controls = "";
+            } else if(m.etape > 0) {
+                let ctrls = "";
                 if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
-                    controls = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-                } 
-                else if(m.etape === 1 && m.livreur === myName) {
-                    controls = `<button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTOGRAPHIER LE SMS</button>
-                        <img id="pre-${m.key}" class="preview-img">
-                        <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS de retrait" style="margin-top:12px; border:2px solid var(--gabon-bleu)">
-                        <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER À LA FINANCE</button>`;
+                    ctrls = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+                } else if(m.etape === 1 && m.livreur === myName) {
+                    ctrls = `<button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTO DU SMS</button>
+                             <img id="pre-${m.key}" class="preview-img">
+                             <input type="text" id="code-${m.key}" placeholder="Code SMS reçu" style="margin-top:15px; border:2px solid var(--gabon-bleu)">
+                             <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER À LA FINANCE</button>`;
+                } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+                    ctrls = `<div style="background:white; padding:15px; border-radius:18px; margin-top:15px; text-align:center">
+                                <img src="${m.photo}" style="width:100%; border-radius:12px">
+                                <p style="color:var(--danger); font-size:28px; font-weight:900; margin:15px 0">${m.codeSMS}</p>
+                                <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">ENCAISSEMENT TERMINÉ ✅</button>
+                             </div>`;
                 }
-                else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-                    controls = `<div style="background:white; padding:15px; border-radius:15px; margin-top:12px; border:1px solid #eee; text-align:center">
-                            <img src="${m.photo}" style="width:100%; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1)">
-                            <p style="color:var(--danger); font-size:24px; font-weight:800; margin:15px 0; letter-spacing:2px">${m.codeSMS}</p>
-                            <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">CONFIRMER ENCAISSEMENT ✅</button>
-                        </div>`;
-                }
-                listAct.innerHTML += cardHtml + controls + `</div>`;
+                listAct.innerHTML += cardHtml + ctrls + `</div>`;
             }
         });
 
         document.getElementById('stat-total').innerText = totalGainsLivreur.toLocaleString() + " F";
         if(userRole === 'admin') {
             document.getElementById('compta-total-com').innerText = totalComAdmin.toLocaleString() + " F";
-            document.getElementById('compta-total-retrait').innerText = totalRetraitsClient.toLocaleString() + " F";
+            document.getElementById('compta-total-retrait').innerText = totalRetraitsAdmin.toLocaleString() + " F";
             document.getElementById('compta-count-encours').innerText = countEnCours;
             document.getElementById('compta-count-finish').innerText = countTerminees;
         }
 
-        const count = allMissions.filter(x => x.etape === 1 && x.livreur === "Libre").length;
-        document.getElementById('count-missions').innerHTML = count > 0 ? `<b style="background:var(--danger); color:white; padding:2px 8px; border-radius:20px; font-size:10px; vertical-align:middle; margin-left:4px">${count}</b>` : "";
+        const openM = allMissions.filter(x => x.etape === 1 && x.livreur === "Libre").length;
+        document.getElementById('count-missions').innerHTML = openM > 0 ? `<b style="background:var(--danger); color:white; padding:2px 8px; border-radius:10px; font-size:10px">${openM}</b>` : "";
     }
 
     window.creerMission = () => {
@@ -432,17 +428,22 @@
         const tel = document.getElementById('mTel').value;
         const mnt = parseInt(document.getElementById('mRetrait').value);
         const lieu = document.getElementById('mLieu').value;
-        if(!nom || !mnt || !tel) return alert("Veuillez remplir les champs obligatoires");
+        const com = parseInt(document.getElementById('mCom').value);
+        const liv = parseInt(document.getElementById('mLiv').value);
+
+        if(!nom || !mnt || !tel) return alert("Champs obligatoires manquants !");
+        
         const now = new Date();
-        const dateHeure = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'});
-        const orderID = "CT" + Math.floor(10000 + Math.random() * 89999);
+        const dateStr = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+        
         push(ref(db, 'missions'), {
-            id: orderID, nom, tel, lieu: lieu || "Libreville",
-            retrait: mnt, com: (mnt >= 15000 ? 390 : 190), fraisLivraison: 1000,
-            livreur: "Libre", etape: 0, dateHeure: dateHeure, timestamp: Date.now()
+            id: "CT" + Math.floor(Math.random()*9999), 
+            nom, tel, lieu: lieu || "Lbv",
+            retrait: mnt, com, fraisLivraison: liv,
+            livreur: "Libre", etape: 0, dateHeure: dateStr, timestamp: Date.now()
         });
-        document.getElementById('mNom').value = ""; document.getElementById('mTel').value = "";
-        document.getElementById('mRetrait').value = ""; document.getElementById('mLieu').value = "";
+        
+        document.getElementById('mNom').value=""; document.getElementById('mTel').value="";
         ouvrir('missions');
     };
 
@@ -460,7 +461,7 @@
                 const ctx = can.getContext('2d');
                 can.width = 600; can.height = 600 * (img.height/img.width);
                 ctx.drawImage(img, 0, 0, 600, can.height);
-                lastPhotoData = can.toDataURL('image/jpeg', 0.6);
+                lastPhotoData = can.toDataURL('image/jpeg', 0.7);
                 const pre = document.getElementById('pre-'+currentKey);
                 if(pre) { pre.src = lastPhotoData; pre.style.display = 'block'; }
             };
@@ -471,11 +472,11 @@
 
     window.terminer = (k) => {
         const code = document.getElementById('code-'+k).value;
-        if(!code || !lastPhotoData) return alert("Photo et Code obligatoires !");
+        if(!code || !lastPhotoData) return alert("Code et Photo requis !");
         update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: lastPhotoData });
     };
 
-    window.cloturer = (k) => confirm("Confirmer l'encaissement définitif ?") && update(ref(db, `missions/${k}`), { etape: 3 });
+    window.cloturer = (k) => confirm("Confirmer la fin d'opération ?") && update(ref(db, `missions/${k}`), { etape: 3 });
 
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
