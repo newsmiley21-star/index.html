@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CT241 - LOGISTIQUE GABON</title>
+    
+    <!-- PWA META TAGS -->
+    <meta name="theme-color" content="#009E60">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CT241 OPS">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/009E60/FFFFFF?text=CT241">
+    
+    <!-- WEB MANIFEST (Inline to keep single file) -->
+    <link rel="manifest" href='data:application/json,{"name":"CT241 Logistique Gabon","short_name":"CT241 OPS","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#009E60","icons":[{"src":"https://via.placeholder.com/192/009E60/FFFFFF?text=CT241","sizes":"192x192","type":"image/png"},{"src":"https://via.placeholder.com/512/009E60/FFFFFF?text=CT241","sizes":"512x512","type":"image/png"}]}'>
+
     <style>
         :root {
             --gabon-vert: #009E60; 
@@ -20,6 +31,7 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             background: linear-gradient(135deg, #f4f7f6 0%, #eef2f3 100%);
             margin: 0; padding: 10px; color: var(--dark); min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
         }
         
         #auth-screen { 
@@ -65,6 +77,7 @@
             display: flex; overflow-x: auto; gap: 10px; margin-bottom: 25px; 
             padding: 8px; background: #f1f5f9; border-radius: 18px; scrollbar-width: none;
         }
+        nav::-webkit-scrollbar { display: none; }
         nav button { 
             flex: 0 0 auto; padding: 12px 20px; border: none; border-radius: 14px; 
             background: transparent; font-weight: 700; font-size: 12px; color: #64748b; 
@@ -124,6 +137,12 @@
             margin: 10px 0;
         }
         label.input-label { font-size: 11px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
+        
+        /* PWA Install Prompt Button (Optional UI) */
+        #pwa-install {
+            display: none; background: var(--gabon-jaune); color: #000;
+            padding: 10px; text-align: center; font-weight: bold; border-radius: 10px; margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -139,6 +158,7 @@
     </div>
 
     <div id="main-app">
+        <div id="pwa-install">Ajouter CT241 à l'écran d'accueil</div>
         <header>
             <div>
                 <h3>CT241 OPS</h3>
@@ -158,20 +178,16 @@
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
-        <!-- SECTION CREER -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 10px;">
                 <h4 style="margin:0 0 20px 0; font-weight:900; color:var(--gabon-vert)">CRÉER UNE MISSION</h4>
-                
                 <label class="input-label">Bénéficiaire</label>
                 <input type="text" id="mNom" placeholder="Nom complet">
                 <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
-                
                 <div class="zone-highlight">
                     <label class="input-label">Localisation précise</label>
                     <input type="text" id="mQuartier" list="liste-quartiers" placeholder="Saisir le quartier..." oninput="autoDetectZone()">
                     <datalist id="liste-quartiers">
-                        <!-- Suggestions auto -->
                         <option value="Nzeng-Ayong">Libreville</option><option value="Lalala">Libreville</option>
                         <option value="Akébé">Libreville</option><option value="Glass">Libreville</option>
                         <option value="Louis">Libreville</option><option value="Batterie IV">Libreville</option>
@@ -185,7 +201,6 @@
                         <option value="Cité SNI">Owendo</option><option value="Barracuda">Owendo</option>
                         <option value="Ntoum">Zone Ntoum</option><option value="Essassa">Zone Ntoum</option>
                     </datalist>
-
                     <label class="input-label">Zone de Facturation (Obligatoire)</label>
                     <select id="mZoneSelect" onchange="updateFraisByZone()">
                         <option value="">-- Sélectionner la zone --</option>
@@ -194,10 +209,8 @@
                         <option value="eloignee">Angondjé / Ntoum / Essassa (2000 F)</option>
                     </select>
                 </div>
-
                 <label class="input-label">Finance</label>
                 <input type="number" id="mRetrait" placeholder="Montant à retirer (FCFA)">
-                
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                     <div>
                         <label class="input-label">Commission (F)</label>
@@ -208,12 +221,10 @@
                         <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9; color:#64748b">
                     </div>
                 </div>
-                
                 <button onclick="creerMission()" class="btn-action btn-validate">DÉPLOYER LA MISSION</button>
             </div>
         </div>
 
-        <!-- Les autres sections -->
         <div id="sec-missions" class="section active-sec">
             <div id="div-validation" style="display:none; margin-bottom:30px;">
                 <h5 style="color:var(--danger); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">⚠️ EN ATTENTE DE VALIDATION</h5>
@@ -261,6 +272,35 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
+    // SERVICE WORKER REGISTRATION (For Installability)
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => e.default)));
+        `;
+        const blob = new Blob([swCode], {type: 'text/javascript'});
+        const url = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(url);
+    }
+
+    // PWA Install Logic
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('pwa-install').style.display = 'block';
+    });
+
+    document.getElementById('pwa-install').onclick = () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                document.getElementById('pwa-install').style.display = 'none';
+                deferredPrompt = null;
+            });
+        }
+    };
+
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
         authDomain: "cashtransfert-21.firebaseapp.com",
@@ -280,19 +320,16 @@
     let currentKey = null;
     let lastPhotoData = "";
 
-    // Base de connaissance mise à jour
     const DATABASE_ZONES = {
         libreville: ["nzeng-ayong", "lalala", "akebe", "akébé", "glass", "louis", "batterie iv", "batterie 4", "montagne sainte", "awendje", "awendjé", "oloumi", "charbonnages", "mindoube", "mindoubé", "plaine orety", "sodogo"],
         peripherie: ["cap esterias", "cap estérias", "okala", "mikolongo", "carriere", "sabliere", "sablière", "gendarmerie", "alenakiri", "alénakiri", "awoungou", "sni", "barracuda", "pointe clair", "owendo"],
-        eloignee: ["angondje", "angondjé", "ntoum", "essassa", "bikele", "bikelé", "meyang"] // Angondjé est maintenant à 2000 F
+        eloignee: ["angondje", "angondjé", "ntoum", "essassa", "bikele", "bikelé", "meyang"]
     };
 
     window.autoDetectZone = () => {
         const quartier = document.getElementById('mQuartier').value.toLowerCase();
         const selectZone = document.getElementById('mZoneSelect');
-        
         if (!quartier) return;
-
         for (const [zoneKey, keywords] of Object.entries(DATABASE_ZONES)) {
             if (keywords.some(k => quartier.includes(k))) {
                 selectZone.value = zoneKey;
@@ -305,7 +342,6 @@
     window.updateFraisByZone = () => {
         const zone = document.getElementById('mZoneSelect').value;
         const inputLiv = document.getElementById('mLiv');
-        
         const tarifs = { "libreville": 1000, "peripherie": 1500, "eloignee": 2000 };
         inputLiv.value = tarifs[zone] || 1000;
     };
