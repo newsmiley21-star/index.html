@@ -22,7 +22,6 @@
             margin: 0; padding: 10px; color: var(--dark); min-height: 100vh;
         }
         
-        /* AUTH SCREEN */
         #auth-screen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: linear-gradient(45deg, var(--gabon-vert), var(--gabon-jaune), var(--gabon-bleu));
@@ -49,7 +48,6 @@
             font-size: 16px; margin-top: 15px; box-shadow: 0 6px 15px rgba(0, 158, 96, 0.3);
         }
 
-        /* MAIN APP */
         #main-app { 
             display: none; max-width: 500px; margin: auto; background: var(--white); 
             border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
@@ -63,7 +61,6 @@
         header h3 { margin: 0; font-size: 22px; font-weight: 900; color: var(--gabon-bleu); }
         .role-badge { font-size: 10px; padding: 5px 12px; border-radius: 50px; background: var(--gabon-jaune); color: #744210; font-weight: 800; text-transform: uppercase; }
 
-        /* NAV */
         nav { 
             display: flex; overflow-x: auto; gap: 10px; margin-bottom: 25px; 
             padding: 8px; background: #f1f5f9; border-radius: 18px; scrollbar-width: none;
@@ -75,12 +72,10 @@
         }
         nav button.active { background: var(--white); color: var(--gabon-bleu); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
-        /* SECTIONS */
         .section { display: none; animation: slideUp 0.4s ease-out; }
         .active-sec { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARDS */
         .card { 
             background: var(--white); border: 1px solid #f1f5f9; padding: 20px; 
             border-radius: 22px; margin-bottom: 15px; position: relative; 
@@ -95,7 +90,6 @@
         .card-info { font-size: 14px; color: #475569; line-height: 1.6; }
         .badge-id { background: #e2e8f0; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; color: var(--gabon-bleu); }
 
-        /* BUTTONS */
         .btn-action { 
             width: 100%; padding: 16px; border: none; border-radius: 14px; 
             font-weight: 800; cursor: pointer; margin-top: 15px; font-size: 14px; transition: 0.2s;
@@ -106,10 +100,9 @@
         .btn-delete { 
             background: rgba(231, 76, 60, 0.1); color: var(--danger); 
             border: none; padding: 6px 10px; border-radius: 8px; font-weight: 800; 
-            font-size: 10px; cursor: pointer; margin-left: 10px;
+            font-size: 10px; cursor: pointer; margin-left: 5px;
         }
 
-        /* COMPTA GRID */
         .compta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .stat-box { 
             background: var(--white); border: 1px solid #f1f5f9; padding: 20px; 
@@ -166,7 +159,6 @@
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
-        <!-- CRÉATION -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 10px;">
                 <h4 style="margin:0 0 20px 0; font-weight:900; color:var(--gabon-vert)">CRÉER UNE MISSION</h4>
@@ -190,7 +182,6 @@
             </div>
         </div>
 
-        <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
             <div id="div-validation" style="display:none; margin-bottom:30px;">
                 <h5 style="color:var(--danger); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">⚠️ EN ATTENTE DE VALIDATION</h5>
@@ -201,7 +192,6 @@
             <div id="list-active"></div>
         </div>
 
-        <!-- BILAN LIVREUR -->
         <div id="sec-bilan" class="section">
             <h4 style="margin:0 0 20px 0; font-weight:900">SUIVI DES GAINS</h4>
             <div id="list-bilan"></div>
@@ -213,7 +203,6 @@
             </div>
         </div>
 
-        <!-- COMPTA ADMIN -->
         <div id="sec-compta" class="section">
             <h4 style="margin:0 0 20px 0; font-weight:900">CONTRÔLE FINANCIER</h4>
             
@@ -254,10 +243,9 @@
             </div>
         </div>
 
-        <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
             <div class="search-area">
-                <input type="text" id="archSearch" placeholder="Rechercher par Nom, ID, SMS, Date..." oninput="renderUI()" style="margin:0">
+                <input type="text" id="archSearch" placeholder="Rechercher..." oninput="renderUI()" style="margin:0">
             </div>
             <div id="list-archives"></div>
         </div>
@@ -293,7 +281,7 @@
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès non autorisé"); }
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé"); }
     };
 
     document.getElementById('btnOut').onclick = () => signOut(auth);
@@ -301,22 +289,15 @@
     onAuthStateChanged(auth, (u) => {
         if(u) {
             const email = u.email.toLowerCase();
-            if(email.includes('admin')) {
-                userRole = "admin";
-            } else if(email.includes('finance')) {
-                userRole = "finance";
-            } else {
-                userRole = "livreur";
-            }
+            userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
 
             document.getElementById('user-role').innerText = userRole;
             document.getElementById('user-display').innerText = u.email.split('@')[0].toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
-            const canManage = (userRole === 'admin' || userRole === 'finance');
-            document.getElementById('nav-creer').style.display = canManage ? 'block' : 'none';
-            document.getElementById('nav-archives').style.display = canManage ? 'block' : 'none';
+            document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
+            document.getElementById('nav-archives').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
@@ -348,87 +329,71 @@
         let countEnCours = 0;
         let countTerminees = 0;
 
-        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "LIBRE";
+        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            
-            if(m.etape === 3) countTerminees++;
-            else countEnCours++;
+            const isFinished = (m.etape === 3);
+            if(isFinished) countTerminees++; else countEnCours++;
 
-            // Archives (Admin et Finance)
-            if(userRole === 'admin' || userRole === 'finance') {
-                const codeSms = m.codeSMS ? m.codeSMS.toString().toLowerCase() : "";
-                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur} ${codeSms}`.toLowerCase();
-                
+            // Calculs Stats & Bilan
+            if(isFinished) {
+                if(userRole === 'admin') {
+                    totalComAdmin += (m.com || 0);
+                    totalRetraitsAdmin += (m.retrait || 0);
+                }
+                if(m.livreur === myName) {
+                    totalGainsLivreur += (m.fraisLivraison || 0);
+                    listBil.innerHTML += `<div style="padding:15px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between">
+                        <div><b>${m.nom}</b><br><small style="color:#94a3b8">${m.dateHeure}</small></div>
+                        <b style="color:var(--gabon-vert)">+${m.fraisLivraison.toLocaleString()} F</b>
+                    </div>`;
+                }
+            }
+
+            // Archives
+            if(userRole !== 'livreur') {
+                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur}`.toLowerCase();
                 if(searchStr.includes(archSearch)) {
-                    const deleteBtn = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
+                    const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                     listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
-                        <div class="card-title">
-                            <span>${m.nom} ${deleteBtn}</span> 
-                            <span class="badge-id">${m.id}</span>
-                        </div>
-                        <div class="card-info">
-                            💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>
-                            📅 ${m.dateHeure} ${m.codeSMS ? `| <span class="sms-badge">SMS: ${m.codeSMS}</span>` : ""}
-                        </div>
+                        <div class="card-title"><span>${m.nom} ${del}</span> <span class="badge-id">${m.id}</span></div>
+                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>📅 ${m.dateHeure}</div>
                     </div>`;
                 }
             }
 
             // Compta Admin
-            if(m.etape === 3 && userRole === 'admin') {
-                totalComAdmin += m.com;
-                totalRetraitsAdmin += m.retrait;
-                listCpt.innerHTML += `<tr>
-                    <td><b>${m.nom}</b></td>
-                    <td>${m.retrait.toLocaleString()} F</td>
-                    <td>${m.fraisLivraison} F</td>
-                    <td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td>
-                </tr>`;
+            if(isFinished && userRole === 'admin') {
+                listCpt.innerHTML += `<tr><td><b>${m.nom}</b></td><td>${m.retrait} F</td><td>${m.fraisLivraison} F</td><td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td></tr>`;
             }
 
-            // Bilan Livreur
-            if(m.etape === 3) {
-                if(m.livreur === myName) {
-                    totalGainsLivreur += m.fraisLivraison;
-                    listBil.innerHTML += `<div style="padding:15px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between">
-                            <div><b>${m.nom}</b><br><small style="color:#94a3b8">${m.dateHeure}</small></div>
-                            <b style="color:var(--gabon-vert)">+${m.fraisLivraison.toLocaleString()} F</b>
-                        </div>`;
-                }
-                return;
-            }
+            // Missions Actives (Etape 0, 1, 2)
+            if(!isFinished) {
+                const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
+                const cardHtml = `<div class="card etape-${m.etape}">
+                    <div class="card-title"><span>${m.nom} ${del}</span> <span class="badge-id">${m.id}</span></div>
+                    <div class="card-info">📞 ${m.tel} | 📍 ${m.lieu}<br>💰 <b>${m.retrait.toLocaleString()} F</b><br>🛵 ${m.livreur}</div>`;
 
-            // Flux Actif
-            const deleteBtnHeader = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
-            const cardHtml = `<div class="card etape-${m.etape}">
-                    <div class="card-title"><span>${m.nom} ${deleteBtnHeader}</span> <span class="badge-id">${m.id}</span></div>
-                    <div class="card-info">
-                        📞 <b>${m.tel}</b> | 📍 <b>${m.lieu}</b><br>
-                        💰 Retrait : <b style="color:var(--dark)">${m.retrait.toLocaleString()} F</b><br>
-                        🛵 Livreur : <span style="background:var(--dark); color:white; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800">${m.livreur}</span><br>
-                        <small style="color:#94a3b8">🕒 ${m.dateHeure}</small>
-                    </div>`;
-
-            if(m.etape === 0 && userRole === 'admin') {
-                listVal.innerHTML += cardHtml + `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button></div>`;
-            } else if(m.etape > 0) {
-                let ctrls = "";
-                if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
-                    ctrls = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-                } else if(m.etape === 1 && m.livreur === myName) {
-                    ctrls = `<button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTO DU SMS</button>
-                             <img id="pre-${m.key}" class="preview-img">
-                             <input type="text" id="code-${m.key}" placeholder="Code SMS reçu" style="margin-top:15px; border:2px solid var(--gabon-bleu)">
-                             <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER À LA FINANCE</button>`;
-                } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-                    ctrls = `<div style="background:white; padding:15px; border-radius:18px; margin-top:15px; text-align:center">
-                                <img src="${m.photo}" style="width:100%; border-radius:12px">
-                                <p style="color:var(--danger); font-size:28px; font-weight:900; margin:15px 0">${m.codeSMS}</p>
-                                <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">ENCAISSEMENT TERMINÉ ✅</button>
-                             </div>`;
+                if(m.etape === 0 && userRole === 'admin') {
+                    listVal.innerHTML += cardHtml + `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button></div>`;
+                } else if(m.etape > 0) {
+                    let ctrls = "";
+                    if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
+                        ctrls = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+                    } else if(m.etape === 1 && m.livreur === myName) {
+                        ctrls = `<button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTO DU SMS</button>
+                                 <img id="pre-${m.key}" class="preview-img">
+                                 <input type="text" id="code-${m.key}" placeholder="Code SMS" style="margin-top:10px">
+                                 <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER À LA FINANCE</button>`;
+                    } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+                        ctrls = `<div style="background:white; padding:10px; border-radius:15px; margin-top:10px; text-align:center">
+                                    <img src="${m.photo}" style="width:100%; border-radius:10px">
+                                    <p style="color:var(--danger); font-size:24px; font-weight:900; margin:10px 0">${m.codeSMS}</p>
+                                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">ENCAISSÉ ✅</button>
+                                 </div>`;
+                    }
+                    listAct.innerHTML += cardHtml + ctrls + `</div>`;
                 }
-                listAct.innerHTML += cardHtml + ctrls + `</div>`;
             }
         });
 
@@ -448,19 +413,18 @@
         const nom = document.getElementById('mNom').value;
         const tel = document.getElementById('mTel').value;
         const mnt = parseInt(document.getElementById('mRetrait').value);
-        const lieu = document.getElementById('mLieu').value;
+        const lieu = document.getElementById('mLieu').value || "Lbv";
         const com = parseInt(document.getElementById('mCom').value);
         const liv = parseInt(document.getElementById('mLiv').value);
 
-        if(!nom || !mnt || !tel) return alert("Champs obligatoires manquants !");
+        if(!nom || !mnt || !tel) return alert("Champs obligatoires !");
         
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         
         push(ref(db, 'missions'), {
             id: "CT" + Math.floor(Math.random()*9999), 
-            nom, tel, lieu: lieu || "Lbv",
-            retrait: mnt, com, fraisLivraison: liv,
+            nom, tel, lieu, retrait: mnt, com, fraisLivraison: liv,
             livreur: "Libre", etape: 0, dateHeure: dateStr, timestamp: Date.now()
         });
         
@@ -473,8 +437,7 @@
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
 
     window.supprimerMission = (k) => {
-        if(userRole !== 'admin') return alert("Action réservée à l'administrateur");
-        if(confirm("🚨 Voulez-vous vraiment supprimer cette mission ? Cette action est irréversible.")) {
+        if(userRole === 'admin' && confirm("Supprimer définitivement ?")) {
             remove(ref(db, `missions/${k}`));
         }
     };
@@ -500,11 +463,11 @@
 
     window.terminer = (k) => {
         const code = document.getElementById('code-'+k).value;
-        if(!code || !lastPhotoData) return alert("Code et Photo requis !");
+        if(!code || !lastPhotoData) return alert("Code + Photo obligatoires !");
         update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: lastPhotoData });
     };
 
-    window.cloturer = (k) => confirm("Confirmer la fin d'opération ?") && update(ref(db, `missions/${k}`), { etape: 3 });
+    window.cloturer = (k) => update(ref(db, `missions/${k}`), { etape: 3 });
 
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
