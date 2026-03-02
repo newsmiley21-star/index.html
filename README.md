@@ -40,7 +40,7 @@
             border-radius: 14px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
             background: #f8fafc;
         }
-        input:focus { border-color: var(--gabon-bleu); outline: none; background: white; box-shadow: 0 0 0 4px var(--gabon-bleu-light); }
+        input:focus, select:focus { border-color: var(--gabon-bleu); outline: none; background: white; box-shadow: 0 0 0 4px var(--gabon-bleu-light); }
         
         .btn-login { 
             width: 100%; padding: 16px; background: var(--gabon-vert); color: white; 
@@ -103,14 +103,6 @@
             font-size: 10px; cursor: pointer; margin-left: 5px;
         }
 
-        .compta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-box { 
-            background: var(--white); border: 1px solid #f1f5f9; padding: 20px; 
-            border-radius: 22px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        }
-        .stat-box span { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .stat-box b { font-size: 26px; color: var(--dark); }
-
         .stats-footer { 
             background: var(--dark); color: white; padding: 25px; 
             border-radius: 25px; margin-top: 25px;
@@ -124,7 +116,14 @@
 
         .preview-img { width: 100%; margin-top: 15px; border-radius: 15px; display: none; }
         .search-area { background: #f8fafc; padding: 20px; border-radius: 22px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
-        .sms-badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
+        
+        .zone-highlight { 
+            background: var(--gabon-bleu-light); 
+            padding: 12px; border-radius: 12px; 
+            border: 1px dashed var(--gabon-bleu);
+            margin: 10px 0;
+        }
+        label.input-label { font-size: 11px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -159,22 +158,54 @@
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
+        <!-- SECTION CREER -->
         <div id="sec-creer" class="section">
             <div style="background: #fff; padding: 10px;">
                 <h4 style="margin:0 0 20px 0; font-weight:900; color:var(--gabon-vert)">CRÉER UNE MISSION</h4>
-                <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-                <input type="tel" id="mTel" placeholder="Numéro de téléphone">
-                <input type="text" id="mLieu" placeholder="Quartier / Lieu de livraison">
-                <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+                
+                <label class="input-label">Bénéficiaire</label>
+                <input type="text" id="mNom" placeholder="Nom complet">
+                <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
+                
+                <div class="zone-highlight">
+                    <label class="input-label">Localisation précise</label>
+                    <input type="text" id="mQuartier" list="liste-quartiers" placeholder="Saisir le quartier..." oninput="autoDetectZone()">
+                    <datalist id="liste-quartiers">
+                        <!-- Suggestions auto -->
+                        <option value="Nzeng-Ayong">Libreville</option><option value="Lalala">Libreville</option>
+                        <option value="Akébé">Libreville</option><option value="Glass">Libreville</option>
+                        <option value="Louis">Libreville</option><option value="Batterie IV">Libreville</option>
+                        <option value="Montagne Sainte">Libreville</option><option value="Awendjé">Libreville</option>
+                        <option value="Oloumi">Libreville</option><option value="Charbonnages">Libreville</option>
+                        <option value="Mindoubé">Libreville</option><option value="Plaine Orety">Libreville</option>
+                        <option value="Sodogo">Libreville</option>
+                        <option value="Angondjé">Zone 2000 F</option><option value="Cap Estérias">Akanda</option>
+                        <option value="Okala">Akanda</option><option value="Sablière">Akanda</option>
+                        <option value="Alénakiri">Owendo</option><option value="Awoungou">Owendo</option>
+                        <option value="Cité SNI">Owendo</option><option value="Barracuda">Owendo</option>
+                        <option value="Ntoum">Zone Ntoum</option><option value="Essassa">Zone Ntoum</option>
+                    </datalist>
+
+                    <label class="input-label">Zone de Facturation (Obligatoire)</label>
+                    <select id="mZoneSelect" onchange="updateFraisByZone()">
+                        <option value="">-- Sélectionner la zone --</option>
+                        <option value="libreville">Libreville (1000 F)</option>
+                        <option value="peripherie">Owendo / Akanda Proche (1500 F)</option>
+                        <option value="eloignee">Angondjé / Ntoum / Essassa (2000 F)</option>
+                    </select>
+                </div>
+
+                <label class="input-label">Finance</label>
+                <input type="number" id="mRetrait" placeholder="Montant à retirer (FCFA)">
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                     <div>
-                        <label style="font-size:10px; font-weight:800; color:#94a3b8; margin-left:5px">COMMISSION (F)</label>
+                        <label class="input-label">Commission (F)</label>
                         <input type="number" id="mCom" value="390">
                     </div>
                     <div>
-                        <label style="font-size:10px; font-weight:800; color:#94a3b8; margin-left:5px">LIVRAISON (F)</label>
-                        <input type="number" id="mLiv" value="1000">
+                        <label class="input-label">Frais Liv. (F)</label>
+                        <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9; color:#64748b">
                     </div>
                 </div>
                 
@@ -182,12 +213,12 @@
             </div>
         </div>
 
+        <!-- Les autres sections -->
         <div id="sec-missions" class="section active-sec">
             <div id="div-validation" style="display:none; margin-bottom:30px;">
                 <h5 style="color:var(--danger); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">⚠️ EN ATTENTE DE VALIDATION</h5>
                 <div id="list-validation"></div>
             </div>
-
             <h5 style="color:var(--gabon-bleu); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">🚀 MISSIONS EN COURS</h5>
             <div id="list-active"></div>
         </div>
@@ -196,50 +227,21 @@
             <h4 style="margin:0 0 20px 0; font-weight:900">SUIVI DES GAINS</h4>
             <div id="list-bilan"></div>
             <div class="stats-footer">
-                <div>
-                    <span>REVENUS CUMULÉS :</span>
-                    <b id="stat-total">0 F</b>
-                </div>
+                <div><span>REVENUS CUMULÉS :</span><b id="stat-total">0 F</b></div>
             </div>
         </div>
 
         <div id="sec-compta" class="section">
             <h4 style="margin:0 0 20px 0; font-weight:900">CONTRÔLE FINANCIER</h4>
-            
-            <div class="compta-grid">
-                <div class="stat-box">
-                    <span>RECOUVREMENT</span>
-                    <b id="compta-count-finish" style="color:var(--gabon-vert)">0</b>
-                </div>
-                <div class="stat-box">
-                    <span>OPS ACTIVES</span>
-                    <b id="compta-count-encours" style="color:var(--gabon-bleu)">0</b>
-                </div>
-            </div>
-
             <div style="background:white; border-radius:22px; border:1px solid #f1f5f9; overflow:hidden">
                 <table class="table-compta">
-                    <thead>
-                        <tr>
-                            <th>CLIENT</th>
-                            <th>RETRAIT</th>
-                            <th>LIV.</th>
-                            <th>COM.</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>CLIENT</th><th>RETRAIT</th><th>LIV.</th><th>COM.</th></tr></thead>
                     <tbody id="list-compta"></tbody>
                 </table>
             </div>
-
             <div class="stats-footer" style="background:var(--gabon-vert)">
-                <div>
-                    <span>TOTAL COMMISSIONS :</span>
-                    <b id="compta-total-com" style="color:white">0 F</b>
-                </div>
-                <div>
-                    <span>VOLUME DE RETRAIT :</span>
-                    <b id="compta-total-retrait" style="color:var(--gabon-jaune)">0 F</b>
-                </div>
+                <div><span>TOTAL COMMISSIONS :</span><b id="compta-total-com" style="color:white">0 F</b></div>
+                <div><span>VOLUME DE RETRAIT :</span><b id="compta-total-retrait" style="color:var(--gabon-jaune)">0 F</b></div>
             </div>
         </div>
 
@@ -278,6 +280,36 @@
     let currentKey = null;
     let lastPhotoData = "";
 
+    // Base de connaissance mise à jour
+    const DATABASE_ZONES = {
+        libreville: ["nzeng-ayong", "lalala", "akebe", "akébé", "glass", "louis", "batterie iv", "batterie 4", "montagne sainte", "awendje", "awendjé", "oloumi", "charbonnages", "mindoube", "mindoubé", "plaine orety", "sodogo"],
+        peripherie: ["cap esterias", "cap estérias", "okala", "mikolongo", "carriere", "sabliere", "sablière", "gendarmerie", "alenakiri", "alénakiri", "awoungou", "sni", "barracuda", "pointe clair", "owendo"],
+        eloignee: ["angondje", "angondjé", "ntoum", "essassa", "bikele", "bikelé", "meyang"] // Angondjé est maintenant à 2000 F
+    };
+
+    window.autoDetectZone = () => {
+        const quartier = document.getElementById('mQuartier').value.toLowerCase();
+        const selectZone = document.getElementById('mZoneSelect');
+        
+        if (!quartier) return;
+
+        for (const [zoneKey, keywords] of Object.entries(DATABASE_ZONES)) {
+            if (keywords.some(k => quartier.includes(k))) {
+                selectZone.value = zoneKey;
+                updateFraisByZone();
+                break;
+            }
+        }
+    };
+
+    window.updateFraisByZone = () => {
+        const zone = document.getElementById('mZoneSelect').value;
+        const inputLiv = document.getElementById('mLiv');
+        
+        const tarifs = { "libreville": 1000, "peripherie": 1500, "eloignee": 2000 };
+        inputLiv.value = tarifs[zone] || 1000;
+    };
+
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
@@ -290,12 +322,10 @@
         if(u) {
             const email = u.email.toLowerCase();
             userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
-
             document.getElementById('user-role').innerText = userRole;
             document.getElementById('user-display').innerText = u.email.split('@')[0].toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            
             document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-archives').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
@@ -312,7 +342,7 @@
         }
     });
 
-    function renderUI() {
+    window.renderUI = () => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
         const listBil = document.getElementById('list-bilan');
@@ -326,20 +356,16 @@
         let totalGainsLivreur = 0;
         let totalComAdmin = 0;
         let totalRetraitsAdmin = 0;
-        let countEnCours = 0;
-        let countTerminees = 0;
-
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
             const isFinished = (m.etape === 3);
-            if(isFinished) countTerminees++; else countEnCours++;
 
-            // Calculs Stats & Bilan
             if(isFinished) {
                 if(userRole === 'admin') {
                     totalComAdmin += (m.com || 0);
                     totalRetraitsAdmin += (m.retrait || 0);
+                    listCpt.innerHTML += `<tr><td><b>${m.nom}</b></td><td>${m.retrait} F</td><td>${m.fraisLivraison} F</td><td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td></tr>`;
                 }
                 if(m.livreur === myName) {
                     totalGainsLivreur += (m.fraisLivraison || 0);
@@ -350,24 +376,17 @@
                 }
             }
 
-            // Archives
             if(userRole !== 'livreur') {
-                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.dateHeure} ${m.livreur}`.toLowerCase();
+                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.lieu} ${m.livreur}`.toLowerCase();
                 if(searchStr.includes(archSearch)) {
                     const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                     listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
                         <div class="card-title"><span>${m.nom} ${del}</span> <span class="badge-id">${m.id}</span></div>
-                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 🛵 ${m.livreur}<br>📅 ${m.dateHeure}</div>
+                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 📍 ${m.lieu}<br>📅 ${m.dateHeure}</div>
                     </div>`;
                 }
             }
 
-            // Compta Admin
-            if(isFinished && userRole === 'admin') {
-                listCpt.innerHTML += `<tr><td><b>${m.nom}</b></td><td>${m.retrait} F</td><td>${m.fraisLivraison} F</td><td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td></tr>`;
-            }
-
-            // Missions Actives (Etape 0, 1, 2)
             if(!isFinished) {
                 const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                 const cardHtml = `<div class="card etape-${m.etape}">
@@ -401,46 +420,41 @@
         if(userRole === 'admin') {
             document.getElementById('compta-total-com').innerText = totalComAdmin.toLocaleString() + " F";
             document.getElementById('compta-total-retrait').innerText = totalRetraitsAdmin.toLocaleString() + " F";
-            document.getElementById('compta-count-encours').innerText = countEnCours;
-            document.getElementById('compta-count-finish').innerText = countTerminees;
         }
-
         const openM = allMissions.filter(x => x.etape === 1 && x.livreur === "Libre").length;
         document.getElementById('count-missions').innerHTML = openM > 0 ? `<b style="background:var(--danger); color:white; padding:2px 8px; border-radius:10px; font-size:10px">${openM}</b>` : "";
-    }
+    };
 
     window.creerMission = () => {
         const nom = document.getElementById('mNom').value;
         const tel = document.getElementById('mTel').value;
         const mnt = parseInt(document.getElementById('mRetrait').value);
-        const lieu = document.getElementById('mLieu').value || "Lbv";
+        const quartier = document.getElementById('mQuartier').value;
+        const zoneKey = document.getElementById('mZoneSelect').value;
         const com = parseInt(document.getElementById('mCom').value);
         const liv = parseInt(document.getElementById('mLiv').value);
 
-        if(!nom || !mnt || !tel) return alert("Champs obligatoires !");
+        if(!nom || !mnt || !tel || !quartier || !zoneKey) return alert("Veuillez renseigner le bénéficiaire, le quartier et la zone !");
         
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         
         push(ref(db, 'missions'), {
             id: "CT" + Math.floor(Math.random()*9999), 
-            nom, tel, lieu, retrait: mnt, com, fraisLivraison: liv,
+            nom, tel, lieu: quartier, retrait: mnt, com, fraisLivraison: liv,
             livreur: "Libre", etape: 0, dateHeure: dateStr, timestamp: Date.now()
         });
         
         document.getElementById('mNom').value=""; document.getElementById('mTel').value="";
+        document.getElementById('mQuartier').value=""; document.getElementById('mRetrait').value="";
+        document.getElementById('mZoneSelect').value="";
         ouvrir('missions');
     };
 
     window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
     window.accepter = (k) => update(ref(db, `missions/${k}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase() });
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
-
-    window.supprimerMission = (k) => {
-        if(userRole === 'admin' && confirm("Supprimer définitivement ?")) {
-            remove(ref(db, `missions/${k}`));
-        }
-    };
+    window.supprimerMission = (k) => { if(userRole === 'admin' && confirm("Supprimer ?")) remove(ref(db, `missions/${k}`)); };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0]; if(!file) return;
