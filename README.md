@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CT241 - LOGISTIQUE GABON</title>
-    
+     
     <!-- CONFIGURATION PWA & MOBILE -->
     <meta name="theme-color" content="#009E60">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
