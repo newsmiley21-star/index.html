@@ -146,7 +146,11 @@
         }
         .btn-consult {
             background: #f1f5f9; color: var(--gabon-bleu); border: none; border-radius: 8px;
-            padding: 6px 12px; font-size: 10px; font-weight: 800; cursor: pointer; margin-top: 8px;
+            padding: 6px 12px; font-size: 10px; font-weight: 800; cursor: pointer;
+        }
+        .btn-delete-archive {
+            background: #fef2f2; color: var(--danger); border: none; border-radius: 8px;
+            padding: 6px 10px; font-size: 10px; font-weight: 800; cursor: pointer;
         }
     </style>
 </head>
@@ -363,6 +367,18 @@
         document.getElementById('modal-overlay').style.display = 'flex';
     };
 
+    // --- SUPPRESSION ADMIN ---
+    window.supprimerMission = (key, id) => {
+        if(userRole !== 'admin') return;
+        if(confirm(`🚨 ATTENTION : Souhaitez-vous supprimer définitivement la mission #${id} de l'historique ?`)) {
+            if(confirm(`Action irréversible. Confirmer la suppression de ${id} ?`)) {
+                remove(ref(db, `missions/${key}`))
+                    .then(() => alert("Mission supprimée avec succès."))
+                    .catch(() => alert("Erreur lors de la suppression."));
+            }
+        }
+    };
+
     window.renderUI = () => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
@@ -430,10 +446,11 @@
             listHistory.innerHTML += html;
         });
 
-        // Rendu des Archives Globales (Admin/Finance) avec bouton de consultation
+        // Rendu des Archives Globales avec bouton Suppression pour Admin
         Object.keys(globalArchiveGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
+                const showDelete = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
                 html += `
                 <div class="archive-item">
                     <div class="archive-header">
@@ -445,7 +462,10 @@
                             Livré par: <b>${m.livreur}</b> | Retrait: ${m.retrait} F<br>
                             Zone: ${m.lieu || 'N/A'}
                         </div>
-                        <button class="btn-consult" onclick="consulterMission('${m.key}')">Consulter mission</button>
+                        <div style="display:flex; gap:8px">
+                            ${showDelete}
+                            <button class="btn-consult" onclick="consulterMission('${m.key}')">Consulter mission</button>
+                        </div>
                     </div>
                 </div>`;
             });
