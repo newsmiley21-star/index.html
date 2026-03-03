@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CT241 - LOGISTIQUE GABON</title>
-     
+    
     <!-- CONFIGURATION PWA & MOBILE -->
     <meta name="theme-color" content="#009E60">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
@@ -90,10 +90,10 @@
             border-radius: 22px; margin-bottom: 15px; position: relative; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.02); border-left: 10px solid #cbd5e1;
         }
-        .card.etape-0 { border-left-color: #94a3b8; background: #f8fafc; }
-        .card.etape-1 { border-left-color: var(--gabon-bleu); background: var(--gabon-bleu-light); }
-        .card.etape-2 { border-left-color: var(--gabon-jaune); background: rgba(252, 209, 22, 0.08); }
-        .card.etape-3 { border-left-color: var(--gabon-vert); background: var(--gabon-vert-light); }
+        .card.etape-0 { border-left-color: #94a3b8; background: #f8fafc; } /* Attente Validation */
+        .card.etape-1 { border-left-color: var(--gabon-bleu); background: var(--gabon-bleu-light); } /* En cours */
+        .card.etape-2 { border-left-color: var(--gabon-jaune); background: rgba(252, 209, 22, 0.08); } /* Photo transmise */
+        .card.etape-3 { border-left-color: var(--gabon-vert); background: var(--gabon-vert-light); } /* Terminé */
 
         .card-title { font-weight: 800; font-size: 16px; color: var(--dark); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
         .card-info { font-size: 14px; color: #475569; line-height: 1.6; }
@@ -123,7 +123,7 @@
         .table-compta th { text-align: left; padding: 15px 10px; color: #64748b; border-bottom: 2px solid #f1f5f9; }
         .table-compta td { padding: 15px 10px; border-bottom: 1px solid #f8fafc; }
 
-        .preview-img { width: 100%; margin-top: 15px; border-radius: 15px; display: none; }
+        .preview-img { width: 100%; margin-top: 15px; border-radius: 15px; display: none; border: 2px solid var(--gabon-jaune); }
         .search-area { background: #f8fafc; padding: 20px; border-radius: 22px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
         
         .zone-highlight { 
@@ -135,9 +135,19 @@
         label.input-label { font-size: 11px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
         
         .search-hint { font-size: 10px; color: #94a3b8; margin-top: 8px; font-weight: 600; }
+        
+        /* Loading Overlay */
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+            font-weight: 800; color: var(--gabon-vert);
+        }
     </style>
 </head>
 <body>
+
+    <div id="loading">TRAITEMENT...</div>
 
     <div id="auth-screen">
         <div class="login-card">
@@ -158,7 +168,7 @@
                     <span id="user-display" style="font-size:11px; color:#94a3b8; margin-left:8px; font-weight:700"></span>
                 </div>
             </div>
-            <button id="btnOut" style="background:rgba(231, 76, 60, 0.1); color:var(--danger); border:none; padding:8px 15px; border-radius:10px; font-weight:800; font-size:11px; cursor:pointer">DECONNEXION</button>
+            <button id="btnOut" style="background:rgba(231, 76, 60, 0.1); color:var(--danger); border:none; padding:8px 15px; border-radius:10px; font-weight:800; font-size:11px; cursor:pointer">DÉCONNEXION</button>
         </header>
 
         <nav id="navbar">
@@ -182,18 +192,29 @@
                     <label class="input-label">Localisation précise</label>
                     <input type="text" id="mQuartier" list="liste-quartiers" placeholder="Saisir le quartier..." oninput="autoDetectZone()">
                     <datalist id="liste-quartiers">
-                        <option value="Nzeng-Ayong">Libreville</option><option value="Lalala">Libreville</option>
-                        <option value="Akébé">Libreville</option><option value="Glass">Libreville</option>
-                        <option value="Louis">Libreville</option><option value="Batterie IV">Libreville</option>
-                        <option value="Montagne Sainte">Libreville</option><option value="Awendjé">Libreville</option>
-                        <option value="Oloumi">Libreville</option><option value="Charbonnages">Libreville</option>
-                        <option value="Mindoubé">Libreville</option><option value="Plaine Orety">Libreville</option>
+                        <option value="Nzeng-Ayong">Libreville</option>
+                        <option value="Lalala">Libreville</option>
+                        <option value="Akébé">Libreville</option>
+                        <option value="Glass">Libreville</option>
+                        <option value="Louis">Libreville</option>
+                        <option value="Batterie IV">Libreville</option>
+                        <option value="Montagne Sainte">Libreville</option>
+                        <option value="Awendjé">Libreville</option>
+                        <option value="Oloumi">Libreville</option>
+                        <option value="Charbonnages">Libreville</option>
+                        <option value="Mindoubé">Libreville</option>
+                        <option value="Plaine Orety">Libreville</option>
                         <option value="Sodogo">Libreville</option>
-                        <option value="Angondjé">Zone 2000 F</option><option value="Cap Estérias">Akanda</option>
-                        <option value="Okala">Akanda</option><option value="Sablière">Akanda</option>
-                        <option value="Alénakiri">Owendo</option><option value="Awoungou">Owendo</option>
-                        <option value="Cité SNI">Owendo</option><option value="Barracuda">Owendo</option>
-                        <option value="Ntoum">Zone Ntoum</option><option value="Essassa">Zone Ntoum</option>
+                        <option value="Angondjé">Zone 2000 F</option>
+                        <option value="Cap Estérias">Akanda</option>
+                        <option value="Okala">Akanda</option>
+                        <option value="Sablière">Akanda</option>
+                        <option value="Alénakiri">Owendo</option>
+                        <option value="Awoungou">Owendo</option>
+                        <option value="Cité SNI">Owendo</option>
+                        <option value="Barracuda">Owendo</option>
+                        <option value="Ntoum">Zone Ntoum</option>
+                        <option value="Essassa">Zone Ntoum</option>
                     </datalist>
 
                     <label class="input-label">Zone de Facturation (Obligatoire)</label>
@@ -229,7 +250,7 @@
                 <h5 style="color:var(--danger); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">⚠️ EN ATTENTE DE VALIDATION</h5>
                 <div id="list-validation"></div>
             </div>
-            <h5 style="color:var(--gabon-bleu); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">🚀 MISSIONS EN COURS</h5>
+            <h5 style="color:var(--gabon-bleu); margin:0 0 15px 0; font-weight:900; font-size:12px; letter-spacing:1px">🚀 MISSIONS ACTIVES</h5>
             <div id="list-active"></div>
         </div>
 
@@ -238,7 +259,8 @@
             <h4 style="margin:0 0 20px 0; font-weight:900">SUIVI DES GAINS</h4>
             <div id="list-bilan"></div>
             <div class="stats-footer">
-                <div><span>REVENUS CUMULÉS :</span><b id="stat-total">0 F</b></div>
+                <div><span>VOS GAINS RÉELS (Livraisons) :</span><b id="stat-total">0 F</b></div>
+                <div style="font-size: 10px; margin-top: 5px; opacity: 0.7;">Note: Seules les missions terminées sont comptabilisées.</div>
             </div>
         </div>
 
@@ -267,13 +289,14 @@
         </div>
     </div>
 
+    <!-- Inputs cachés pour la caméra -->
     <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="canvas" style="display:none"></canvas>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -291,8 +314,7 @@
 
     let userRole = "livreur";
     let allMissions = [];
-    let currentKey = null;
-    let lastPhotoData = "";
+    let currentProcessKey = null;
 
     const DATABASE_ZONES = {
         libreville: ["nzeng-ayong", "lalala", "akebe", "akébé", "glass", "louis", "batterie iv", "batterie 4", "montagne sainte", "awendje", "awendjé", "oloumi", "charbonnages", "mindoube", "mindoubé", "plaine orety", "sodogo"],
@@ -300,6 +322,15 @@
         eloignee: ["angondje", "angondjé", "ntoum", "essassa", "bikele", "bikelé", "meyang"]
     };
 
+    // --- NAVIGATION ---
+    window.ouvrir = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-' + id).classList.add('active-sec');
+        document.getElementById('nav-' + id).classList.add('active');
+    };
+
+    // --- LOGIQUE METIER ---
     window.autoDetectZone = () => {
         const quartier = document.getElementById('mQuartier').value.toLowerCase();
         const selectZone = document.getElementById('mZoneSelect');
@@ -320,10 +351,209 @@
         inputLiv.value = tarifs[zone] || 1000;
     };
 
+    window.creerMission = async () => {
+        const data = {
+            nom: document.getElementById('mNom').value,
+            tel: document.getElementById('mTel').value,
+            quartier: document.getElementById('mQuartier').value,
+            zone: document.getElementById('mZoneSelect').value,
+            retrait: parseInt(document.getElementById('mRetrait').value) || 0,
+            com: parseInt(document.getElementById('mCom').value) || 0,
+            liv: parseInt(document.getElementById('mLiv').value) || 1000,
+            etape: 0, // En attente validation admin
+            timestamp: Date.now(),
+            codeSms: "",
+            livreur: "",
+            photo: ""
+        };
+
+        if(!data.nom || !data.zone) return alert("Veuillez remplir le nom et la zone.");
+        
+        showLoading(true);
+        await push(ref(db, 'missions'), data);
+        alert("Mission envoyée pour validation !");
+        
+        // Reset form
+        ['mNom', 'mTel', 'mQuartier', 'mRetrait'].forEach(id => document.getElementById(id).value = "");
+        showLoading(false);
+        ouvrir('missions');
+    };
+
+    // --- ACTIONS BOUTONS ---
+    window.validerMission = (key) => {
+        update(ref(db, 'missions/' + key), { etape: 1 });
+    };
+
+    window.accepterMission = (key) => {
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, 'missions/' + key), { 
+            etape: 1, 
+            livreur: myName 
+        });
+    };
+
+    window.ouvrirCamera = (key) => {
+        currentProcessKey = key;
+        document.getElementById('camInput').click();
+    };
+
+    document.getElementById('camInput').onchange = function(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        
+        showLoading(true);
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                // Compression
+                canvas.width = 600;
+                canvas.height = (img.height / img.width) * 600;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                
+                update(ref(db, 'missions/' + currentProcessKey), {
+                    photo: dataUrl,
+                    etape: 2
+                }).then(() => {
+                    showLoading(false);
+                    alert("Preuve photo transmise !");
+                });
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.cloturerMission = (key) => {
+        const code = prompt("Saisir le CODE SMS de confirmation (obligatoire) :");
+        if(code) {
+            update(ref(db, 'missions/' + key), {
+                codeSms: code,
+                etape: 3
+            });
+        }
+    };
+
+    window.supprimerMission = (key) => {
+        if(confirm("Supprimer définitivement cette mission ?")) {
+            remove(ref(db, 'missions/' + key));
+        }
+    };
+
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+
+    // --- RENDU UI ---
+    window.renderUI = () => {
+        const listVal = document.getElementById('list-validation');
+        const listAct = document.getElementById('list-active');
+        const listBil = document.getElementById('list-bilan');
+        const listCpt = document.getElementById('list-compta');
+        const listArc = document.getElementById('list-archives');
+        const archSearch = document.getElementById('archSearch').value.toLowerCase();
+        
+        listVal.innerHTML = ""; listAct.innerHTML = ""; listBil.innerHTML = ""; 
+        listCpt.innerHTML = ""; listArc.innerHTML = "";
+
+        let totalGainsLivreur = 0;
+        let totalComAdmin = 0;
+        let totalRetraitsAdmin = 0;
+        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
+
+        allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+            const isFinished = (m.etape === 3);
+            const cardHtml = `
+                <div class="card etape-${m.etape}">
+                    <div class="card-title">
+                        ${m.nom.toUpperCase()} 
+                        <span class="badge-id">${m.zone.toUpperCase()}</span>
+                    </div>
+                    <div class="card-info">
+                        📍 <b>Quartier:</b> ${m.quartier || 'Non spécifié'}<br>
+                        📞 <b>Contact:</b> ${m.tel || 'N/A'}<br>
+                        💰 <b>Retrait:</b> ${m.retrait} F | <b>Livraison:</b> ${m.liv} F<br>
+                        👤 <b>Livreur:</b> ${m.livreur || 'EN ATTENTE'}<br>
+                        ${m.codeSms ? `🔑 <b>SMS:</b> ${m.codeSms}` : ''}
+                    </div>
+                    ${renderButtons(m)}
+                </div>
+            `;
+
+            // Logique de répartition
+            if(m.etape === 0 && userRole === 'admin') {
+                listVal.innerHTML += cardHtml;
+            } else if (m.etape < 3) {
+                listAct.innerHTML += cardHtml;
+            }
+
+            // Calcul Bilan Livreur
+            if(isFinished && m.livreur === myName) {
+                totalGainsLivreur += m.liv;
+                listBil.innerHTML += cardHtml;
+            }
+
+            // Archives Admin
+            if(isFinished && userRole === 'admin') {
+                if(!archSearch || m.nom.toLowerCase().includes(archSearch) || (m.codeSms && m.codeSms.toLowerCase().includes(archSearch))) {
+                    listArc.innerHTML += cardHtml;
+                }
+            }
+
+            // Compta Admin
+            if(isFinished && userRole === 'admin') {
+                totalComAdmin += m.com;
+                totalRetraitsAdmin += m.retrait;
+                listCpt.innerHTML += `
+                    <tr>
+                        <td><b>${m.nom}</b></td>
+                        <td>${m.retrait} F</td>
+                        <td>${m.liv} F</td>
+                        <td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td>
+                    </tr>
+                `;
+            }
+        });
+
+        // Mise à jour des compteurs
+        document.getElementById('count-missions').innerText = `(${allMissions.filter(m => m.etape < 3).length})`;
+        document.getElementById('stat-total').innerText = totalGainsLivreur + " F";
+        document.getElementById('compta-total-com').innerText = totalComAdmin + " F";
+        document.getElementById('compta-total-retrait').innerText = totalRetraitsAdmin + " F";
+    };
+
+    function renderButtons(m) {
+        if(m.etape === 3) return `<p style="color:var(--gabon-vert); font-size:10px; font-weight:800; margin-top:10px">✅ MISSION TERMINÉE</p>`;
+        
+        let html = "";
+        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
+
+        if(userRole === 'admin') {
+            if(m.etape === 0) html += `<button onclick="validerMission('${m.key}')" class="btn-action btn-validate">VALIDER & PUBLIER</button>`;
+            html += `<button onclick="supprimerMission('${m.key}')" class="btn-delete">SUPPRIMER</button>`;
+        }
+
+        if(userRole === 'livreur' || userRole === 'admin') {
+            if(m.etape === 1 && !m.livreur) {
+                html += `<button onclick="accepterMission('${m.key}')" class="btn-action btn-accept">ACCEPTER LA COURSE</button>`;
+            } else if(m.etape === 1 && m.livreur === myName) {
+                html += `<button onclick="ouvrirCamera('${m.key}')" class="btn-action btn-photo">📸 TRANSMETTRE PREUVE PHOTO</button>`;
+            } else if(m.etape === 2 && m.livreur === myName) {
+                html += `<button onclick="cloturerMission('${m.key}')" class="btn-action btn-validate">🏁 CLÔTURER (AVEC CODE SMS)</button>`;
+            }
+        }
+
+        return html;
+    }
+
+    // --- AUTHENTIFICATION ---
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé"); }
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé. Vérifiez vos identifiants."); }
     };
 
     document.getElementById('btnOut').onclick = () => signOut(auth);
@@ -354,25 +584,6 @@
         }
     });
 
-    window.renderUI = () => {
-        const listVal = document.getElementById('list-validation');
-        const listAct = document.getElementById('list-active');
-        const listBil = document.getElementById('list-bilan');
-        const listCpt = document.getElementById('list-compta');
-        const listArc = document.getElementById('list-archives');
-        const archSearch = document.getElementById('archSearch').value.toLowerCase();
-        
-        listVal.innerHTML = ""; listAct.innerHTML = ""; listBil.innerHTML = ""; 
-        listCpt.innerHTML = ""; listArc.innerHTML = "";
-
-        let totalGainsLivreur = 0;
-        let totalComAdmin = 0;
-        let totalRetraitsAdmin = 0;
-        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
-
-        allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            const isFinished = (m.etape === 3);
-
-            if(isFinished) {
-                if(userRole === 'admin') {
-                    total
+</script>
+</body>
+</html>
