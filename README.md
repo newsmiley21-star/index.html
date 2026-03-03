@@ -144,7 +144,13 @@
 
             <!-- Section Archives -->
             <section id="sec-archives" class="hidden space-y-4">
-                <h3 class="text-[10px] font-black text-slate-400 tracking-widest uppercase px-1">Historique des missions terminées</h3>
+                <div class="sticky top-0 bg-[#f8fafc] pt-2 pb-4 space-y-3 z-10">
+                    <h3 class="text-[10px] font-black text-slate-400 tracking-widest uppercase px-1">Historique des missions</h3>
+                    <div class="flex flex-col gap-2">
+                        <input type="text" id="archive-search" placeholder="Rechercher nom, numéro ou code..." class="w-full p-4 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm outline-none focus:border-blue-400 transition-all">
+                        <input type="date" id="archive-date" class="w-full p-4 bg-white rounded-2xl border border-slate-100 shadow-sm text-sm outline-none focus:border-blue-400 transition-all">
+                    </div>
+                </div>
                 <div id="list-archives" class="space-y-3"></div>
             </section>
 
@@ -210,6 +216,7 @@
 
         let userState = { role: 'livreur', email: '', uid: '', shortName: '' };
         let currentPhotoMissionId = null;
+        let allMissionsCache = []; // Stockage global pour filtrage dynamique
 
         // AUTH
         document.getElementById('btnConnect').onclick = async () => {
@@ -243,7 +250,6 @@
                 document.getElementById('user-role').innerText = userState.role;
                 document.getElementById('user-display').innerText = userState.shortName;
 
-                // Affichage conditionnel des onglets
                 if (userState.role !== 'livreur') {
                     document.getElementById('tab-creer').classList.remove('hidden');
                     document.getElementById('pending-validation-area').classList.remove('hidden');
@@ -260,16 +266,19 @@
         });
 
         function initDataSync() {
-            // Utilisation du chemin sécurisé requis par les instructions
             const missionsCol = collection(db, "artifacts", appId, "public", "data", "missions");
             const q = query(missionsCol, orderBy("createdAt", "desc"));
             
             onSnapshot(q, (snapshot) => {
-                const missions = [];
-                snapshot.forEach(doc => missions.push({ id: doc.id, ...doc.data() }));
-                renderUI(missions);
+                allMissionsCache = [];
+                snapshot.forEach(doc => allMissionsCache.push({ id: doc.id, ...doc.data() }));
+                renderUI(allMissionsCache);
             }, (err) => console.error("Sync Error:", err));
         }
+
+        // Ecouteurs pour la recherche
+        document.getElementById('archive-search').addEventListener('input', () => renderUI(allMissionsCache));
+        document.getElementById('archive-date').addEventListener('input', () => renderUI(allMissionsCache));
 
         function renderUI(data) {
             const listPending = document.getElementById('list-pending');
@@ -278,6 +287,9 @@
             const listArchives = document.getElementById('list-archives');
             const listAdminRows = document.getElementById('list-admin-rows');
             
+            const searchTerm = document.getElementById('archive-search').value.toLowerCase();
+            const filterDate = document.getElementById('archive-date').value;
+
             // Stats
             let stats = { myGains: 0, admCom: 0, admRet: 0, openMissions: 0 };
             
@@ -309,18 +321,34 @@
                             </tr>`;
                     }
                     
-                    // Rubrique ARCHIVES
-                    listArchives.innerHTML += `
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
-                            <div>
-                                <p class="text-[11px] font-black text-slate-800">${m.nom}</p>
-                                <p class="text-[9px] text-slate-400 uppercase tracking-tighter">${m.lieu} • ${m.idCT}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-bold text-green-600">COMPLÉTÉ</p>
-                                <p class="text-[9px] text-slate-300">${m.livreur}</p>
-                            </div>
-                        </div>`;
+                    // Rubrique ARCHIVES avec FILTRES
+                    let matchSearch = !searchTerm || 
+                                     (m.nom && m.nom.toLowerCase().includes(searchTerm)) || 
+                                     (m.tel && m.tel.includes(searchTerm)) || 
+                                     (m.codeSMS && m.codeSMS.includes(searchTerm)) ||
+                                     (m.idCT && m.idCT.toLowerCase().includes(searchTerm));
+
+                    let matchDate = true;
+                    if(filterDate && m.createdAt) {
+                        const dateObj = m.createdAt.toDate();
+                        const dateStr = dateObj.toISOString().split('T')[0];
+                        matchDate = (dateStr === filterDate);
+                    }
+
+                    if(matchSearch && matchDate) {
+                        listArchives.innerHTML += `
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
+                                <div>
+                                    <p class="text-[11px] font-black text-slate-800">${m.nom}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase tracking-tighter">${m.lieu} • ${m.idCT} • 📱${m.tel || 'N/A'}</p>
+                                    <p class="text-[9px] font-bold text-blue-500 mt-0.5">SMS: ${m.codeSMS || 'N/A'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-green-600">COMPLÉTÉ</p>
+                                    <p class="text-[9px] text-slate-300">${m.livreur}</p>
+                                </div>
+                            </div>`;
+                    }
                 }
 
                 // Logic pour MISSIONS ACTIVES
@@ -428,6 +456,7 @@
             const ret = parseInt(document.getElementById('mRetrait').value);
             const quartier = document.getElementById('mQuartier').value;
             const liv = parseInt(document.getElementById('mLiv').value);
+            const tel = document.getElementById('mTel').value;
             
             if(!nom || !ret || !quartier) return alert("Champs obligatoires !");
 
@@ -436,7 +465,7 @@
                 await addDoc(missionsCol, {
                     idCT: "CT" + Math.floor(1000 + Math.random() * 9000),
                     nom,
-                    tel: document.getElementById('mTel').value,
+                    tel: tel,
                     lieu: quartier,
                     retrait: ret,
                     fraisLiv: liv,
@@ -448,9 +477,10 @@
                 });
                 alert("Mission déployée avec succès !");
                 switchTab('missions');
-                // Reset form
                 document.getElementById('mNom').value = "";
                 document.getElementById('mRetrait').value = "";
+                document.getElementById('mTel').value = "";
+                document.getElementById('mQuartier').value = "";
             } catch(e) { console.error(e); }
         };
 
@@ -494,7 +524,6 @@
                 img.onload = () => {
                     const canvas = document.getElementById('canvas');
                     const ctx = canvas.getContext('2d');
-                    // Resize for performance/storage
                     canvas.width = 600;
                     canvas.height = img.height * (600 / img.width);
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
