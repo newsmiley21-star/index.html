@@ -133,6 +133,8 @@
             margin: 10px 0;
         }
         label.input-label { font-size: 11px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
+        
+        .search-hint { font-size: 10px; color: #94a3b8; margin-top: 8px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -258,7 +260,8 @@
         <!-- SECTION ARCHIVES -->
         <div id="sec-archives" class="section">
             <div class="search-area">
-                <input type="text" id="archSearch" placeholder="Rechercher..." oninput="renderUI()" style="margin:0">
+                <input type="text" id="archSearch" placeholder="Recherche par Nom, ID ou Code SMS..." oninput="renderUI()" style="margin:0">
+                <div class="search-hint">💡 Astuce : Tapez le code SMS reçu pour retrouver une mission précise.</div>
             </div>
             <div id="list-archives"></div>
         </div>
@@ -372,132 +375,4 @@
 
             if(isFinished) {
                 if(userRole === 'admin') {
-                    totalComAdmin += (m.com || 0);
-                    totalRetraitsAdmin += (m.retrait || 0);
-                    listCpt.innerHTML += `<tr><td><b>${m.nom}</b></td><td>${m.retrait} F</td><td>${m.fraisLivraison} F</td><td style="color:var(--gabon-vert); font-weight:800">${m.com} F</td></tr>`;
-                }
-                if(m.livreur === myName) {
-                    totalGainsLivreur += (m.fraisLivraison || 0);
-                    listBil.innerHTML += `<div style="padding:15px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between">
-                        <div><b>${m.nom}</b><br><small style="color:#94a3b8">${m.dateHeure}</small></div>
-                        <b style="color:var(--gabon-vert)">+${m.fraisLivraison.toLocaleString()} F</b>
-                    </div>`;
-                }
-            }
-
-            if(userRole === 'admin') {
-                const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.lieu} ${m.livreur}`.toLowerCase();
-                if(searchStr.includes(archSearch)) {
-                    listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
-                        <div class="card-title"><span>${m.nom} <button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button></span> <span class="badge-id">${m.id}</span></div>
-                        <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 📍 ${m.lieu}<br>📅 ${m.dateHeure}</div>
-                    </div>`;
-                }
-            }
-
-            if(!isFinished) {
-                const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
-                const cardHtml = `<div class="card etape-${m.etape}">
-                    <div class="card-title"><span>${m.nom} ${del}</span> <span class="badge-id">${m.id}</span></div>
-                    <div class="card-info">📞 ${m.tel} | 📍 ${m.lieu}<br>💰 <b>${m.retrait.toLocaleString()} F</b><br>🛵 ${m.livreur}</div>`;
-
-                if(m.etape === 0 && userRole === 'admin') {
-                    listVal.innerHTML += cardHtml + `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button></div>`;
-                } else if(m.etape > 0) {
-                    let ctrls = "";
-                    if(m.etape === 1 && m.livreur === "Libre" && userRole === 'livreur') {
-                        ctrls = `<button class="btn-action btn-accept" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-                    } else if(m.etape === 1 && m.livreur === myName) {
-                        ctrls = `<button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTO DU SMS</button>
-                                 <img id="pre-${m.key}" class="preview-img">
-                                 <input type="text" id="code-${m.key}" placeholder="Code SMS" style="margin-top:10px">
-                                 <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER À LA FINANCE</button>`;
-                    } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-                        ctrls = `<div style="background:white; padding:10px; border-radius:15px; margin-top:10px; text-align:center">
-                                    <img src="${m.photo}" style="width:100%; border-radius:10px">
-                                    <p style="color:var(--danger); font-size:24px; font-weight:900; margin:10px 0">${m.codeSMS}</p>
-                                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">ENCAISSÉ ✅</button>
-                                 </div>`;
-                    }
-                    listAct.innerHTML += cardHtml + ctrls + `</div>`;
-                }
-            }
-        });
-
-        document.getElementById('stat-total').innerText = totalGainsLivreur.toLocaleString() + " F";
-        if(userRole === 'admin') {
-            document.getElementById('compta-total-com').innerText = totalComAdmin.toLocaleString() + " F";
-            document.getElementById('compta-total-retrait').innerText = totalRetraitsAdmin.toLocaleString() + " F";
-        }
-        const openM = allMissions.filter(x => x.etape === 1 && x.livreur === "Libre").length;
-        document.getElementById('count-missions').innerHTML = openM > 0 ? `<b style="background:var(--danger); color:white; padding:2px 8px; border-radius:10px; font-size:10px">${openM}</b>` : "";
-    };
-
-    window.creerMission = () => {
-        const nom = document.getElementById('mNom').value;
-        const tel = document.getElementById('mTel').value;
-        const mnt = parseInt(document.getElementById('mRetrait').value);
-        const quartier = document.getElementById('mQuartier').value;
-        const zoneKey = document.getElementById('mZoneSelect').value;
-        const com = parseInt(document.getElementById('mCom').value);
-        const liv = parseInt(document.getElementById('mLiv').value);
-
-        if(!nom || !mnt || !tel || !quartier || !zoneKey) return alert("Veuillez remplir les champs obligatoires !");
-        
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        
-        push(ref(db, 'missions'), {
-            id: "CT" + Math.floor(Math.random()*9999), 
-            nom, tel, lieu: quartier, retrait: mnt, com, fraisLivraison: liv,
-            livreur: "Libre", etape: 0, dateHeure: dateStr, timestamp: Date.now()
-        });
-        
-        document.getElementById('mNom').value=""; document.getElementById('mTel').value="";
-        document.getElementById('mQuartier').value=""; document.getElementById('mRetrait').value="";
-        document.getElementById('mZoneSelect').value="";
-        ouvrir('missions');
-    };
-
-    window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
-    window.accepter = (k) => update(ref(db, `missions/${k}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase() });
-    window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
-    window.supprimerMission = (k) => { if(userRole === 'admin' && confirm("Supprimer définitivement cette mission ?")) remove(ref(db, `missions/${k}`)); };
-
-    document.getElementById('camInput').onchange = (e) => {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            const img = new Image();
-            img.onload = () => {
-                const can = document.getElementById('canvas');
-                const ctx = can.getContext('2d');
-                can.width = 600; can.height = 600 * (img.height/img.width);
-                ctx.drawImage(img, 0, 0, 600, can.height);
-                lastPhotoData = can.toDataURL('image/jpeg', 0.7);
-                const pre = document.getElementById('pre-'+currentKey);
-                if(pre) { pre.src = lastPhotoData; pre.style.display = 'block'; }
-            };
-            img.src = re.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    window.terminer = (k) => {
-        const code = document.getElementById('code-'+k).value;
-        if(!code || !lastPhotoData) return alert("Code SMS et Photo obligatoires !");
-        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: lastPhotoData });
-    };
-
-    window.cloturer = (k) => update(ref(db, `missions/${k}`), { etape: 3 });
-
-    window.ouvrir = (id) => {
-        if(id === 'archives' && userRole !== 'admin') return;
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('sec-'+id).classList.add('active-sec');
-        document.getElementById('nav-'+id).classList.add('active');
-    };
-</script>
-</body>
-</html>
+                    total
