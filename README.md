@@ -112,10 +112,29 @@
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
         .badge-blue { background: #dbeafe; color: #1e40af; }
 
+        /* MODALE DE CONSULTATION */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 10000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 450px; border-radius: 25px;
+            padding: 20px; max-height: 85vh; overflow-y: auto; position: relative;
+        }
+        .close-modal {
+            position: absolute; top: 15px; right: 15px; font-size: 24px; color: var(--danger); font-weight: bold; cursor: pointer;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row b { color: var(--dark); font-size: 13px; }
+        .detail-row span { color: #64748b; font-size: 13px; }
+
         /* Style spécifique pour les archives admin/finance */
         .archive-item {
             border-bottom: 1px solid #eee;
-            padding: 10px 0;
+            padding: 12px 0;
         }
         .archive-header {
             font-size: 12px;
@@ -124,6 +143,10 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
+        }
+        .btn-consult {
+            background: #f1f5f9; color: var(--gabon-bleu); border: none; border-radius: 8px;
+            padding: 6px 12px; font-size: 10px; font-weight: 800; cursor: pointer; margin-top: 8px;
         }
     </style>
 </head>
@@ -136,6 +159,15 @@
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
             <button class="btn-login" id="btnConnect">SE CONNECTER</button>
+        </div>
+    </div>
+
+    <!-- MODALE DE CONSULTATION MISSION -->
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fermerModal()">×</span>
+            <h3 style="color:var(--gabon-bleu); margin-top:0">Détails Mission</h3>
+            <div id="modal-body"></div>
         </div>
     </div>
 
@@ -300,6 +332,37 @@
         document.getElementById('mLiv').value = document.getElementById('mZoneSelect').value;
     };
 
+    window.fermerModal = () => {
+        document.getElementById('modal-overlay').style.display = 'none';
+    };
+
+    window.consulterMission = (key) => {
+        const m = allMissions.find(x => x.key === key);
+        if(!m) return;
+        
+        const body = document.getElementById('modal-body');
+        body.innerHTML = `
+            <div class="detail-row"><b>Bénéficiaire</b> <span>${m.nom}</span></div>
+            <div class="detail-row"><b>ID Mission</b> <span style="color:var(--gabon-bleu); font-weight:800">#${m.id}</span></div>
+            <div class="detail-row"><b>Téléphone</b> <span>${m.tel || 'N/A'}</span></div>
+            <div class="detail-row"><b>Lieu</b> <span>${m.lieu || 'N/A'}</span></div>
+            <div class="detail-row"><b>Montant Retrait</b> <b>${m.retrait} F</b></div>
+            <div class="detail-row"><b>Commission Admin</b> <span>${m.com} F</span></div>
+            <div class="detail-row"><b>Gains Livreur</b> <span>${m.fraisLivraison} F</span></div>
+            <div class="detail-row"><b>Livreur assigné</b> <span>${m.livreur}</span></div>
+            <div class="detail-row"><b>Clôturé à</b> <span>${m.heureCloture || 'Inconnu'}</span></div>
+            
+            <div style="margin-top:20px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
+                <span class="label-mini">Preuve de livraison (SMS)</span>
+                <h2 style="letter-spacing:4px; color:var(--dark); margin:10px 0">${m.codeSMS || 'N/A'}</h2>
+                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:12px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1)">` : '<p style="font-size:10px; color:red">Aucune photo disponible</p>'}
+            </div>
+            
+            <button class="btn-action" style="background:var(--dark); color:white" onclick="fermerModal()">FERMER</button>
+        `;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    };
+
     window.renderUI = () => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
@@ -367,18 +430,22 @@
             listHistory.innerHTML += html;
         });
 
-        // Rendu des Archives Globales (Admin/Finance)
+        // Rendu des Archives Globales (Admin/Finance) avec bouton de consultation
         Object.keys(globalArchiveGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
-                html += `<div class="archive-item" style="padding:10px; border-bottom:1px solid #eee; font-size:11px">
+                html += `
+                <div class="archive-item">
                     <div class="archive-header">
                         <span>${m.nom} (#${m.id})</span>
                         <span style="color:var(--gabon-vert)">+ ${m.com} F (Com)</span>
                     </div>
-                    <div style="color:#64748b">
-                        Livré par: <b>${m.livreur}</b> | Retrait: ${m.retrait} F | Zone: ${m.lieu || 'N/A'}<br>
-                        <small>Clôturé à ${m.heureCloture || 'Heure inconnue'}</small>
+                    <div style="color:#64748b; font-size:10px; display:flex; justify-content:space-between; align-items:flex-end">
+                        <div>
+                            Livré par: <b>${m.livreur}</b> | Retrait: ${m.retrait} F<br>
+                            Zone: ${m.lieu || 'N/A'}
+                        </div>
+                        <button class="btn-consult" onclick="consulterMission('${m.key}')">Consulter mission</button>
                     </div>
                 </div>`;
             });
@@ -392,7 +459,6 @@
             document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
         }
         
-        // Badge compteur missions en cours
         const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
         document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
     };
@@ -442,7 +508,10 @@
         return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
                     <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
                     <small style="color:#94a3b8">${sub} | ${m.dateHeure}</small></div>
-                    <b style="color:${color}; font-size:13px">+ ${val} F</b>
+                    <div style="text-align:right">
+                        <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
+                        <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
+                    </div>
                 </div>`;
     }
 
