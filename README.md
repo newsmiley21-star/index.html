@@ -28,7 +28,7 @@
         
         #auth-screen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(45deg, var(--gabon-vert), var(--gabon-jaune), var(--gabon-bleu));
+            background: linear-gradient(135deg, var(--gabon-vert), var(--gabon-jaune), var(--gabon-bleu));
             display: flex; align-items: center; justify-content: center; z-index: 9999; 
         }
         .login-card { 
@@ -51,7 +51,7 @@
         #main-app { 
             display: none; max-width: 500px; margin: auto; background: var(--white); 
             border-radius: 30px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
-            min-height: 90vh;
+            min-height: 90vh; padding-bottom: 40px;
         }
 
         header { 
@@ -66,24 +66,30 @@
         nav button { 
             flex: 1; padding: 10px; border: none; border-radius: 10px; 
             background: transparent; font-weight: 700; font-size: 11px; color: #64748b; 
+            white-space: nowrap; cursor: pointer;
         }
         nav button.active { background: var(--white); color: var(--gabon-bleu); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
-        .section { display: none; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
         .active-sec { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { 
             background: var(--white); border: 1px solid #f1f5f9; padding: 15px; 
             border-radius: 18px; margin-bottom: 12px; border-left: 6px solid #cbd5e1;
+            position: relative;
         }
+        .card.etape-0 { border-left-color: var(--danger); }
         .card.etape-1 { border-left-color: var(--gabon-bleu); }
+        .card.etape-2 { border-left-color: var(--gabon-jaune); }
         .card.etape-3 { border-left-color: var(--gabon-vert); }
 
         .btn-action { 
             width: 100%; padding: 14px; border: none; border-radius: 12px; 
-            font-weight: 800; cursor: pointer; margin-top: 10px;
+            font-weight: 800; cursor: pointer; margin-top: 10px; transition: 0.2s;
         }
         .btn-validate { background: var(--gabon-vert); color: white; }
+        .btn-validate:active { transform: scale(0.98); opacity: 0.9; }
         
         .stats-banner {
             background: var(--dark); color: white; padding: 20px; border-radius: 20px;
@@ -101,7 +107,24 @@
 
         .zone-highlight { background: rgba(58, 117, 196, 0.05); padding: 12px; border-radius: 15px; margin: 10px 0; border: 1px dashed var(--gabon-bleu); }
         .finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .label-mini { font-size: 10px; font-weight: 800; color: #64748b; margin-left: 5px; }
+        .label-mini { font-size: 10px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
+        
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+
+        /* Style spécifique pour les archives admin/finance */
+        .archive-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .archive-header {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--gabon-bleu);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -109,7 +132,7 @@
     <div id="auth-screen">
         <div class="login-card">
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
-            <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">PORTAIL LOGISTIQUE</p>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">PORTAIL LOGISTIQUE GABON</p>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
             <button class="btn-login" id="btnConnect">SE CONNECTER</button>
@@ -122,33 +145,35 @@
                 <h3 style="margin:0; color:var(--gabon-bleu)">CT241 OPS</h3>
                 <span id="user-role" style="font-size:10px; padding:3px 8px; border-radius:10px; background:var(--gabon-jaune); font-weight:800">...</span>
             </div>
-            <button id="btnOut" style="background:none; color:var(--danger); border:1px solid var(--danger); padding:5px 10px; border-radius:8px; font-size:10px;">DECONNEXION</button>
+            <button id="btnOut" style="background:none; color:var(--danger); border:1px solid var(--danger); padding:5px 10px; border-radius:8px; font-size:10px; cursor:pointer">DECONNEXION</button>
         </header>
 
         <nav id="navbar">
-            <button onclick="ouvrir('missions')" id="nav-missions" class="active">EN COURS <span id="count-missions"></span></button>
+            <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS <span id="count-missions"></span></button>
             <button onclick="ouvrir('bilan')" id="nav-bilan">MON BILAN</button>
             <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">NOUVEAU</button>
             <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">ADMIN</button>
+            <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
         <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
             <div id="div-validation" style="display:none; margin-bottom:20px;">
-                <h6 style="color:var(--danger); margin:0 0 10px 0; font-size:10px">EN ATTENTE DE VALIDATION</h6>
+                <h6 style="color:var(--danger); margin:0 0 10px 0; font-size:10px; text-transform:uppercase">⚠️ À Valider par l'Admin</h6>
                 <div id="list-validation"></div>
+                <hr style="border:0; border-top:1px solid #f1f5f9; margin:20px 0">
             </div>
-            <h6 style="color:var(--gabon-bleu); margin:0 0 10px 0; font-size:10px">MISSIONS SUR LE TERRAIN</h6>
+            <h6 style="color:var(--gabon-bleu); margin:0 0 10px 0; font-size:10px; text-transform:uppercase">Flux en temps réel</h6>
             <div id="list-active"></div>
         </div>
 
-        <!-- BILAN -->
+        <!-- BILAN (LIVREUR) -->
         <div id="sec-bilan" class="section">
             <div class="stats-banner">
-                <small>Session du jour (07h - 20h)</small>
+                <small>Session Active</small>
                 <div class="stats-grid">
-                    <div><small>Gains Livreur</small><b id="stat-total">0 F</b></div>
-                    <div><small>Missions</small><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>Gains (Livraison)</small><b id="stat-total">0 F</b></div>
+                    <div><small>Missions Terminées</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
@@ -157,17 +182,17 @@
 
         <!-- CREER -->
         <div id="sec-creer" class="section">
-            <h4 style="margin:0 0-15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
+            <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
             <input type="tel" id="mTel" placeholder="Téléphone">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
-                <input type="text" id="mQuartier" placeholder="Quartier..." list="g-quartiers">
+                <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville (1000 F)</option>
-                    <option value="1500">Owendo/Akanda (1500 F)</option>
-                    <option value="2000">Angondjé/Ntoum (2000 F)</option>
+                    <option value="1000">Libreville Centre (1000 F)</option>
+                    <option value="1500">Owendo / Akanda (1500 F)</option>
+                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
                 </select>
             </div>
 
@@ -175,7 +200,7 @@
             <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Livraison (F)</span>
+                    <span class="label-mini">Livreur (F)</span>
                     <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
@@ -189,13 +214,20 @@
         <!-- COMPTA ADMIN -->
         <div id="sec-compta" class="section">
             <div class="stats-banner" style="background:var(--gabon-vert)">
-                <small>Comptabilité Admin Aujourd'hui</small>
+                <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Total Commissions</small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
                     <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
             </div>
             <div id="list-compta-daily"></div>
+        </div>
+
+        <!-- ARCHIVES (ADMIN & FINANCE) -->
+        <div id="sec-archives" class="section">
+            <h4 style="margin:0 0 15px 0; color:var(--gabon-bleu)">ARCHIVES GÉNÉRALES</h4>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">Historique complet de toutes les missions terminées.</p>
+            <div id="list-archives-global"></div>
         </div>
     </div>
 
@@ -226,16 +258,17 @@
     let currentKey = null;
     let lastPhotoData = "";
 
-    const H_START = 7;
-    const H_END = 20;
-
     // --- AUTH ---
     document.getElementById('btnConnect').onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Erreur d'accès"); }
+        if(!email || !pass) return;
+        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé. Vérifiez vos identifiants."); }
     };
-    document.getElementById('btnOut').onclick = () => signOut(auth);
+    
+    document.getElementById('btnOut').onclick = () => {
+        if(confirm("Se déconnecter ?")) signOut(auth);
+    };
 
     onAuthStateChanged(auth, (u) => {
         if(u) {
@@ -245,8 +278,10 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
+            // UI selon rôle
             document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
+            document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
             onValue(ref(db, 'missions'), (snap) => {
@@ -271,13 +306,13 @@
         const listBilToday = document.getElementById('list-bilan-today');
         const listHistory = document.getElementById('archive-history');
         const listCpt = document.getElementById('list-compta-daily');
+        const listArchivesGlobal = document.getElementById('list-archives-global');
         
         listVal.innerHTML = ""; listAct.innerHTML = ""; listBilToday.innerHTML = ""; 
-        listHistory.innerHTML = ""; listCpt.innerHTML = "";
+        listHistory.innerHTML = ""; listCpt.innerHTML = ""; listArchivesGlobal.innerHTML = "";
 
         const now = new Date();
         const todayStr = now.toLocaleDateString('fr-FR');
-        const currentHour = now.getHours();
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
         let dailyGains = 0;
@@ -285,45 +320,69 @@
         let adminCom = 0;
         let adminVol = 0;
         const historyGroups = {};
+        const globalArchiveGroups = {};
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
             const mDate = new Date(m.timestamp);
             const mDateStr = mDate.toLocaleDateString('fr-FR');
-            const mHour = mDate.getHours();
-
             const isToday = (mDateStr === todayStr);
-            const isSessionActive = isToday && (mHour >= H_START && mHour < H_END);
 
             if(m.etape < 3) {
                 const card = createCard(m, myName);
                 if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
                 else if(m.etape > 0) listAct.innerHTML += card;
             } else {
-                // Pour le livreur
+                // Pour le livreur (Ses propres missions)
                 if(m.livreur === myName) {
-                    if(isSessionActive) {
-                        dailyGains += m.fraisLivraison;
+                    if(isToday) {
+                        dailyGains += (m.fraisLivraison || 0);
                         dailyCount++;
                         listBilToday.innerHTML += createRow(m, "livreur");
                     } else {
                         if(!historyGroups[mDateStr]) historyGroups[mDateStr] = { sum: 0, items: [] };
-                        historyGroups[mDateStr].sum += m.fraisLivraison;
+                        historyGroups[mDateStr].sum += (m.fraisLivraison || 0);
                         historyGroups[mDateStr].items.push(m);
                     }
                 }
-                // Pour l'admin
+                
+                // Pour l'admin (Daily view)
                 if(userRole === 'admin' && isToday) {
-                    adminCom += m.com;
-                    adminVol += m.retrait;
+                    adminCom += (m.com || 0);
+                    adminVol += (m.retrait || 0);
                     listCpt.innerHTML += createRow(m, "admin");
+                }
+
+                // Pour les Archives Globales (Admin & Finance)
+                if(userRole === 'admin' || userRole === 'finance') {
+                    if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
+                    globalArchiveGroups[mDateStr].push(m);
                 }
             }
         });
 
-        Object.keys(historyGroups).forEach(date => {
+        // Rendu de l'historique personnel (Livreur)
+        Object.keys(historyGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
             let html = `<div class="date-divider"><span>📅 ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
+        });
+
+        // Rendu des Archives Globales (Admin/Finance)
+        Object.keys(globalArchiveGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
+            let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
+            globalArchiveGroups[date].forEach(m => {
+                html += `<div class="archive-item" style="padding:10px; border-bottom:1px solid #eee; font-size:11px">
+                    <div class="archive-header">
+                        <span>${m.nom} (#${m.id})</span>
+                        <span style="color:var(--gabon-vert)">+ ${m.com} F (Com)</span>
+                    </div>
+                    <div style="color:#64748b">
+                        Livré par: <b>${m.livreur}</b> | Retrait: ${m.retrait} F | Zone: ${m.lieu || 'N/A'}<br>
+                        <small>Clôturé à ${m.heureCloture || 'Heure inconnue'}</small>
+                    </div>
+                </div>`;
+            });
+            listArchivesGlobal.innerHTML += html;
         });
 
         document.getElementById('stat-total').innerText = dailyGains.toLocaleString() + " F";
@@ -332,21 +391,34 @@
             document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " F";
             document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
         }
+        
+        // Badge compteur missions en cours
+        const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
+        document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
     };
 
     function createCard(m, myName) {
         let btn = "";
-        if(m.etape === 0 && userRole === 'admin') btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
+        if(m.etape === 0 && userRole === 'admin') {
+            btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
+        } 
         else if(m.etape === 1) {
-            if(m.livreur === "Libre" && userRole === 'livreur') btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-            else if(m.livreur === myName) btn = `<button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PHOTO SMS</button>
-                                                <input type="text" id="code-${m.key}" placeholder="Code SMS">
-                                                <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER</button>`;
-        } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+            if(m.livreur === "Libre" && userRole === 'livreur') {
+                btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+            } 
+            else if(m.livreur === myName) {
+                btn = `<button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PHOTO SMS</button>
+                       <input type="text" id="code-${m.key}" placeholder="Code SMS Reçu">
+                       <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>`;
+            } else {
+                btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
+            }
+        } 
+        else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
             btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
-                    <img src="${m.photo}" style="width:100%; border-radius:8px">
-                    <h2 style="margin:5px 0">${m.codeSMS}</h2>
-                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">ENCAISSÉ ✅</button>
+                    <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
+                    <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
+                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
                    </div>`;
         }
 
@@ -354,9 +426,10 @@
                     <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
                         <span>${m.nom}</span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
                     </div>
-                    <div style="font-size:12px; color:#475569; margin:5px 0">
-                        📍 ${m.lieu}<br>
-                        💰 Retrait: <b>${m.retrait} F</b> | 🛵 Livraison: <b>${m.fraisLivraison} F</b>
+                    <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
+                        📍 <b>${m.lieu || 'Non précisé'}</b><br>
+                        📞 ${m.tel || 'Aucun numéro'}<br>
+                        💰 Retrait: <b>${m.retrait} F</b> | Livreur: <b>${m.fraisLivraison} F</b>
                     </div>
                     ${btn}
                 </div>`;
@@ -364,10 +437,11 @@
 
     function createRow(m, type, isOld = false) {
         const val = type === 'admin' ? m.com : m.fraisLivraison;
-        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F` : `Com: ${m.com}F`;
+        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
         const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
         return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
-                    <div><b>${m.nom}</b><br><small style="color:#94a3b8">${sub} | ${m.dateHeure}</small></div>
+                    <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
+                    <small style="color:#94a3b8">${sub} | ${m.dateHeure}</small></div>
                     <b style="color:${color}; font-size:13px">+ ${val} F</b>
                 </div>`;
     }
@@ -389,36 +463,54 @@
             timestamp: Date.now(),
             dateHeure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
         });
+        
+        document.getElementById('mNom').value = "";
+        document.getElementById('mRetrait').value = "";
         ouvrir('missions');
     };
 
     window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
-    window.accepter = (k) => update(ref(db, `missions/${k}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase() });
+    window.accepter = (k) => {
+        const name = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${k}`), { livreur: name });
+    };
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
     window.terminer = (k) => {
         const c = document.getElementById('code-'+k).value;
-        if(!c || !lastPhotoData) return alert("Code + Photo requis");
-        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData });
+        if(!c || !lastPhotoData) return alert("SMS et Photo obligatoires");
+        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData, heureFinLivreur: new Date().toLocaleTimeString() });
+        lastPhotoData = "";
     };
-    window.cloturer = (k) => update(ref(db, `missions/${k}`), { etape: 3 });
+    window.cloturer = (k) => {
+        if(confirm("Confirmer l'encaissement ?")) {
+            update(ref(db, `missions/${k}`), { etape: 3, heureCloture: new Date().toLocaleTimeString() });
+        }
+    };
+
     window.ouvrir = (id) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-'+id).classList.add('active-sec');
         document.getElementById('nav-'+id).classList.add('active');
+        window.scrollTo(0,0);
     };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0];
+        if(!file) return;
         const reader = new FileReader();
         reader.onload = (re) => {
             const img = new Image();
             img.onload = () => {
                 const can = document.getElementById('canvas');
-                can.width = 400; can.height = 400 * (img.height/img.width);
-                can.getContext('2d').drawImage(img, 0, 0, 400, can.height);
-                lastPhotoData = can.toDataURL('image/jpeg', 0.5);
-                alert("Photo OK");
+                const max_size = 600;
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
+                else { if (h > max_size) { w *= max_size / h; h = max_size; } }
+                can.width = w; can.height = h;
+                can.getContext('2d').drawImage(img, 0, 0, w, h);
+                lastPhotoData = can.toDataURL('image/jpeg', 0.6);
+                alert("Photo enregistrée ✅");
             };
             img.src = re.target.result;
         };
