@@ -12,7 +12,6 @@
     <meta name="apple-mobile-web-app-title" content="CT241 OPS">
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/009E60/FFFFFF?text=CT241">
     
-    <!-- Manifeste Dynamique -->
     <link rel="manifest" id="pwa-manifest">
 
     <style>
@@ -270,39 +269,7 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // PWA: Enregistrement du Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            const swCode = `
-                self.addEventListener('install', (e) => self.skipWaiting());
-                self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-            `;
-            const blob = new Blob([swCode], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        });
-    }
-
-    // PWA: Manifeste dynamique
-    const manifest = {
-        "name": "CT241 OPS - Logistique Gabon",
-        "short_name": "CT241",
-        "start_url": ".",
-        "display": "standalone",
-        "background_color": "#ffffff",
-        "theme_color": "#009E60",
-        "icons": [{
-            "src": "https://via.placeholder.com/192/009E60/FFFFFF?text=CT241",
-            "sizes": "192x192",
-            "type": "image/png"
-        }, {
-            "src": "https://via.placeholder.com/512/009E60/FFFFFF?text=CT241",
-            "sizes": "512x512",
-            "type": "image/png"
-        }]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-    document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(manifestBlob));
-
+    // PWA & Firebase Configuration (Inchangée)
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
         authDomain: "cashtransfert-21.firebaseapp.com",
@@ -360,14 +327,19 @@
         if(u) {
             const email = u.email.toLowerCase();
             userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
+            
             document.getElementById('user-role').innerText = userRole;
             document.getElementById('user-display').innerText = u.email.split('@')[0].toUpperCase();
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            
+            // LOGIQUE DE NAVIGATION
             document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
-            document.getElementById('nav-archives').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
+            
+            // PROTECTION : Seul l'admin voit l'onglet Archives
+            document.getElementById('nav-archives').style.display = (userRole === 'admin') ? 'block' : 'none';
 
             onValue(ref(db, 'missions'), (snap) => {
                 const data = snap.val();
@@ -399,6 +371,7 @@
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
             const isFinished = (m.etape === 3);
 
+            // GESTION COMPTA ET BILAN LIVREUR
             if(isFinished) {
                 if(userRole === 'admin') {
                     totalComAdmin += (m.com || 0);
@@ -414,17 +387,18 @@
                 }
             }
 
-            if(userRole !== 'livreur') {
+            // GESTION ARCHIVES : Strictement réservé à l'Admin
+            if(userRole === 'admin') {
                 const searchStr = `${m.id} ${m.nom} ${m.tel} ${m.lieu} ${m.livreur}`.toLowerCase();
                 if(searchStr.includes(archSearch)) {
-                    const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                     listArc.innerHTML += `<div class="card" style="border-left:5px solid var(--dark)">
-                        <div class="card-title"><span>${m.nom} ${del}</span> <span class="badge-id">${m.id}</span></div>
+                        <div class="card-title"><span>${m.nom} <button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button></span> <span class="badge-id">${m.id}</span></div>
                         <div class="card-info">💰 ${m.retrait.toLocaleString()} F | 📍 ${m.lieu}<br>📅 ${m.dateHeure}</div>
                     </div>`;
                 }
             }
 
+            // GESTION MISSIONS EN COURS
             if(!isFinished) {
                 const del = userRole === 'admin' ? `<button class="btn-delete" onclick="supprimerMission('${m.key}')">SUPPRIMER</button>` : "";
                 const cardHtml = `<div class="card etape-${m.etape}">
@@ -454,6 +428,7 @@
             }
         });
 
+        // Mise à jour des stats
         document.getElementById('stat-total').innerText = totalGainsLivreur.toLocaleString() + " F";
         if(userRole === 'admin') {
             document.getElementById('compta-total-com').innerText = totalComAdmin.toLocaleString() + " F";
@@ -472,7 +447,7 @@
         const com = parseInt(document.getElementById('mCom').value);
         const liv = parseInt(document.getElementById('mLiv').value);
 
-        if(!nom || !mnt || !tel || !quartier || !zoneKey) return alert("Veuillez renseigner le bénéficiaire, le quartier et la zone !");
+        if(!nom || !mnt || !tel || !quartier || !zoneKey) return alert("Veuillez remplir les champs obligatoires !");
         
         const now = new Date();
         const dateStr = now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
@@ -489,10 +464,11 @@
         ouvrir('missions');
     };
 
+    // Actions Globale
     window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
     window.accepter = (k) => update(ref(db, `missions/${k}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase() });
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
-    window.supprimerMission = (k) => { if(userRole === 'admin' && confirm("Supprimer ?")) remove(ref(db, `missions/${k}`)); };
+    window.supprimerMission = (k) => { if(userRole === 'admin' && confirm("Supprimer définitivement cette mission ?")) remove(ref(db, `missions/${k}`)); };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0]; if(!file) return;
@@ -515,13 +491,16 @@
 
     window.terminer = (k) => {
         const code = document.getElementById('code-'+k).value;
-        if(!code || !lastPhotoData) return alert("Code + Photo obligatoires !");
+        if(!code || !lastPhotoData) return alert("Code SMS et Photo obligatoires !");
         update(ref(db, `missions/${k}`), { etape: 2, codeSMS: code, photo: lastPhotoData });
     };
 
     window.cloturer = (k) => update(ref(db, `missions/${k}`), { etape: 3 });
 
     window.ouvrir = (id) => {
+        // Sécurité supplémentaire : Empêcher l'ouverture manuelle si pas admin
+        if(id === 'archives' && userRole !== 'admin') return;
+        
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-'+id).classList.add('active-sec');
