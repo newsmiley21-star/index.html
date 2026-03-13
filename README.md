@@ -24,6 +24,7 @@
             font-family: 'Inter', system-ui, sans-serif; 
             background: var(--gray-bg);
             margin: 0; padding: 10px; color: var(--dark); min-height: 100vh;
+            display: flex; flex-direction: column;
         }
         
         #auth-screen { 
@@ -56,7 +57,7 @@
         #main-app { 
             display: none; max-width: 500px; margin: auto; background: var(--white); 
             border-radius: 30px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
-            min-height: 90vh; padding-bottom: 40px;
+            min-height: 90vh; padding-bottom: 40px; flex-grow: 1;
         }
 
         header { 
@@ -192,6 +193,27 @@
             color: #64748b;
             font-weight: 600;
         }
+
+        /* Footer Copyright */
+        footer {
+            text-align: center; padding: 15px; font-size: 10px; color: #94a3b8; margin-top: auto;
+        }
+
+        /* PRINT CONFIG */
+        .print-only { display: none; }
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            #main-app, #auth-screen, nav, header, button, .close-modal, .search-bar { display: none !important; }
+            #modal-overlay { position: static; display: block !important; background: white; padding: 0; }
+            .modal-content { width: 100%; max-width: none; box-shadow: none; border: none; padding: 0; }
+            .print-only { display: block; text-align: center; }
+            .print-logo { width: 180px; margin-bottom: 10px; }
+            .print-footer { 
+                position: fixed; bottom: 10px; width: 100%; text-align: center; 
+                font-size: 9px; border-top: 1px solid #eee; padding-top: 10px; color: #666;
+            }
+            .detail-row { border-bottom: 1px solid #eee !important; }
+        }
     </style>
 </head>
 <body>
@@ -211,9 +233,21 @@
 
     <div id="modal-overlay">
         <div class="modal-content">
+            <div class="print-only">
+                <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" class="print-logo" alt="Logo CT241">
+                <h3 style="color:var(--gabon-vert); margin:0">RAPPORT DE MISSION OFFICIEL</h3>
+                <hr style="border:0; border-top:1px solid #eee; margin:15px 0">
+            </div>
+            
             <span class="close-modal" onclick="fermerModal()">×</span>
             <h3 style="color:var(--gabon-bleu); margin-top:0">Détails Mission</h3>
             <div id="modal-body"></div>
+            
+            <button class="btn-action" style="background:#34495e; color:white; margin-top:20px" onclick="window.print()">🖨️ IMPRIMER LE RAPPORT</button>
+
+            <div class="print-only print-footer">
+                <p>© <span class="current-year"></span> CT241 LOGISTICS GABON - Document généré par le système CT241 OPS</p>
+            </div>
         </div>
     </div>
 
@@ -316,6 +350,10 @@
         </div>
     </div>
 
+    <footer>
+        &copy; <span class="current-year"></span> CT241 LOGISTICS - Tous droits réservés.
+    </footer>
+
     <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
     <canvas id="canvas" style="display:none"></canvas>
 
@@ -340,8 +378,10 @@
 
     let userRole = "livreur";
     let allMissions = [];
-    let currentKey = null;
-    let lastPhotoData = "";
+    
+    // --- COPYRIGHT AUTO-UPDATE ---
+    const year = new Date().getFullYear();
+    document.querySelectorAll('.current-year').forEach(el => el.textContent = year);
 
     // --- AUTH ---
     document.getElementById('btnConnect').onclick = async () => {
@@ -390,16 +430,20 @@
         document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
+    window.ouvrir = (sec) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-'+sec).classList.add('active-sec');
+        document.getElementById('nav-'+sec).classList.add('active');
+    };
+
     window.filterMissions = (inputId) => {
         const term = document.getElementById(inputId).value.toLowerCase();
         renderUI(term);
     };
 
-    // Action pour Actualiser le bilan livreur
     window.rafraichirBilan = () => {
         toggleLoading(true);
-        // On simule un rafraîchissement forcé en filtrant tout ce qui n'est pas "Aujourd'hui"
-        // Les missions du jour précédent seront naturellement reléguées dans l'historique par renderUI()
         setTimeout(() => {
             renderUI();
             toggleLoading(false);
@@ -463,6 +507,38 @@
         }
     };
 
+    window.valider = (key) => { update(ref(db, `missions/${key}`), { etape: 1 }); };
+    window.accepter = (key) => { 
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${key}`), { livreur: myName }); 
+    };
+
+    window.creerMission = () => {
+        const nom = document.getElementById('mNom').value;
+        const tel = document.getElementById('mTel').value;
+        const retrait = parseInt(document.getElementById('mRetrait').value);
+        if(!nom || isNaN(retrait)) return alert("Champs invalides");
+        
+        const now = new Date();
+        const m = {
+            id: Math.floor(1000 + Math.random() * 9000),
+            nom, tel, retrait,
+            lieu: document.getElementById('mQuartier').value + " (" + document.getElementById('mZoneSelect').options[document.getElementById('mZoneSelect').selectedIndex].text.split('(')[0] + ")",
+            fraisLivraison: parseInt(document.getElementById('mLiv').value),
+            com: parseInt(document.getElementById('mCom').value),
+            livreur: "Libre",
+            etape: 0,
+            timestamp: Date.now(),
+            dateLong: now.toLocaleDateString('fr-FR'),
+            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+        };
+        push(ref(db, 'missions'), m).then(() => {
+            alert("Mission déployée !");
+            ouvrir('missions');
+            document.querySelectorAll('#sec-creer input').forEach(i => i.value = (i.id === 'mLiv') ? '1000' : ((i.id === 'mCom') ? '390' : ''));
+        });
+    };
+
     window.renderUI = (filter = "") => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
@@ -491,28 +567,15 @@
                 if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
                 else if(m.etape > 0) listAct.innerHTML += card;
             } else {
-                // Section Bilan Livreur
                 if(m.livreur === myName) {
-                    if(isToday) { 
-                        dailyGains += m.fraisLivraison; 
-                        dailyCount++; 
-                        listBilToday.innerHTML += createRow(m, "livreur"); 
-                    } else {
-                        // Reléguer automatiquement à l'historique
+                    if(isToday) { dailyGains += m.fraisLivraison; dailyCount++; listBilToday.innerHTML += createRow(m, "livreur"); }
+                    else {
                         if(!historyGroups[mDateStr]) historyGroups[mDateStr] = { sum: 0, items: [] };
                         historyGroups[mDateStr].sum += m.fraisLivraison;
                         historyGroups[mDateStr].items.push(m);
                     }
                 }
-                
-                // Section Compta Admin
-                if(userRole === 'admin' && isToday) { 
-                    adminCom += m.com; 
-                    adminVol += m.retrait; 
-                    listCpt.innerHTML += createRow(m, "admin"); 
-                }
-                
-                // Section Archives Globales
+                if(userRole === 'admin' && isToday) { adminCom += m.com; adminVol += m.retrait; listCpt.innerHTML += createRow(m, "admin"); }
                 if(userRole === 'admin' || userRole === 'finance') {
                     if(!match) return;
                     if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
@@ -521,28 +584,18 @@
             }
         });
 
-        // Affichage des groupements d'historique (Trié par date décroissante)
-        Object.keys(historyGroups).sort((a,b) => {
-            const dateA = a.split('/').reverse().join('');
-            const dateB = b.split('/').reverse().join('');
-            return dateB.localeCompare(dateA);
-        }).forEach(date => {
-            let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
+        // Groupements
+        Object.keys(historyGroups).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach(date => {
+            let html = `<div class="date-divider"><span>📅 ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
         });
 
-        // Affichage des Archives Globales
-        Object.keys(globalArchiveGroups).sort((a,b) => {
-            const dateA = a.split('/').reverse().join('');
-            const dateB = b.split('/').reverse().join('');
-            return dateB.localeCompare(dateA);
-        }).forEach(date => {
+        Object.keys(globalArchiveGroups).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
                 const showDel = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
-                html += `
-                <div class="archive-item">
+                html += `<div class="archive-item">
                     <div class="archive-header"><span>${m.nom} (#${m.id})</span><span style="color:var(--gabon-vert)">+ ${m.com} F</span></div>
                     <div style="color:#64748b; font-size:10px; display:flex; justify-content:space-between; align-items:flex-end">
                         <div>Livreur: <b>${m.livreur}</b> | ${m.heureSeule || m.dateHeure}</div>
@@ -565,150 +618,47 @@
 
     function createCard(m, myName) {
         let btn = "", contactUI = "";
-        
         if(m.tel) {
-            contactUI = `
-                <div class="contact-group">
-                    <a href="tel:${m.tel}" class="btn-contact btn-call">📞 APPELER</a>
-                    <a href="https://wa.me/241${m.tel.replace(/\s/g, '')}" target="_blank" class="btn-contact btn-whatsapp">💬 WHATSAPP</a>
-                </div>
-            `;
+            contactUI = `<div class="contact-group">
+                <a href="tel:${m.tel}" class="btn-contact btn-call">📞 APPELER</a>
+                <a href="https://wa.me/241${m.tel.replace(/\s/g, '')}" target="_blank" class="btn-contact btn-whatsapp">💬 WHATSAPP</a>
+            </div>`;
         }
 
-        if(m.etape === 0 && userRole === 'admin') {
-            btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
-        } 
+        if(m.etape === 0 && userRole === 'admin') btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
         else if(m.etape === 1) {
-            if(m.livreur === "Libre" && userRole === 'livreur') {
-                btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-            } 
-            else if(m.livreur === myName) {
-                btn = `
-                    <button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO SMS</button>
-                    <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS">
-                    <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>
-                `;
-            } else {
-                btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
-            }
-        } 
-        else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-            btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
-                    <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
-                    <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
-                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
-                   </div>`;
+            if(m.livreur === "Libre" && userRole === 'livreur') btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+            else if(m.livreur === myName) btn = `<button class="btn-action btn-validate" onclick="consulterMission('${m.key}')">COMPLÉTER LA MISSION</button>`;
+            else btn = `<p style="font-size:10px; color:#64748b; text-align:center">Prise par <b>${m.livreur}</b></p>`;
         }
-
+        
         const mDate = new Date(m.timestamp);
         const displayDate = `${mDate.toLocaleDateString('fr-FR')} à ${mDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
 
         return `<div class="card etape-${m.etape}">
-                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
-                        <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
-                    </div>
-                    <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
-                        <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
-                        💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
-                    </div>
-                    ${contactUI}
-                    ${btn}
-                </div>`;
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
+                <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
+            </div>
+            <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
+                <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
+                💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
+            </div>
+            ${contactUI}${btn}
+        </div>`;
     }
 
     function createRow(m, type, isOld = false) {
         const val = type === 'admin' ? m.com : m.fraisLivraison;
-        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
         const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
-        const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
-        
         return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
-                    <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
-                    <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
-                    <div style="text-align:right">
-                        <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
-                        <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
-                    </div>
-                </div>`;
+            <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
+            <small style="color:#94a3b8">Retrait: ${m.retrait}F | ${m.heureSeule || ''}</small></div>
+            <div style="text-align:right">
+                <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
+                <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
+            </div>
+        </div>`;
     }
-
-    // --- ACTIONS ---
-    window.creerMission = () => {
-        const nom = document.getElementById('mNom').value;
-        const mnt = parseInt(document.getElementById('mRetrait').value);
-        const liv = parseInt(document.getElementById('mLiv').value);
-        const com = parseInt(document.getElementById('mCom').value);
-        if(!nom || !mnt) return alert("Champs obligatoires !");
-        
-        const now = new Date();
-        toggleLoading(true);
-        push(ref(db, 'missions'), {
-            id: Math.floor(1000 + Math.random()*9000),
-            nom, tel: document.getElementById('mTel').value, 
-            lieu: document.getElementById('mQuartier').value,
-            retrait: mnt, fraisLivraison: liv, com: com,
-            livreur: "Libre", etape: 0,
-            timestamp: Date.now(),
-            dateHeure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            dateLong: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
-        }).then(() => {
-            document.getElementById('mNom').value = "";
-            document.getElementById('mRetrait').value = "";
-            document.getElementById('mTel').value = "";
-            document.getElementById('mQuartier').value = "";
-            ouvrir('missions');
-        }).finally(() => toggleLoading(false));
-    };
-
-    window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
-    window.accepter = (k) => {
-        const name = auth.currentUser.email.split('@')[0].toUpperCase();
-        update(ref(db, `missions/${k}`), { livreur: name });
-    };
-    window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
-    window.terminer = (k) => {
-        const c = document.getElementById('code-'+k).value;
-        if(!c || !lastPhotoData) return alert("SMS et Photo requis !");
-        toggleLoading(true);
-        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData })
-        .then(() => { lastPhotoData = ""; alert("Envoyé avec succès !"); })
-        .finally(() => toggleLoading(false));
-    };
-    window.cloturer = (k) => {
-        if(confirm("Confirmer encaissement ?")) update(ref(db, `missions/${k}`), { etape: 3 });
-    };
-
-    window.ouvrir = (id) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('sec-'+id).classList.add('active-sec');
-        document.getElementById('nav-'+id).classList.add('active');
-    };
-
-    document.getElementById('camInput').onchange = (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        toggleLoading(true);
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            const img = new Image();
-            img.onload = () => {
-                const can = document.getElementById('canvas');
-                const max_size = 800;
-                let w = img.width, h = img.height;
-                if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
-                else { if (h > max_size) { w *= max_size / h; h = max_size; } }
-                can.width = w; can.height = h;
-                can.getContext('2d').drawImage(img, 0, 0, w, h);
-                lastPhotoData = can.toDataURL('image/jpeg', 0.5);
-                toggleLoading(false);
-                alert("Photo capturée ✅");
-            };
-            img.src = re.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
 </script>
 </body>
 </html>
