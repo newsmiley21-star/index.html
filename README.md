@@ -37,15 +37,9 @@
             text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
         }
 
-        /* Style pour le logo ajouté */
         .auth-logo {
-            width: 100%;
-            max-width: 220px;
-            height: auto;
-            margin-bottom: 10px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+            width: 100%; max-width: 220px; height: auto;
+            margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;
         }
 
         input, select { 
@@ -98,17 +92,25 @@
         .btn-action { 
             width: 100%; padding: 14px; border: none; border-radius: 12px; 
             font-weight: 800; cursor: pointer; margin-top: 10px; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-validate { background: var(--gabon-vert); color: white; }
         .btn-validate:active { transform: scale(0.98); opacity: 0.9; }
         
         .stats-banner {
             background: var(--dark); color: white; padding: 20px; border-radius: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 20px; position: relative;
         }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .stats-banner small { color: #94a3b8; font-size: 10px; text-transform: uppercase; display: block; }
         .stats-banner b { font-size: 18px; color: var(--gabon-jaune); }
+
+        .btn-refresh-bilan {
+            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.15);
+            color: white; border: none; border-radius: 10px; padding: 8px 12px;
+            font-size: 9px; font-weight: 800; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-refresh-bilan:active { background: var(--gabon-jaune); color: var(--dark); }
 
         .date-divider {
             padding: 8px 15px; background: #f8fafc; border-radius: 10px;
@@ -123,7 +125,6 @@
         .badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
         .badge-blue { background: #dbeafe; color: #1e40af; }
 
-        /* MODALE DE CONSULTATION */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 10000;
@@ -147,12 +148,8 @@
             padding: 12px 0;
         }
         .archive-header {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--gabon-bleu);
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
+            font-size: 12px; font-weight: bold; color: var(--gabon-bleu);
+            display: flex; justify-content: space-between; margin-bottom: 5px;
         }
         .btn-consult {
             background: #f1f5f9; color: var(--gabon-bleu); border: none; border-radius: 8px;
@@ -162,15 +159,48 @@
             background: #fef2f2; color: var(--danger); border: none; border-radius: 8px;
             padding: 6px 10px; font-size: 10px; font-weight: 800; cursor: pointer;
         }
+
+        .search-bar {
+            margin-bottom: 15px; position: relative;
+        }
+        .search-bar input {
+            padding-left: 40px; background: #fff; border: 1px solid #e2e8f0;
+        }
+        .contact-group {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+        }
+        .btn-contact {
+            padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 800;
+            text-decoration: none; text-align: center; border: 1px solid #e2e8f0;
+        }
+        .btn-whatsapp { background: #25D366; color: white; border: none; }
+        .btn-call { background: #f1f5f9; color: var(--dark); }
+        
+        .loading-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7);
+            z-index: 10001; align-items: center; justify-content: center; font-weight: 800;
+        }
+        .btn-export {
+            background: #000; color: white; padding: 10px; border-radius: 10px; font-size: 11px;
+            border: none; cursor: pointer; margin-top: 10px; width: 100%;
+        }
+        .mission-time {
+            font-size: 9px;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 5px;
+            color: #64748b;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
 
+    <div id="loading" class="loading-overlay">TRAITEMENT EN COURS...</div>
+
     <div id="auth-screen">
         <div class="login-card">
-            <!-- AJOUT DU LOGO ICI -->
             <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" alt="Logo CT241" class="auth-logo">
-            
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
             <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">PORTAIL LOGISTIQUE GABON</p>
             <input type="email" id="login-email" placeholder="Email">
@@ -179,7 +209,6 @@
         </div>
     </div>
 
-    <!-- MODALE DE CONSULTATION MISSION -->
     <div id="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="fermerModal()">×</span>
@@ -207,6 +236,9 @@
 
         <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Rechercher une mission active..." onkeyup="filterMissions('searchInput')">
+            </div>
             <div id="div-validation" style="display:none; margin-bottom:20px;">
                 <h6 style="color:var(--danger); margin:0 0 10px 0; font-size:10px; text-transform:uppercase">⚠️ À Valider par l'Admin</h6>
                 <div id="list-validation"></div>
@@ -219,10 +251,11 @@
         <!-- BILAN (LIVREUR) -->
         <div id="sec-bilan" class="section">
             <div class="stats-banner">
-                <small>Session Active</small>
+                <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
+                <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Gains (Livraison)</small><b id="stat-total">0 F</b></div>
-                    <div><small>Missions Terminées</small><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
@@ -233,7 +266,7 @@
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-            <input type="tel" id="mTel" placeholder="Téléphone">
+            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
@@ -257,7 +290,7 @@
                     <input type="number" id="mCom" value="390">
                 </div>
             </div>
-            <button onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
+            <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
         </div>
 
         <!-- COMPTA ADMIN -->
@@ -268,14 +301,17 @@
                     <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
                     <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
+                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
             <div id="list-compta-daily"></div>
         </div>
 
-        <!-- ARCHIVES (ADMIN & FINANCE) -->
+        <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-bleu)">ARCHIVES GÉNÉRALES</h4>
-            <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">Historique complet de toutes les missions terminées.</p>
+            <div class="search-bar">
+                <input type="text" id="archiveSearchInput" placeholder="Rechercher dans l'historique..." onkeyup="filterMissions('archiveSearchInput')">
+            </div>
             <div id="list-archives-global"></div>
         </div>
     </div>
@@ -309,10 +345,16 @@
 
     // --- AUTH ---
     document.getElementById('btnConnect').onclick = async () => {
+        toggleLoading(true);
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        if(!email || !pass) return;
-        try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Accès refusé. Vérifiez vos identifiants."); }
+        if(!email || !pass) { toggleLoading(false); return; }
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        } catch(e) { 
+            toggleLoading(false);
+            alert("Accès refusé. Vérifiez vos identifiants."); 
+        }
     };
     
     document.getElementById('btnOut').onclick = () => {
@@ -320,6 +362,7 @@
     };
 
     onAuthStateChanged(auth, (u) => {
+        toggleLoading(false);
         if(u) {
             const email = u.email.toLowerCase();
             userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
@@ -327,7 +370,6 @@
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
-            // UI selon rôle
             document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
             document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
@@ -344,7 +386,46 @@
         }
     });
 
-    // --- LOGIQUE RENDU ---
+    function toggleLoading(show) {
+        document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+
+    window.filterMissions = (inputId) => {
+        const term = document.getElementById(inputId).value.toLowerCase();
+        renderUI(term);
+    };
+
+    // Action pour Actualiser le bilan livreur
+    window.rafraichirBilan = () => {
+        toggleLoading(true);
+        // On simule un rafraîchissement forcé en filtrant tout ce qui n'est pas "Aujourd'hui"
+        // Les missions du jour précédent seront naturellement reléguées dans l'historique par renderUI()
+        setTimeout(() => {
+            renderUI();
+            toggleLoading(false);
+            alert("Bilan actualisé ! Les missions du jour précédent sont dans l'historique.");
+        }, 800);
+    };
+
+    window.openMaps = (query) => {
+        if(!query) return;
+        window.open(`https://www.google.com/maps/search/${encodeURIComponent(query + " Libreville")}`, '_blank');
+    };
+
+    window.exportToCSV = () => {
+        if(allMissions.length === 0) return;
+        let csv = "ID;Date;Heure;Beneficiaire;Retrait;Livreur;Frais;Commission;Status\n";
+        allMissions.forEach(m => {
+            const status = m.etape === 3 ? "Terminee" : "En cours";
+            csv += `${m.id};${m.dateLong || m.dateHeure};${m.heureSeule || ''};${m.nom};${m.retrait};${m.livreur};${m.fraisLivraison};${m.com};${status}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `Bilan_CT241_${new Date().toLocaleDateString()}.csv`);
+        link.click();
+    };
+
     window.updateFrais = () => {
         document.getElementById('mLiv').value = document.getElementById('mZoneSelect').value;
     };
@@ -356,43 +437,33 @@
     window.consulterMission = (key) => {
         const m = allMissions.find(x => x.key === key);
         if(!m) return;
-        
         const body = document.getElementById('modal-body');
         body.innerHTML = `
             <div class="detail-row"><b>Bénéficiaire</b> <span>${m.nom}</span></div>
             <div class="detail-row"><b>ID Mission</b> <span style="color:var(--gabon-bleu); font-weight:800">#${m.id}</span></div>
-            <div class="detail-row"><b>Téléphone</b> <span>${m.tel || 'N/A'}</span></div>
+            <div class="detail-row"><b>Date Création</b> <span>${m.dateLong || m.dateHeure}</span></div>
+            <div class="detail-row"><b>Téléphone</b> <a href="tel:${m.tel}">${m.tel || 'N/A'}</a></div>
             <div class="detail-row"><b>Lieu</b> <span>${m.lieu || 'N/A'}</span></div>
             <div class="detail-row"><b>Montant Retrait</b> <b>${m.retrait} F</b></div>
-            <div class="detail-row"><b>Commission Admin</b> <span>${m.com} F</span></div>
-            <div class="detail-row"><b>Gains Livreur</b> <span>${m.fraisLivraison} F</span></div>
-            <div class="detail-row"><b>Livreur assigné</b> <span>${m.livreur}</span></div>
-            <div class="detail-row"><b>Clôturé à</b> <span>${m.heureCloture || 'Inconnu'}</span></div>
-            
-            <div style="margin-top:20px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
-                <span class="label-mini">Preuve de livraison (SMS)</span>
+            <div class="detail-row"><b>Commission</b> <span>${m.com} F</span></div>
+            <div class="detail-row"><b>Livreur</b> <span>${m.livreur}</span></div>
+            <div style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
+                <span class="label-mini">Code SMS Preuve</span>
                 <h2 style="letter-spacing:4px; color:var(--dark); margin:10px 0">${m.codeSMS || 'N/A'}</h2>
-                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:12px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1)">` : '<p style="font-size:10px; color:red">Aucune photo disponible</p>'}
+                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:12px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1)">` : '<p style="font-size:10px; color:red">Aucune photo</p>'}
             </div>
-            
-            <button class="btn-action" style="background:var(--dark); color:white" onclick="fermerModal()">FERMER</button>
         `;
         document.getElementById('modal-overlay').style.display = 'flex';
     };
 
-    // --- SUPPRESSION ADMIN ---
     window.supprimerMission = (key, id) => {
         if(userRole !== 'admin') return;
-        if(confirm(`🚨 ATTENTION : Souhaitez-vous supprimer définitivement la mission #${id} de l'historique ?`)) {
-            if(confirm(`Action irréversible. Confirmer la suppression de ${id} ?`)) {
-                remove(ref(db, `missions/${key}`))
-                    .then(() => alert("Mission supprimée avec succès."))
-                    .catch(() => alert("Erreur lors de la suppression."));
-            }
+        if(confirm(`Supprimer définitivement #${id} ?`)) {
+            remove(ref(db, `missions/${key}`)).catch(() => alert("Erreur"));
         }
     };
 
-    window.renderUI = () => {
+    window.renderUI = (filter = "") => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
         const listBilToday = document.getElementById('list-bilan-today');
@@ -403,77 +474,79 @@
         listVal.innerHTML = ""; listAct.innerHTML = ""; listBilToday.innerHTML = ""; 
         listHistory.innerHTML = ""; listCpt.innerHTML = ""; listArchivesGlobal.innerHTML = "";
 
-        const now = new Date();
-        const todayStr = now.toLocaleDateString('fr-FR');
+        const todayStr = new Date().toLocaleDateString('fr-FR');
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
-        let dailyGains = 0;
-        let dailyCount = 0;
-        let adminCom = 0;
-        let adminVol = 0;
-        const historyGroups = {};
-        const globalArchiveGroups = {};
+        let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0;
+        const historyGroups = {}, globalArchiveGroups = {};
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
-            const mDate = new Date(m.timestamp);
-            const mDateStr = mDate.toLocaleDateString('fr-FR');
+            const match = !filter || m.nom.toLowerCase().includes(filter) || String(m.id).includes(filter) || (m.lieu && m.lieu.toLowerCase().includes(filter));
+            const mDateStr = new Date(m.timestamp).toLocaleDateString('fr-FR');
             const isToday = (mDateStr === todayStr);
 
             if(m.etape < 3) {
+                if(!match) return;
                 const card = createCard(m, myName);
                 if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
                 else if(m.etape > 0) listAct.innerHTML += card;
             } else {
+                // Section Bilan Livreur
                 if(m.livreur === myName) {
-                    if(isToday) {
-                        dailyGains += (m.fraisLivraison || 0);
-                        dailyCount++;
-                        listBilToday.innerHTML += createRow(m, "livreur");
+                    if(isToday) { 
+                        dailyGains += m.fraisLivraison; 
+                        dailyCount++; 
+                        listBilToday.innerHTML += createRow(m, "livreur"); 
                     } else {
+                        // Reléguer automatiquement à l'historique
                         if(!historyGroups[mDateStr]) historyGroups[mDateStr] = { sum: 0, items: [] };
-                        historyGroups[mDateStr].sum += (m.fraisLivraison || 0);
+                        historyGroups[mDateStr].sum += m.fraisLivraison;
                         historyGroups[mDateStr].items.push(m);
                     }
                 }
                 
-                if(userRole === 'admin' && isToday) {
-                    adminCom += (m.com || 0);
-                    adminVol += (m.retrait || 0);
-                    listCpt.innerHTML += createRow(m, "admin");
+                // Section Compta Admin
+                if(userRole === 'admin' && isToday) { 
+                    adminCom += m.com; 
+                    adminVol += m.retrait; 
+                    listCpt.innerHTML += createRow(m, "admin"); 
                 }
-
+                
+                // Section Archives Globales
                 if(userRole === 'admin' || userRole === 'finance') {
+                    if(!match) return;
                     if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
                     globalArchiveGroups[mDateStr].push(m);
                 }
             }
         });
 
-        Object.keys(historyGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
-            let html = `<div class="date-divider"><span>📅 ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
+        // Affichage des groupements d'historique (Trié par date décroissante)
+        Object.keys(historyGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
+            let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
         });
 
-        Object.keys(globalArchiveGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
+        // Affichage des Archives Globales
+        Object.keys(globalArchiveGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
-                const showDelete = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
+                const showDel = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
                 html += `
                 <div class="archive-item">
-                    <div class="archive-header">
-                        <span>${m.nom} (#${m.id})</span>
-                        <span style="color:var(--gabon-vert)">+ ${m.com} F (Com)</span>
-                    </div>
+                    <div class="archive-header"><span>${m.nom} (#${m.id})</span><span style="color:var(--gabon-vert)">+ ${m.com} F</span></div>
                     <div style="color:#64748b; font-size:10px; display:flex; justify-content:space-between; align-items:flex-end">
-                        <div>
-                            Livré par: <b>${m.livreur}</b> | Retrait: ${m.retrait} F<br>
-                            Zone: ${m.lieu || 'N/A'}
-                        </div>
-                        <div style="display:flex; gap:8px">
-                            ${showDelete}
-                            <button class="btn-consult" onclick="consulterMission('${m.key}')">Consulter mission</button>
-                        </div>
+                        <div>Livreur: <b>${m.livreur}</b> | ${m.heureSeule || m.dateHeure}</div>
+                        <div style="display:flex; gap:8px">${showDel}<button class="btn-consult" onclick="consulterMission('${m.key}')">Détails</button></div>
                     </div>
                 </div>`;
             });
@@ -486,13 +559,22 @@
             document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " F";
             document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
         }
-        
         const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
         document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
     };
 
     function createCard(m, myName) {
-        let btn = "";
+        let btn = "", contactUI = "";
+        
+        if(m.tel) {
+            contactUI = `
+                <div class="contact-group">
+                    <a href="tel:${m.tel}" class="btn-contact btn-call">📞 APPELER</a>
+                    <a href="https://wa.me/241${m.tel.replace(/\s/g, '')}" target="_blank" class="btn-contact btn-whatsapp">💬 WHATSAPP</a>
+                </div>
+            `;
+        }
+
         if(m.etape === 0 && userRole === 'admin') {
             btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
         } 
@@ -501,9 +583,11 @@
                 btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
             } 
             else if(m.livreur === myName) {
-                btn = `<button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PHOTO SMS</button>
-                       <input type="text" id="code-${m.key}" placeholder="Code SMS Reçu">
-                       <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>`;
+                btn = `
+                    <button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO SMS</button>
+                    <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS">
+                    <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>
+                `;
             } else {
                 btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
             }
@@ -516,15 +600,18 @@
                    </div>`;
         }
 
+        const mDate = new Date(m.timestamp);
+        const displayDate = `${mDate.toLocaleDateString('fr-FR')} à ${mDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
+
         return `<div class="card etape-${m.etape}">
                     <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
-                        <span>${m.nom}</span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
+                        <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
                     </div>
                     <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
-                        📍 <b>${m.lieu || 'Non précisé'}</b><br>
-                        📞 ${m.tel || 'Aucun numéro'}<br>
-                        💰 Retrait: <b>${m.retrait} F</b> | Livreur: <b>${m.fraisLivraison} F</b>
+                        <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
+                        💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
                     </div>
+                    ${contactUI}
                     ${btn}
                 </div>`;
     }
@@ -533,9 +620,11 @@
         const val = type === 'admin' ? m.com : m.fraisLivraison;
         const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
         const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
+        const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
+        
         return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
                     <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
-                    <small style="color:#94a3b8">${sub} | ${m.dateHeure}</small></div>
+                    <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
                     <div style="text-align:right">
                         <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
                         <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
@@ -549,8 +638,10 @@
         const mnt = parseInt(document.getElementById('mRetrait').value);
         const liv = parseInt(document.getElementById('mLiv').value);
         const com = parseInt(document.getElementById('mCom').value);
-        if(!nom || !mnt) return alert("Nom et Montant requis");
+        if(!nom || !mnt) return alert("Champs obligatoires !");
         
+        const now = new Date();
+        toggleLoading(true);
         push(ref(db, 'missions'), {
             id: Math.floor(1000 + Math.random()*9000),
             nom, tel: document.getElementById('mTel').value, 
@@ -558,12 +649,16 @@
             retrait: mnt, fraisLivraison: liv, com: com,
             livreur: "Libre", etape: 0,
             timestamp: Date.now(),
-            dateHeure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
-        });
-        
-        document.getElementById('mNom').value = "";
-        document.getElementById('mRetrait').value = "";
-        ouvrir('missions');
+            dateHeure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            dateLong: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+        }).then(() => {
+            document.getElementById('mNom').value = "";
+            document.getElementById('mRetrait').value = "";
+            document.getElementById('mTel').value = "";
+            document.getElementById('mQuartier').value = "";
+            ouvrir('missions');
+        }).finally(() => toggleLoading(false));
     };
 
     window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
@@ -574,14 +669,14 @@
     window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
     window.terminer = (k) => {
         const c = document.getElementById('code-'+k).value;
-        if(!c || !lastPhotoData) return alert("SMS et Photo obligatoires");
-        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData, heureFinLivreur: new Date().toLocaleTimeString() });
-        lastPhotoData = "";
+        if(!c || !lastPhotoData) return alert("SMS et Photo requis !");
+        toggleLoading(true);
+        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData })
+        .then(() => { lastPhotoData = ""; alert("Envoyé avec succès !"); })
+        .finally(() => toggleLoading(false));
     };
     window.cloturer = (k) => {
-        if(confirm("Confirmer l'encaissement ?")) {
-            update(ref(db, `missions/${k}`), { etape: 3, heureCloture: new Date().toLocaleTimeString() });
-        }
+        if(confirm("Confirmer encaissement ?")) update(ref(db, `missions/${k}`), { etape: 3 });
     };
 
     window.ouvrir = (id) => {
@@ -589,25 +684,26 @@
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('sec-'+id).classList.add('active-sec');
         document.getElementById('nav-'+id).classList.add('active');
-        window.scrollTo(0,0);
     };
 
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0];
         if(!file) return;
+        toggleLoading(true);
         const reader = new FileReader();
         reader.onload = (re) => {
             const img = new Image();
             img.onload = () => {
                 const can = document.getElementById('canvas');
-                const max_size = 600;
+                const max_size = 800;
                 let w = img.width, h = img.height;
                 if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
                 else { if (h > max_size) { w *= max_size / h; h = max_size; } }
                 can.width = w; can.height = h;
                 can.getContext('2d').drawImage(img, 0, 0, w, h);
-                lastPhotoData = can.toDataURL('image/jpeg', 0.6);
-                alert("Photo enregistrée ✅");
+                lastPhotoData = can.toDataURL('image/jpeg', 0.5);
+                toggleLoading(false);
+                alert("Photo capturée ✅");
             };
             img.src = re.target.result;
         };
