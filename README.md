@@ -37,6 +37,17 @@
             text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
         }
 
+        /* Style pour le logo ajouté */
+        .auth-logo {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         input, select { 
             width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #edf2f7; 
             border-radius: 14px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
@@ -131,7 +142,6 @@
         .detail-row b { color: var(--dark); font-size: 13px; }
         .detail-row span { color: #64748b; font-size: 13px; }
 
-        /* Style spécifique pour les archives admin/finance */
         .archive-item {
             border-bottom: 1px solid #eee;
             padding: 12px 0;
@@ -158,6 +168,9 @@
 
     <div id="auth-screen">
         <div class="login-card">
+            <!-- AJOUT DU LOGO ICI -->
+            <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" alt="Logo CT241" class="auth-logo">
+            
             <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
             <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">PORTAIL LOGISTIQUE GABON</p>
             <input type="email" id="login-email" placeholder="Email">
@@ -411,7 +424,6 @@
                 if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
                 else if(m.etape > 0) listAct.innerHTML += card;
             } else {
-                // Pour le livreur (Ses propres missions)
                 if(m.livreur === myName) {
                     if(isToday) {
                         dailyGains += (m.fraisLivraison || 0);
@@ -424,14 +436,12 @@
                     }
                 }
                 
-                // Pour l'admin (Daily view)
                 if(userRole === 'admin' && isToday) {
                     adminCom += (m.com || 0);
                     adminVol += (m.retrait || 0);
                     listCpt.innerHTML += createRow(m, "admin");
                 }
 
-                // Pour les Archives Globales (Admin & Finance)
                 if(userRole === 'admin' || userRole === 'finance') {
                     if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
                     globalArchiveGroups[mDateStr].push(m);
@@ -439,14 +449,12 @@
             }
         });
 
-        // Rendu de l'historique personnel (Livreur)
         Object.keys(historyGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
             let html = `<div class="date-divider"><span>📅 ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
         });
 
-        // Rendu des Archives Globales avec bouton Suppression pour Admin
         Object.keys(globalArchiveGroups).sort((a,b) => b.localeCompare(a)).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
