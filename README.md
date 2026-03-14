@@ -193,6 +193,25 @@
             font-weight: 600;
         }
 
+        /* Styles Presence Admin */
+        .admin-presence-card {
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .user-active-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .online-dot {
+            height: 8px; width: 8px; background: #4ade80; border-radius: 50%; display: inline-block; margin-right: 5px;
+        }
+
         /* --- LOGO IMPRESSION --- */
         #print-logo { display: none; }
 
@@ -324,6 +343,15 @@
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
+            
+            <div class="admin-presence-card">
+                <span class="label-mini">👥 Personnel Actif (<span id="active-user-count">0</span>)</span>
+                <div id="active-users-list" style="margin-top:10px;">
+                    <p style="font-size:10px; color:#94a3b8; font-style:italic">Chargement des présences...</p>
+                </div>
+            </div>
+
+            <h4 style="margin:25px 0 10px 0; font-size:12px; color:var(--dark)">DÉTAILS DES TRANSACTIONS</h4>
             <div id="list-compta-daily"></div>
         </div>
 
@@ -343,7 +371,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove, set, onDisconnect } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -361,6 +389,7 @@
 
     let userRole = "livreur";
     let allMissions = [];
+    let lastPhotoData = "";
 
     // --- AUTH ---
     document.getElementById('btnConnect').onclick = async () => {
@@ -377,7 +406,13 @@
     };
     
     document.getElementById('btnOut').onclick = () => {
-        if(confirm("Se déconnecter ?")) signOut(auth);
+        if(confirm("Se déconnecter ?")) {
+            // Supprimer présence avant de déconnecter
+            const myId = auth.currentUser.uid;
+            set(ref(db, `presence/${myId}`), null).then(() => {
+                signOut(auth);
+            });
+        }
     };
 
     onAuthStateChanged(auth, (u) => {
@@ -394,16 +429,60 @@
             document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
+            // GESTION PRÉSENCE
+            const myPresenceRef = ref(db, `presence/${u.uid}`);
+            const myName = email.split('@')[0].toUpperCase();
+            set(myPresenceRef, { name: myName, role: userRole, lastSeen: Date.now() });
+            onDisconnect(myPresenceRef).remove();
+
+            // ECOUTE MISSIONS
             onValue(ref(db, 'missions'), (snap) => {
                 const data = snap.val();
                 allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
                 renderUI();
             });
+
+            // ECOUTE PRÉSENCES (POUR ADMIN)
+            if(userRole === 'admin') {
+                onValue(ref(db, 'presence'), (snap) => {
+                    renderPresence(snap.val());
+                });
+            }
+
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('main-app').style.display = 'none';
         }
     });
+
+    function renderPresence(presenceData) {
+        const listContainer = document.getElementById('active-users-list');
+        const countSpan = document.getElementById('active-user-count');
+        listContainer.innerHTML = "";
+        
+        if(!presenceData) {
+            listContainer.innerHTML = `<p style="font-size:10px; color:#94a3b8">Aucun personnel en ligne</p>`;
+            countSpan.innerText = "0";
+            return;
+        }
+
+        const users = Object.values(presenceData);
+        countSpan.innerText = users.length;
+
+        users.forEach(u => {
+            const row = document.createElement('div');
+            row.className = "user-active-row";
+            row.innerHTML = `
+                <div style="font-size:11px; font-weight:700">
+                    <span class="online-dot"></span> ${u.name}
+                </div>
+                <div style="font-size:9px; background:#e2e8f0; padding:2px 6px; border-radius:4px; color:#64748b">
+                    ${u.role.toUpperCase()}
+                </div>
+            `;
+            listContainer.appendChild(row);
+        });
+    }
 
     function toggleLoading(show) {
         document.getElementById('loading').style.display = show ? 'flex' : 'none';
@@ -427,13 +506,8 @@
         setTimeout(() => {
             renderUI();
             toggleLoading(false);
-            alert("Bilan actualisé ! Les missions du jour précédent sont dans l'historique.");
+            alert("Bilan actualisé !");
         }, 800);
-    };
-
-    window.openMaps = (query) => {
-        if(!query) return;
-        window.open(`https://www.google.com/maps/search/${encodeURIComponent(query + " Libreville")}`, '_blank');
     };
 
     window.exportToCSV = () => {
@@ -505,7 +579,7 @@
             nom: nom.toUpperCase(),
             tel, lieu, retrait, fraisLivraison: fraisLiv, com,
             livreur: "Libre",
-            etape: 1, // Directement en ligne pour cet exemple, ou 0 pour validation admin
+            etape: 1,
             timestamp: Date.now(),
             dateHeure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
             dateLong: now.toLocaleDateString('fr-FR'),
@@ -525,10 +599,6 @@
     window.accepter = (key) => {
         const myName = auth.currentUser.email.split('@')[0].toUpperCase();
         update(ref(db, `missions/${key}`), { livreur: myName });
-    };
-
-    window.valider = (key) => {
-        update(ref(db, `missions/${key}`), { etape: 1 });
     };
 
     window.terminer = (key) => {
@@ -661,55 +731,54 @@
                 </div>
             `;
         }
-        if(m.etape === 0 && userRole === 'admin') {
-            btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
-        } else if(m.etape === 1) {
-            if(m.livreur === "Libre" && userRole === 'livreur') {
-                btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
-            } else if(m.livreur === myName) {
-                btn = `
-                    <button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO SMS</button>
-                    <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS">
-                    <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>
-                `;
-            } else {
-                btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
-            }
-        } else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
-            btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
-                    <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
-                    <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
-                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
-                   </div>`;
-        }
-        const mDate = new Date(m.timestamp);
-        const displayDate = `${mDate.toLocaleDateString('fr-FR')} à ${mDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
-        return `<div class="card etape-${m.etape}">
-                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
-                        <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
+        if(m.etape === 1 && m.livreur === "Libre") {
+            btn = `<button class="btn-action btn-validate" onclick="accepter('${m.key}')">📍 ACCEPTER CETTE MISSION</button>`;
+        } else if(m.etape === 1 && m.livreur === myName) {
+            btn = `
+                <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-top:10px">
+                    <span class="label-mini">Code SMS Reçu</span>
+                    <input type="text" id="code-${m.key}" placeholder="Saisir code client" style="text-align:center; font-weight:bold; letter-spacing:2px">
+                    <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px">
+                        <button class="btn-action" onclick="triggerCam('${m.key}')" style="background:#cbd5e1; color:white">📷</button>
+                        <button class="btn-action btn-validate" onclick="terminer('${m.key}')">✅ TERMINER</button>
                     </div>
-                    <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
-                        <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
-                        💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
-                    </div>
-                    ${contactUI}
-                    ${btn}
                 </div>`;
+        } else if(m.etape === 2 && userRole === 'admin') {
+            btn = `<button class="btn-action" onclick="cloturer('${m.key}')" style="background:var(--gabon-bleu); color:white">🔒 CLÔTURER & ARCHIVER</button>`;
+        }
+
+        const detailBtn = (userRole === 'admin' || userRole === 'finance') ? `<button class="btn-consult" style="padding:4px 8px; font-size:9px" onclick="consulterMission('${m.key}')">Détails</button>` : "";
+
+        return `
+            <div class="card etape-${m.etape}">
+                <div style="display:flex; justify-content:space-between">
+                    <b>${m.nom} <span class="badge badge-blue">#${m.id}</span></b>
+                    <span class="mission-time">${m.heureSeule || m.dateHeure}</span>
+                </div>
+                <div style="font-size:12px; color:#64748b; margin-top:5px">
+                    📍 ${m.lieu || 'Zone Libreville'} | 💰 <b>${m.retrait} F</b>
+                </div>
+                <div style="font-size:10px; margin-top:5px">
+                    Assigné à: <b style="color:var(--gabon-vert)">${m.livreur}</b> ${detailBtn}
+                </div>
+                ${m.etape === 1 && m.livreur === myName ? contactUI : ''}
+                ${btn}
+            </div>
+        `;
     }
 
-    function createRow(m, type, isOld = false) {
-        const val = type === 'admin' ? m.com : m.fraisLivraison;
-        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
-        const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
-        const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
-        return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
-                    <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
-                    <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
-                    <div style="text-align:right">
-                        <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
-                        <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
-                    </div>
-                </div>`;
+    function createRow(m, role, isArchived = false) {
+        const val = role === "admin" ? m.com : m.fraisLivraison;
+        const color = role === "admin" ? "var(--gabon-vert)" : "var(--gabon-bleu)";
+        return `
+            <div class="card" style="padding:10px; border-left:4px solid ${isArchived ? '#94a3b8' : color}">
+                <div style="display:flex; justify-content:space-between; font-size:12px">
+                    <span>${m.nom} (#${m.id})</span>
+                    <b style="color:${color}">+ ${val} F</b>
+                </div>
+                <div style="font-size:9px; color:#94a3b8; margin-top:3px">${m.heureSeule || m.dateHeure} | ${m.livreur}</div>
+            </div>
+        `;
     }
 </script>
 </body>
