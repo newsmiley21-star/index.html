@@ -192,42 +192,6 @@
             color: #64748b;
             font-weight: 600;
         }
-
-        /* Styles Presence Admin */
-        .admin-presence-card {
-            background: #f8fafc;
-            border-radius: 15px;
-            padding: 15px;
-            margin-top: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .user-active-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #edf2f7;
-        }
-        .online-dot {
-            height: 8px; width: 8px; background: #4ade80; border-radius: 50%; display: inline-block; margin-right: 5px;
-        }
-
-        /* --- LOGO IMPRESSION --- */
-        #print-logo { display: none; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #modal-overlay, #modal-overlay * { visibility: visible; }
-            #modal-overlay { position: absolute; left: 0; top: 0; background: white; width: 100%; }
-            .modal-content { box-shadow: none; border: none; width: 100%; max-width: none; }
-            .close-modal, .btn-print-action { display: none !important; }
-            #print-logo { 
-                display: block !important; 
-                visibility: visible; 
-                width: 200px; 
-                margin: 0 auto 20px auto; 
-            }
-        }
     </style>
 </head>
 <body>
@@ -248,12 +212,8 @@
     <div id="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="fermerModal()">×</span>
-            <!-- Logo uniquement visible à l'impression -->
-            <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" id="print-logo">
-            
             <h3 style="color:var(--gabon-bleu); margin-top:0">Détails Mission</h3>
             <div id="modal-body"></div>
-            <button class="btn-action btn-print-action" onclick="window.print()" style="background:var(--dark); color:white; margin-top:20px;">🖨️ IMPRIMER LA MISSION</button>
         </div>
     </div>
 
@@ -343,15 +303,6 @@
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
-            
-            <div class="admin-presence-card">
-                <span class="label-mini">👥 Personnel Actif (<span id="active-user-count">0</span>)</span>
-                <div id="active-users-list" style="margin-top:10px;">
-                    <p style="font-size:10px; color:#94a3b8; font-style:italic">Chargement des présences...</p>
-                </div>
-            </div>
-
-            <h4 style="margin:25px 0 10px 0; font-size:12px; color:var(--dark)">DÉTAILS DES TRANSACTIONS</h4>
             <div id="list-compta-daily"></div>
         </div>
 
@@ -371,7 +322,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update, remove, set, onDisconnect } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -389,6 +340,7 @@
 
     let userRole = "livreur";
     let allMissions = [];
+    let currentKey = null;
     let lastPhotoData = "";
 
     // --- AUTH ---
@@ -406,13 +358,7 @@
     };
     
     document.getElementById('btnOut').onclick = () => {
-        if(confirm("Se déconnecter ?")) {
-            // Supprimer présence avant de déconnecter
-            const myId = auth.currentUser.uid;
-            set(ref(db, `presence/${myId}`), null).then(() => {
-                signOut(auth);
-            });
-        }
+        if(confirm("Se déconnecter ?")) signOut(auth);
     };
 
     onAuthStateChanged(auth, (u) => {
@@ -429,85 +375,41 @@
             document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
-            // GESTION PRÉSENCE
-            const myPresenceRef = ref(db, `presence/${u.uid}`);
-            const myName = email.split('@')[0].toUpperCase();
-            set(myPresenceRef, { name: myName, role: userRole, lastSeen: Date.now() });
-            onDisconnect(myPresenceRef).remove();
-
-            // ECOUTE MISSIONS
             onValue(ref(db, 'missions'), (snap) => {
                 const data = snap.val();
                 allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
                 renderUI();
             });
-
-            // ECOUTE PRÉSENCES (POUR ADMIN)
-            if(userRole === 'admin') {
-                onValue(ref(db, 'presence'), (snap) => {
-                    renderPresence(snap.val());
-                });
-            }
-
         } else {
             document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('main-app').style.display = 'none';
         }
     });
 
-    function renderPresence(presenceData) {
-        const listContainer = document.getElementById('active-users-list');
-        const countSpan = document.getElementById('active-user-count');
-        listContainer.innerHTML = "";
-        
-        if(!presenceData) {
-            listContainer.innerHTML = `<p style="font-size:10px; color:#94a3b8">Aucun personnel en ligne</p>`;
-            countSpan.innerText = "0";
-            return;
-        }
-
-        const users = Object.values(presenceData);
-        countSpan.innerText = users.length;
-
-        users.forEach(u => {
-            const row = document.createElement('div');
-            row.className = "user-active-row";
-            row.innerHTML = `
-                <div style="font-size:11px; font-weight:700">
-                    <span class="online-dot"></span> ${u.name}
-                </div>
-                <div style="font-size:9px; background:#e2e8f0; padding:2px 6px; border-radius:4px; color:#64748b">
-                    ${u.role.toUpperCase()}
-                </div>
-            `;
-            listContainer.appendChild(row);
-        });
-    }
-
     function toggleLoading(show) {
         document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
-
-    // --- NAVIGATION ---
-    window.ouvrir = (sec) => {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById(`sec-${sec}`).classList.add('active-sec');
-        document.getElementById(`nav-${sec}`).classList.add('active');
-    };
 
     window.filterMissions = (inputId) => {
         const term = document.getElementById(inputId).value.toLowerCase();
         renderUI(term);
     };
 
+    // Action pour Actualiser le bilan livreur
     window.rafraichirBilan = () => {
         toggleLoading(true);
+        // On simule un rafraîchissement forcé en filtrant tout ce qui n'est pas "Aujourd'hui"
+        // Les missions du jour précédent seront naturellement reléguées dans l'historique par renderUI()
         setTimeout(() => {
             renderUI();
             toggleLoading(false);
-            alert("Bilan actualisé !");
+            alert("Bilan actualisé ! Les missions du jour précédent sont dans l'historique.");
         }, 800);
+    };
+
+    window.openMaps = (query) => {
+        if(!query) return;
+        window.open(`https://www.google.com/maps/search/${encodeURIComponent(query + " Libreville")}`, '_blank');
     };
 
     window.exportToCSV = () => {
@@ -561,80 +463,6 @@
         }
     };
 
-    // --- LOGIQUE CRUD ---
-    window.creerMission = async () => {
-        const nom = document.getElementById('mNom').value;
-        const tel = document.getElementById('mTel').value;
-        const lieu = document.getElementById('mQuartier').value;
-        const retrait = parseInt(document.getElementById('mRetrait').value);
-        const fraisLiv = parseInt(document.getElementById('mLiv').value);
-        const com = parseInt(document.getElementById('mCom').value);
-
-        if(!nom || isNaN(retrait)) return alert("Remplir nom et montant retrait");
-
-        toggleLoading(true);
-        const now = new Date();
-        const mission = {
-            id: Math.floor(1000 + Math.random() * 9000),
-            nom: nom.toUpperCase(),
-            tel, lieu, retrait, fraisLivraison: fraisLiv, com,
-            livreur: "Libre",
-            etape: 1,
-            timestamp: Date.now(),
-            dateHeure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
-            dateLong: now.toLocaleDateString('fr-FR'),
-            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
-        };
-
-        try {
-            await push(ref(db, 'missions'), mission);
-            alert("Mission déployée !");
-            ouvrir('missions');
-            document.getElementById('mNom').value = "";
-            document.getElementById('mRetrait').value = "";
-        } catch(e) { alert("Erreur Firebase"); }
-        toggleLoading(false);
-    };
-
-    window.accepter = (key) => {
-        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
-        update(ref(db, `missions/${key}`), { livreur: myName });
-    };
-
-    window.terminer = (key) => {
-        const code = document.getElementById(`code-${key}`).value;
-        if(!code) return alert("Code SMS requis");
-        update(ref(db, `missions/${key}`), { etape: 2, codeSMS: code, photo: lastPhotoData || "" });
-        lastPhotoData = "";
-    };
-
-    window.cloturer = (key) => {
-        update(ref(db, `missions/${key}`), { etape: 3 });
-    };
-
-    window.triggerCam = (key) => {
-        document.getElementById('camInput').click();
-        document.getElementById('camInput').onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (re) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.getElementById('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = 600;
-                    canvas.height = (img.height / img.width) * 600;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    lastPhotoData = canvas.toDataURL('image/jpeg', 0.7);
-                    alert("📸 Photo capturée !");
-                };
-                img.src = re.target.result;
-            };
-            reader.readAsDataURL(file);
-        };
-    };
-
-    // --- RENDU UI ---
     window.renderUI = (filter = "") => {
         const listVal = document.getElementById('list-validation');
         const listAct = document.getElementById('list-active');
@@ -663,24 +491,28 @@
                 if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
                 else if(m.etape > 0) listAct.innerHTML += card;
             } else {
+                // Section Bilan Livreur
                 if(m.livreur === myName) {
                     if(isToday) { 
                         dailyGains += m.fraisLivraison; 
                         dailyCount++; 
                         listBilToday.innerHTML += createRow(m, "livreur"); 
                     } else {
+                        // Reléguer automatiquement à l'historique
                         if(!historyGroups[mDateStr]) historyGroups[mDateStr] = { sum: 0, items: [] };
                         historyGroups[mDateStr].sum += m.fraisLivraison;
                         historyGroups[mDateStr].items.push(m);
                     }
                 }
                 
+                // Section Compta Admin
                 if(userRole === 'admin' && isToday) { 
                     adminCom += m.com; 
                     adminVol += m.retrait; 
                     listCpt.innerHTML += createRow(m, "admin"); 
                 }
                 
+                // Section Archives Globales
                 if(userRole === 'admin' || userRole === 'finance') {
                     if(!match) return;
                     if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
@@ -689,13 +521,23 @@
             }
         });
 
-        Object.keys(historyGroups).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach(date => {
+        // Affichage des groupements d'historique (Trié par date décroissante)
+        Object.keys(historyGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
             let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
         });
 
-        Object.keys(globalArchiveGroups).sort((a,b) => b.split('/').reverse().join('').localeCompare(a.split('/').reverse().join(''))).forEach(date => {
+        // Affichage des Archives Globales
+        Object.keys(globalArchiveGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
             let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
             globalArchiveGroups[date].forEach(m => {
                 const showDel = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
@@ -723,6 +565,7 @@
 
     function createCard(m, myName) {
         let btn = "", contactUI = "";
+        
         if(m.tel) {
             contactUI = `
                 <div class="contact-group">
@@ -731,55 +574,141 @@
                 </div>
             `;
         }
-        if(m.etape === 1 && m.livreur === "Libre") {
-            btn = `<button class="btn-action btn-validate" onclick="accepter('${m.key}')">📍 ACCEPTER CETTE MISSION</button>`;
-        } else if(m.etape === 1 && m.livreur === myName) {
-            btn = `
-                <div style="background:#f8fafc; padding:12px; border-radius:12px; margin-top:10px">
-                    <span class="label-mini">Code SMS Reçu</span>
-                    <input type="text" id="code-${m.key}" placeholder="Saisir code client" style="text-align:center; font-weight:bold; letter-spacing:2px">
-                    <div style="display:grid; grid-template-columns:1fr 2fr; gap:10px">
-                        <button class="btn-action" onclick="triggerCam('${m.key}')" style="background:#cbd5e1; color:white">📷</button>
-                        <button class="btn-action btn-validate" onclick="terminer('${m.key}')">✅ TERMINER</button>
-                    </div>
-                </div>`;
-        } else if(m.etape === 2 && userRole === 'admin') {
-            btn = `<button class="btn-action" onclick="cloturer('${m.key}')" style="background:var(--gabon-bleu); color:white">🔒 CLÔTURER & ARCHIVER</button>`;
+
+        if(m.etape === 0 && userRole === 'admin') {
+            btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
+        } 
+        else if(m.etape === 1) {
+            if(m.livreur === "Libre" && userRole === 'livreur') {
+                btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+            } 
+            else if(m.livreur === myName) {
+                btn = `
+                    <button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO SMS</button>
+                    <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS">
+                    <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>
+                `;
+            } else {
+                btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
+            }
+        } 
+        else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+            btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
+                    <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
+                    <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
+                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
+                   </div>`;
         }
 
-        const detailBtn = (userRole === 'admin' || userRole === 'finance') ? `<button class="btn-consult" style="padding:4px 8px; font-size:9px" onclick="consulterMission('${m.key}')">Détails</button>` : "";
+        const mDate = new Date(m.timestamp);
+        const displayDate = `${mDate.toLocaleDateString('fr-FR')} à ${mDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
 
-        return `
-            <div class="card etape-${m.etape}">
-                <div style="display:flex; justify-content:space-between">
-                    <b>${m.nom} <span class="badge badge-blue">#${m.id}</span></b>
-                    <span class="mission-time">${m.heureSeule || m.dateHeure}</span>
-                </div>
-                <div style="font-size:12px; color:#64748b; margin-top:5px">
-                    📍 ${m.lieu || 'Zone Libreville'} | 💰 <b>${m.retrait} F</b>
-                </div>
-                <div style="font-size:10px; margin-top:5px">
-                    Assigné à: <b style="color:var(--gabon-vert)">${m.livreur}</b> ${detailBtn}
-                </div>
-                ${m.etape === 1 && m.livreur === myName ? contactUI : ''}
-                ${btn}
-            </div>
-        `;
+        return `<div class="card etape-${m.etape}">
+                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
+                        <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
+                    </div>
+                    <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
+                        <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
+                        💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
+                    </div>
+                    ${contactUI}
+                    ${btn}
+                </div>`;
     }
 
-    function createRow(m, role, isArchived = false) {
-        const val = role === "admin" ? m.com : m.fraisLivraison;
-        const color = role === "admin" ? "var(--gabon-vert)" : "var(--gabon-bleu)";
-        return `
-            <div class="card" style="padding:10px; border-left:4px solid ${isArchived ? '#94a3b8' : color}">
-                <div style="display:flex; justify-content:space-between; font-size:12px">
-                    <span>${m.nom} (#${m.id})</span>
-                    <b style="color:${color}">+ ${val} F</b>
-                </div>
-                <div style="font-size:9px; color:#94a3b8; margin-top:3px">${m.heureSeule || m.dateHeure} | ${m.livreur}</div>
-            </div>
-        `;
+    function createRow(m, type, isOld = false) {
+        const val = type === 'admin' ? m.com : m.fraisLivraison;
+        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
+        const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
+        const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
+        
+        return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
+                    <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
+                    <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
+                    <div style="text-align:right">
+                        <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
+                        <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
+                    </div>
+                </div>`;
     }
+
+    // --- ACTIONS ---
+    window.creerMission = () => {
+        const nom = document.getElementById('mNom').value;
+        const mnt = parseInt(document.getElementById('mRetrait').value);
+        const liv = parseInt(document.getElementById('mLiv').value);
+        const com = parseInt(document.getElementById('mCom').value);
+        if(!nom || !mnt) return alert("Champs obligatoires !");
+        
+        const now = new Date();
+        toggleLoading(true);
+        push(ref(db, 'missions'), {
+            id: Math.floor(1000 + Math.random()*9000),
+            nom, tel: document.getElementById('mTel').value, 
+            lieu: document.getElementById('mQuartier').value,
+            retrait: mnt, fraisLivraison: liv, com: com,
+            livreur: "Libre", etape: 0,
+            timestamp: Date.now(),
+            dateHeure: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            dateLong: now.toLocaleDateString('fr-FR') + " " + now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}),
+            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+        }).then(() => {
+            document.getElementById('mNom').value = "";
+            document.getElementById('mRetrait').value = "";
+            document.getElementById('mTel').value = "";
+            document.getElementById('mQuartier').value = "";
+            ouvrir('missions');
+        }).finally(() => toggleLoading(false));
+    };
+
+    window.valider = (k) => update(ref(db, `missions/${k}`), { etape: 1 });
+    window.accepter = (k) => {
+        const name = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${k}`), { livreur: name });
+    };
+    window.triggerCam = (k) => { currentKey = k; document.getElementById('camInput').click(); };
+    window.terminer = (k) => {
+        const c = document.getElementById('code-'+k).value;
+        if(!c || !lastPhotoData) return alert("SMS et Photo requis !");
+        toggleLoading(true);
+        update(ref(db, `missions/${k}`), { etape: 2, codeSMS: c, photo: lastPhotoData })
+        .then(() => { lastPhotoData = ""; alert("Envoyé avec succès !"); })
+        .finally(() => toggleLoading(false));
+    };
+    window.cloturer = (k) => {
+        if(confirm("Confirmer encaissement ?")) update(ref(db, `missions/${k}`), { etape: 3 });
+    };
+
+    window.ouvrir = (id) => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-'+id).classList.add('active-sec');
+        document.getElementById('nav-'+id).classList.add('active');
+    };
+
+    document.getElementById('camInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        toggleLoading(true);
+        const reader = new FileReader();
+        reader.onload = (re) => {
+            const img = new Image();
+            img.onload = () => {
+                const can = document.getElementById('canvas');
+                const max_size = 800;
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
+                else { if (h > max_size) { w *= max_size / h; h = max_size; } }
+                can.width = w; can.height = h;
+                can.getContext('2d').drawImage(img, 0, 0, w, h);
+                lastPhotoData = can.toDataURL('image/jpeg', 0.5);
+                toggleLoading(false);
+                alert("Photo capturée ✅");
+            };
+            img.src = re.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
 </script>
 </body>
 </html>
