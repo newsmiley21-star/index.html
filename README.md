@@ -196,16 +196,24 @@
         }
 
         /* --- STYLES IMPRESSION BON --- */
-        @media print {
-            body * { visibility: hidden; }
-            #receipt-print, #receipt-print * { visibility: visible; }
-            #receipt-print { position: fixed; left: 0; top: 0; width: 80mm; padding: 5mm; }
-        }
-        
         #receipt-print {
-            display: none; font-family: 'Courier New', Courier, monospace;
-            width: 300px; padding: 15px; border: 1px dashed #ccc;
+            display: none; /* Caché par défaut en mode écran */
+            font-family: 'Courier New', Courier, monospace;
+            width: 300px; padding: 20px;
             text-align: center; font-size: 12px; color: #000;
+            background: white;
+        }
+
+        @media print {
+            body * { visibility: hidden !important; }
+            #receipt-print, #receipt-print * { visibility: visible !important; display: block !important; }
+            #receipt-print { 
+                position: absolute; 
+                left: 0; top: 0; 
+                width: 100% !important; 
+                margin: 0; padding: 10px; 
+            }
+            @page { margin: 0; size: auto; }
         }
     </style>
 </head>
@@ -219,24 +227,24 @@
         <p>LOGISTIQUE GABON</p>
         <p>--------------------------------</p>
         <p><b>BON DE LIVRAISON</b></p>
-        <p id="pr-id" style="font-weight:bold; font-size:16px"></p>
+        <p id="pr-id" style="font-weight:bold; font-size:18px; margin:10px 0"></p>
         <p id="pr-date"></p>
         <p>--------------------------------</p>
         <div style="text-align:left">
-            <p>Bénéficiaire: <span id="pr-nom"></span></p>
+            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
             <p>Téléphone: <span id="pr-tel"></span></p>
             <p>Quartier: <span id="pr-lieu"></span></p>
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
         <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
-        <h2 id="pr-montant" style="margin:0"></h2>
+        <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
-        <div style="margin-top:20px; border-top:1px solid #000; padding-top:10px">
+        <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
             <p>Signature Client</p>
-            <br><br>
+            <br><br><br>
         </div>
-        <p style="font-size:9px">Merci de votre confiance.</p>
+        <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
     </div>
 
     <div id="auth-screen">
@@ -439,6 +447,26 @@
         document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
+    // --- GESTION DES IMPRESSIONS ---
+    window.imprimerBon = (key) => {
+        const m = allMissions.find(x => x.key === key);
+        if(!m) return;
+
+        // Remplissage des données
+        document.getElementById('pr-id').innerText = "ID: #" + m.id;
+        document.getElementById('pr-date').innerText = "Date: " + (m.dateLong || new Date(m.timestamp).toLocaleDateString());
+        document.getElementById('pr-nom').innerText = m.nom;
+        document.getElementById('pr-tel').innerText = m.tel || "N/A";
+        document.getElementById('pr-lieu').innerText = m.lieu || "N/A";
+        document.getElementById('pr-liv').innerText = m.livreur;
+        document.getElementById('pr-montant').innerText = m.retrait.toLocaleString() + " FCFA";
+
+        // Petite pause pour garantir que le DOM est mis à jour avant l'appel système d'impression
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    };
+
     window.filterMissions = (inputId) => {
         const term = document.getElementById(inputId).value.toLowerCase();
         renderUI(term);
@@ -456,22 +484,6 @@
     window.openMaps = (query) => {
         if(!query) return;
         window.open(`https://www.google.com/maps/search/${encodeURIComponent(query + " Libreville")}`, '_blank');
-    };
-
-    // --- GESTION DES IMPRESSIONS ---
-    window.imprimerBon = (key) => {
-        const m = allMissions.find(x => x.key === key);
-        if(!m) return;
-
-        document.getElementById('pr-id').innerText = "#" + m.id;
-        document.getElementById('pr-date').innerText = m.dateLong || new Date(m.timestamp).toLocaleDateString();
-        document.getElementById('pr-nom').innerText = m.nom;
-        document.getElementById('pr-tel').innerText = m.tel || "N/A";
-        document.getElementById('pr-lieu').innerText = m.lieu || "N/A";
-        document.getElementById('pr-liv').innerText = m.livreur;
-        document.getElementById('pr-montant').innerText = m.retrait.toLocaleString() + " FCFA";
-
-        window.print();
     };
 
     window.exportToCSV = () => {
@@ -539,7 +551,7 @@
             <div class="detail-row"><b>Date Création</b> <span>${m.dateLong || m.dateHeure}</span></div>
             <div class="detail-row"><b>Téléphone</b> <a href="tel:${m.tel}">${m.tel || 'N/A'}</a></div>
             <div class="detail-row"><b>Lieu</b> <span>${m.lieu || 'N/A'}</span></div>
-            <div class="detail-row"><b>Montant Retrait</b> <b>${m.retrait} F</b></div>
+            <div class="detail-row"><b>Montant Retrait</b> <b>${m.retrait.toLocaleString()} F</b></div>
             <div class="detail-row"><b>Commission</b> <span>${m.com} F</span></div>
             <div class="detail-row"><b>Livreur</b> <span>${m.livreur}</span></div>
             <div style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
@@ -618,7 +630,7 @@
             const dateB = b.split('/').reverse().join('');
             return dateB.localeCompare(dateA);
         }).forEach(date => {
-            let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum} F</span></div>`;
+            let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum.toLocaleString()} F</span></div>`;
             historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
             listHistory.innerHTML += html;
         });
@@ -633,7 +645,7 @@
                 const showDel = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
                 html += `
                 <div class="archive-item">
-                    <div class="archive-header"><span>${m.nom} (#${m.id})</span><span style="color:var(--gabon-vert)">+ ${m.com} F</span></div>
+                    <div class="archive-header"><span>${m.nom} (#${m.id})</span><span style="color:var(--gabon-vert)">+ ${m.com.toLocaleString()} F</span></div>
                     <div style="color:#64748b; font-size:10px; display:flex; justify-content:space-between; align-items:flex-end">
                         <div>Livreur: <b>${m.livreur}</b> | ${m.heureSeule || m.dateHeure}</div>
                         <div style="display:flex; gap:8px">
@@ -703,7 +715,7 @@
                     </div>
                     <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
                         <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
-                        💰 Retrait: <b>${m.retrait} F</b> | Gain: <b>${m.fraisLivraison} F</b>
+                        💰 Retrait: <b>${m.retrait.toLocaleString()} F</b> | Gain: <b>${m.fraisLivraison.toLocaleString()} F</b>
                     </div>
                     ${contactUI}
                     ${btn}
@@ -712,7 +724,7 @@
 
     function createRow(m, type, isOld = false) {
         const val = type === 'admin' ? m.com : m.fraisLivraison;
-        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait}F`;
+        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait.toLocaleString()}F`;
         const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
         const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
         const showPrint = (userRole === 'admin' || userRole === 'finance') ? `<span onclick="imprimerBon('${m.key}')" style="font-size:8px; margin-right:8px; text-decoration:underline; cursor:pointer; color:var(--dark)">Bon</span>` : '';
@@ -721,7 +733,7 @@
                     <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
                     <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
                     <div style="text-align:right">
-                        <b style="color:${color}; font-size:13px">+ ${val} F</b><br>
+                        <b style="color:${color}; font-size:13px">+ ${val.toLocaleString()} F</b><br>
                         ${showPrint}
                         <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
                     </div>
