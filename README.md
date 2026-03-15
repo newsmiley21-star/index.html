@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Bonus du Jour</small><b id="stat-total">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -315,28 +315,28 @@
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
+            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077.../066...)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville Centre / Nkembo / glace / oloumi / awendge /  (1000 F)</option>
-                    <option value="1500">IAI / lalala / ACAE / Carrefour sni / petro  (1500 F)</option>
-                    <option value="2000">PK 0-12 / bikele / Essassa / Ntoum /  (2000 F)</option>                                                                                          <option value="2000"> Mindoube 1-3 / Ozangue / (2000 F)</option>
-                     <option value="2000"> charbonnages / diba-diba / bel-air / citée des ails / sabliere / akanda / (2000 F)</option>
+                    <option value="1000">Libreville centre / oloumi               (1000 F)</option>
+                    <option value="1500">IAI -OWENDO                              (1500 F)</option>
+                    <option value="2000">PK 0-12 / bikele / Essassa-Ntoum            (2000 F)</option>                                                                                    <option value="2000"> Mindoube 1-3 / Ozangue (2000 F)</option>
+                    <option value="2000"> charbonnages / citée des ails / sabliere / akanda                (2000 F)</option>
                 </select>
             </div>
 
-            <span class="label-mini">Détails financiers</span>
+            <span class="label-mini">Détails colis</span>
             <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Livreur (F)</span>
+                    <span class="label-mini">Frais de livraison (en CFA)</span>
                     <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Commission (F)</span>
+                    <span class="label-mini">bonus (en CFA)</span>
                     <input type="number" id="mCom" value="390">
                 </div>
             </div>
