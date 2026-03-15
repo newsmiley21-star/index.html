@@ -331,7 +331,7 @@
             </div>
             
             <span class="label-mini">Détails colis</span>
-            <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
+            <input type="number" id="mRetrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
                 <div>
                     <span class="label-mini">Frais de livraison (en CFA)</span>
