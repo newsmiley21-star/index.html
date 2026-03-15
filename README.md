@@ -321,14 +321,15 @@
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville Centre (1000 F)</option>
-                    <option value="1500">Owendo / Akanda (1500 F)</option>
-                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
+                    <option value="1000">Libreville Centre / Nkembo / glace / oloumi / awendge /  (1000 F)</option>
+                    <option value="1500">IAI / lalala / ACAE / Carrefour sni / petro  (1500 F)</option>
+                    <option value="2000">PK 0-12 / bikele / Essassa / Ntoum /  (2000 F)</option>                                                                                          <option value="2000"> Mindoube 1-3 / Ozangue / (2000 F)</option>
+                     <option value="2000"> charbonnages / diba-diba / bel-air / citée des ails / sabliere / akanda / (2000 F)</option>
                 </select>
             </div>
 
             <span class="label-mini">Détails financiers</span>
-            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+            <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
                 <div>
                     <span class="label-mini">Livreur (F)</span>
