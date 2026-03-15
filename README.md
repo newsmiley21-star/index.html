@@ -323,8 +323,10 @@
                 <select id="mZoneSelect" onchange="updateFrais()">
                     <option value="2000">Libreville centre / oloumi              
                     <option value="2000">IAI -OWENDO                             
-                    <option value="2000-3000">PK 0-12 / bikele / Essassa-Ntoum                                                                                                            <option value="2000"> Mindoube 1-3 / Ozangue 
-                    <option value="2000"> charbonnages / citée des ails / sabliere / akanda                
+                    <option value="2000">PK 0-12 / bikele / Essassa-Ntoum 
+                    <option value="3500">Essassa / Ntoum 
+                    <option value="2000"> Mindoube 1-3 / Ozangue 
+                    <option value="2000"> charbonnages / akanda                
                 </select>
             </div>
 
