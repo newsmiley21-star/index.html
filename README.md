@@ -237,11 +237,11 @@
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
-        <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
+        <h3 style="margin:5px 0">valeur marchandise </h3>
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
-            <p>Signature Client</p>
+            <p> Bien reçu par le destinataire</p>
             <br><br><br>
         </div>
         <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
