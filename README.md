@@ -314,7 +314,8 @@
         <!-- CREER -->
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
-            <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
+            <input type="text" id="mNom" placeholder="Nom du destinataire">
+             <input type="text" id="mNom" placeholder="ITINERAIRE DE LA LIVRAISON ">
             <input type="tel" id="mTel" placeholder="Téléphone (ex: 077.../066...)">
             
             <div class="zone-highlight">
