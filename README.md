@@ -231,7 +231,7 @@
         <p id="pr-date"></p>
         <p>--------------------------------</p>
         <div style="text-align:left">
-            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
+            <p>destinatiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
             <p>Téléphone: <span id="pr-tel"></span></p>
             <p>Quartier: <span id="pr-lieu"></span></p>
             <p>Livreur: <span id="pr-liv"></span></p>
@@ -314,10 +314,9 @@
         <!-- CREER -->
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
-            <input type="text" id="mNom" placeholder="Nom du destinataire">
-             <input type="text" id="mNom" placeholder="ITINERAIRE DE LA LIVRAISON ">
+            <input type="text" id="mNom" placeholder="Nom & prenom du destinataire">
             <input type="tel" id="mTel" placeholder="Téléphone (ex: 077.../066...)">
-            
+            <input type="text" id="mNom" placeholder="ITINERAIRE DE LA LIVRAISON ">
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
@@ -330,7 +329,6 @@
                     <option value="2000"> charbonnages / akanda                
                 </select>
             </div>
-
             <span class="label-mini">Détails colis</span>
             <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
