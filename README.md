@@ -321,14 +321,15 @@
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="2000">Libreville centre / oloumi              
-                    <option value="2000">IAI -OWENDO                             
-                    <option value="2000">PK 0-12 / bikele / Essassa-Ntoum 
-                    <option value="3500">Essassa / Ntoum 
-                    <option value="2000"> Mindoube 1-3 / Ozangue 
-                    <option value="2000"> charbonnages / akanda                
-                </select>
+                    <option value="2000">Libreville centre / oloumi  </select>            
+                    <option value="2000">IAI -OWENDO </select>                            
+                    <option value="2000">PK 0-12 / bikele / Essassa-Ntoum </select>
+                    <option value="3500">Essassa / Ntoum </select>
+                    <option value="2000"> Mindoube 1-3 / Ozangue </select>
+                    <option value="2000"> charbonnages / akanda  </select>
+                </div>
             </div>
+            
             <span class="label-mini">Détails colis</span>
             <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
