@@ -321,10 +321,10 @@
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville centre / oloumi               (1000 F)</option>
-                    <option value="1500">IAI -OWENDO                              (1500 F)</option>
-                    <option value="2000">PK 0-12 / bikele / Essassa-Ntoum            (2000 F)</option>                                                                                    <option value="2000"> Mindoube 1-3 / Ozangue (2000 F)</option>
-                    <option value="2000"> charbonnages / citée des ails / sabliere / akanda                (2000 F)</option>
+                    <option value="2000">Libreville centre / oloumi              
+                    <option value="2000">IAI -OWENDO                             
+                    <option value="2000-3000">PK 0-12 / bikele / Essassa-Ntoum                                                                                                            <option value="2000"> Mindoube 1-3 / Ozangue 
+                    <option value="2000"> charbonnages / citée des ails / sabliere / akanda                
                 </select>
             </div>
 
@@ -348,10 +348,10 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>total des livraisons </small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Volume valeur marchandises </small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
-                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
+                <button class="btn-export" onclick="exportToCSV()">📥 sauvegarder le BILAN  (format excel)</button>
             </div>
             <div id="list-compta-daily"></div>
         </div>
