@@ -349,7 +349,7 @@
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
                     <div><small>Total Bonus</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>C.A Du JOUR</small><b id="stat-total">0 F</b></div>
+                    <div><small>C.A Du JOUR</small><b id="cpt-liv">0 F</b></div>
                     <div><small>Total Courses</small><b id="stat-count" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
