@@ -336,7 +336,7 @@
                     <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Bonus livreur (minimum 18*courses ok)</span>
+                    <span class="label-mini">Bonus livreur (+ colis n°18)</span>
                     <input type="number" id="mCom" value="0">
                 </div>
             </div>
