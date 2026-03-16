@@ -336,8 +336,8 @@
                     <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Commission (en CFA)</span>
-                    <input type="number" id="mCom" value="390">
+                    <span class="label-mini">Bonus livreur (minimum 18*courses ok)</span>
+                    <input type="number" id="mCom" value="0">
                 </div>
             </div>
             <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
