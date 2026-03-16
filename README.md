@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Bonus du Jour +18</small><b id="Cpt-com">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -321,8 +321,8 @@
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville Centre (1000 F)</option>
-                    <option value="1500">Owendo / Akanda (1500 F)</option>
+                    <option value="2000">Libreville  (2000 F)</option>
+                    <option value="2500">Owendo / Akanda (2500 F)</option>
                     <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
                 </select>
             </div>
@@ -331,11 +331,11 @@
             <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Livreur (F)</span>
-                    <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
+                    <span class="label-mini">frais livraison (CFA)</span>
+                    <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Commission (F)</span>
+                    <span class="label-mini">Com LIVREUR (CFA)</span>
                     <input type="number" id="mCom" value="390">
                 </div>
             </div>
@@ -347,8 +347,8 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Bonus Totaux</small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>C.A </small><b id="Stat-total" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
