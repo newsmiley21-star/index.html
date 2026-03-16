@@ -237,7 +237,7 @@
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
-        <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
+        <h3 style="margin:5px 0">valeur du colis </h3>
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
@@ -320,10 +320,11 @@
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
+                <input type="text" id="mQuartier" placeholder="....Itineraire......">
                 <select id="mZoneSelect" onchange="updateFrais()">
                     <option value="2000">Libreville  (2000 F)</option>
                     <option value="2500">Owendo / Akanda (2500 F)</option>
-                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
+                    <option value="2000">PK0-12 / Bikele  (2000 F)</option>
                 </select>
             </div>
 
@@ -336,7 +337,7 @@
                 </div>
                 <div>
                     <span class="label-mini">Com LIVREUR (CFA)</span>
-                    <input type="number" id="mCom" value="390">
+                    <input type="number" id="mCom" value="0">
                 </div>
             </div>
             <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
