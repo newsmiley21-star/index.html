@@ -237,11 +237,11 @@
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
-        <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
+        <h3 style="margin:5px 0">VALEUR DU COLIS📦 </h3>
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
-            <p>Signature Client</p>
+            <p>Bien reçu par le Client</p>
             <br><br><br>
         </div>
         <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
@@ -303,8 +303,8 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>total du Jour</small><b id="cpt-com">0 F</b></div>
-                    <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>Bonus du Jour</small><b id="cpt-com">0 F</b></div>
+                    <div><small>Livraisons terminées</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
