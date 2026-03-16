@@ -40,7 +40,7 @@
 
         input, select { 
             width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #edf2f7; 
-            border-radius: 14px; box-sizing: border-box; font-size: 15px; transition: 0.3s;
+            border-radius: 14px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
             background: #f8fafc;
         }
         
@@ -132,6 +132,7 @@
 <body>
 
     <canvas id="canvas"></canvas>
+    <!-- Rétabli: capture="camera" pour forcer l'ouverture de l'appareil photo sur mobile -->
     <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
 
     <div id="auth-screen">
@@ -247,6 +248,7 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
+    // Votre configuration rattachée à la Realtime Database
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
         authDomain: "cashtransfert-21.firebaseapp.com",
@@ -335,8 +337,12 @@
         });
         alert("Mission lancée !");
         ouvrir('missions');
+        // Reset fields
         document.getElementById('mNom').value = "";
         document.getElementById('mRetrait').value = "";
+        document.getElementById('mTel').value = "";
+        document.getElementById('mQuartier').value = "";
+        document.getElementById('mItineraire').value = "";
     };
 
     window.accepter = (key) => {
@@ -355,10 +361,11 @@
             img.onload = () => {
                 const canvas = document.getElementById('canvas');
                 const ctx = canvas.getContext('2d');
+                // Compression intelligente : Max 600px de large pour économiser l'espace
                 canvas.width = 600; canvas.height = (img.height/img.width)*600;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                lastPhotoData = canvas.toDataURL('image/jpeg', 0.7);
-                alert("Photo Colis ok !");
+                lastPhotoData = canvas.toDataURL('image/jpeg', 0.6); // 60% qualité = équilibre parfait poids/visibilité
+                alert("✅ Photo Colis enregistrée !");
             };
             img.src = re.target.result;
         };
@@ -366,10 +373,18 @@
     };
 
     window.terminer = (key) => {
-        const code = document.getElementById(`code-${key}`).value;
-        if(!code || !lastPhotoData) return alert("Photo + Code requis");
-        update(ref(db, `missions/${key}`), { codeSMS: code, photo: lastPhotoData, etape: 2, clotureTs: Date.now() });
+        const codeInput = document.getElementById(`code-${key}`);
+        const code = codeInput ? codeInput.value : "";
+        if(!code || !lastPhotoData) return alert("⚠️ Photo + Code SMS requis pour valider");
+        
+        update(ref(db, `missions/${key}`), { 
+            codeSMS: code, 
+            photo: lastPhotoData, 
+            etape: 2, 
+            clotureTs: Date.now() 
+        });
         lastPhotoData = "";
+        alert("✅ Livraison validée !");
     };
 
     window.fermerModal = () => document.getElementById('modal-overlay').style.display = 'none';
@@ -381,18 +396,18 @@
         body.innerHTML = `
             <p><b>Client :</b> ${m.nom}</p>
             <p><b>Tel :</b> ${m.tel || 'N/A'}</p>
-            <p><b>Itinéraire :</b> ${m.itineraire || 'N/A'}</p>
             <p><b>Quartier :</b> ${m.lieu}</p>
+            <p><b>Itinéraire :</b> ${m.itineraire || 'N/A'}</p>
             <p><b>Prix Colis :</b> ${m.retrait} F</p>
             <p><b>Livreur :</b> ${m.livreur}</p>
             <p><b>Code :</b> ${m.codeSMS || 'En attente'}</p>
-            ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:15px; margin-top:10px">` : ''}
-            ${userRole === 'admin' ? `<button onclick="suppr('${m.key}')" style="color:red; border:1px solid red; background:none; padding:10px; border-radius:10px; width:100%; margin-top:15px">SUPPRIMER</button>` : ''}
+            ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:15px; margin-top:10px; border:2px solid #eee">` : '<p style="font-size:11px; color:orange">Pas encore de photo</p>'}
+            ${userRole === 'admin' ? `<button onclick="suppr('${m.key}')" style="color:white; background:var(--danger); border:none; padding:12px; border-radius:10px; width:100%; margin-top:15px; font-weight:bold">SUPPRIMER DÉFINITIVEMENT</button>` : ''}
         `;
         document.getElementById('modal-overlay').style.display = 'flex';
     };
 
-    window.suppr = (key) => { if(confirm("Supprimer ?")) { remove(ref(db, `missions/${key}`)); fermerModal(); }};
+    window.suppr = (key) => { if(confirm("Supprimer cette mission définitivement ?")) { remove(ref(db, `missions/${key}`)); fermerModal(); }};
 
     window.exportCSV = () => {
         let csv = "\uFEFFID;Date;Client;Montant;Livreur;Code\n";
@@ -400,13 +415,13 @@
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Archives_Logistique_${new Date().toLocaleDateString()}.csv`;
+        a.download = `Archives_Logistique_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`;
         a.click();
     };
 
     window.renderUI = () => {
-        const searchMissions = document.getElementById('searchMissions').value.toLowerCase();
-        const searchArchive = document.getElementById('archiveSearchInput').value.toLowerCase();
+        const searchVal = document.getElementById('searchMissions').value.toLowerCase();
+        const archiveSearchVal = document.getElementById('archiveSearchInput').value.toLowerCase();
         
         const listAct = document.getElementById('list-active');
         const listBilLivreur = document.getElementById('list-bilan-today');
@@ -415,75 +430,81 @@
         
         listAct.innerHTML = ""; listBilLivreur.innerHTML = ""; listCompta.innerHTML = ""; listArch.innerHTML = "";
         
-        const myName = auth.currentUser?.email.split('@')[0].toUpperCase();
+        const myEmail = auth.currentUser?.email || "";
+        const myName = myEmail.split('@')[0].toUpperCase();
         const todayStr = new Date().toLocaleDateString('fr-FR');
         
         let bonusDay = 0, countDay = 0, caDay = 0, volDay = 0;
         const archMap = {};
 
-        // Tri par date décroissante
+        // Tri : plus récent en haut
         const sorted = [...allMissions].sort((a,b) => (b.clotureTs || b.timestamp) - (a.clotureTs || a.timestamp));
 
         sorted.forEach(m => {
-            const isMatchMission = m.nom.toLowerCase().includes(searchMissions) || m.livreur.toLowerCase().includes(searchMissions);
-            const isMatchArchive = m.nom.toLowerCase().includes(searchArchive) || m.livreur.toLowerCase().includes(searchArchive);
+            const isMatchMission = m.nom.toLowerCase().includes(searchVal) || m.livreur.toLowerCase().includes(searchVal);
+            const isMatchArchive = m.nom.toLowerCase().includes(archiveSearchVal) || m.livreur.toLowerCase().includes(archiveSearchVal);
 
-            // --- 1. MISSIONS ACTIVES ---
+            // --- FLUX ACTIF (Etape 0 et 1) ---
             if(m.etape < 2 && isMatchMission) {
                 let actionHtml = "";
                 if(m.etape === 0) {
-                    actionHtml = `<button class="btn-action btn-validate" onclick="accepter('${m.key}')">ACCEPTER</button>`;
+                    actionHtml = `<button class="btn-action btn-validate" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
                 } else if(m.livreur === myName) {
                     actionHtml = `
-                        <div style="background:#f8fafc; padding:10px; border-radius:15px; margin-top:10px">
-                            <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PHOTO COLIS</button>
-                            <input type="text" id="code-${m.key}" placeholder="Code SMS" style="text-align:center">
-                            <button class="btn-action btn-validate" onclick="terminer('${m.key}')">VALIDER LIVRAISON</button>
+                        <div style="background:#f8fafc; padding:12px; border-radius:18px; margin-top:10px; border:1px dashed var(--gabon-bleu)">
+                            <button class="btn-action btn-photo" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO COLIS</button>
+                            <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS client" style="text-align:center; margin-top:10px">
+                            <button class="btn-action btn-validate" onclick="terminer('${m.key}')">VALIDER LA LIVRAISON</button>
                         </div>`;
                 } else {
-                    actionHtml = `<p style="text-align:center; color:var(--gabon-bleu); font-size:11px; font-weight:bold">En cours : ${m.livreur}</p>`;
+                    actionHtml = `<div style="text-align:center; padding:10px; color:var(--gabon-bleu); font-size:11px; font-weight:800">EN COURS : ${m.livreur}</div>`;
                 }
 
                 listAct.innerHTML += `
                     <div class="card etape-${m.etape}">
-                        <div style="display:flex; justify-content:space-between"><b>${m.nom}</b> <small>#${m.id}</small></div>
-                        <p style="font-size:12px; margin:5px 0">📍 ${m.lieu}</p>
                         <div style="display:flex; justify-content:space-between; align-items:center">
-                            <b style="color:var(--gabon-vert); font-size:16px">${m.retrait} F</b>
-                            <span onclick="voirDetails('${m.key}')" style="font-size:10px; color:var(--gabon-bleu); cursor:pointer">Détails</span>
+                            <b style="font-size:14px">${m.nom}</b> 
+                            <span style="font-size:9px; background:#f1f5f9; padding:2px 6px; border-radius:5px">#${m.id}</span>
+                        </div>
+                        <p style="font-size:12px; margin:8px 0; color:#4a5568">📍 <b>Lieu:</b> ${m.lieu}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <b style="color:var(--gabon-vert); font-size:18px">${m.retrait} F</b>
+                            <span onclick="voirDetails('${m.key}')" style="font-size:10px; color:var(--gabon-bleu); font-weight:bold; text-decoration:underline; cursor:pointer">DÉTAILS</span>
                         </div>
                         ${actionHtml}
                     </div>`;
             }
 
-            // --- 2. MISSIONS TERMINÉES ---
+            // --- HISTORIQUE & COMPTA (Etape 2) ---
             if(m.etape === 2) {
-                // Pour le livreur (Bilan Personnel)
+                // Bilan Personnel Livreur
                 if(m.livreur === myName) {
                     if(m.dateStr === todayStr) {
                         countDay++;
                         bonusDay += (m.bonus || 0);
                     }
-                    // Historique récent du livreur (limité aux 10 derniers ou recherche)
-                    if(m.nom.toLowerCase().includes(searchMissions)) {
+                    if(m.nom.toLowerCase().includes(searchVal)) {
                         listBilLivreur.innerHTML += `
                             <div class="archive-item" onclick="voirDetails('${m.key}')">
                                 <div class="archive-header">
-                                    <span>${m.nom} (${m.dateStr})</span>
+                                    <span>${m.nom} <small>(${m.dateStr})</small></span>
                                     <span style="color:var(--gabon-vert)">+${m.bonus || 0} F</span>
                                 </div>
                             </div>`;
                     }
                 }
 
-                // Pour l'Admin / Finance
+                // Admin / Compta
                 if(userRole === 'admin' || userRole === 'finance') {
                     if(m.dateStr === todayStr) {
                         caDay += (m.frais || 0);
                         volDay += (m.retrait || 0);
                         listCompta.innerHTML += `
                             <div class="archive-item" onclick="voirDetails('${m.key}')">
-                                <div class="archive-header"><span>${m.nom} (${m.livreur})</span><span>${m.frais} F</span></div>
+                                <div class="archive-header">
+                                    <span>${m.nom} <small>(${m.livreur})</small></span>
+                                    <span>${m.frais} F</span>
+                                </div>
                             </div>`;
                     }
                     
@@ -495,29 +516,31 @@
             }
         });
 
-        // Mise à jour des compteurs visuels
+        // Update stats visuals
         if(document.getElementById('Cpt-com')) document.getElementById('Cpt-com').innerText = bonusDay + " F";
         if(document.getElementById('stat-count')) document.getElementById('stat-count').innerText = countDay;
         if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = caDay.toLocaleString() + " F";
         if(document.getElementById('cpt-vol')) document.getElementById('cpt-vol').innerText = volDay.toLocaleString() + " F";
 
-        // Construction HTML des Archives Globales (Groupées par Date)
-        const dateKeys = Object.keys(archMap).sort((a,b) => {
-             // Tri des clés de date string vers date obj
-             const parse = (s) => new Date(s.split('/').reverse().join('-'));
-             return parse(b) - parse(a);
+        // Archives groupées par date
+        const dateKeysSorted = Object.keys(archMap).sort((a,b) => {
+             const parseDate = (s) => new Date(s.split('/').reverse().join('-'));
+             return parseDate(b) - parseDate(a);
         });
 
-        dateKeys.forEach(date => {
+        dateKeysSorted.forEach(date => {
             let sectionHtml = `<div class="date-divider">${date}</div>`;
             archMap[date].forEach(m => {
                 sectionHtml += `
                     <div class="archive-item" onclick="voirDetails('${m.key}')" style="cursor:pointer">
                         <div class="archive-header">
-                            <span><b>${m.nom}</b> • ${m.livreur}</span>
+                            <span><b>${m.nom}</b> <small>(${m.livreur})</small></span>
                             <span style="color:var(--gabon-bleu)">${m.retrait} F</span>
                         </div>
-                        <small style="font-size:10px; color:#64748b">Frais: ${m.frais} F | Code: ${m.codeSMS || '?'}</small>
+                        <div style="display:flex; justify-content:space-between; font-size:10px; color:#64748b; margin-top:3px">
+                            <span>Frais: ${m.frais} F | Bonus: ${m.bonus} F</span>
+                            <span>Code: ${m.codeSMS || 'N/A'}</span>
+                        </div>
                     </div>`;
             });
             listArch.innerHTML += sectionHtml;
