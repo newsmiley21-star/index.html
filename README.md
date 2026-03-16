@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus du Jour</small><b id="cpt-com">0 F</b></div>
+                    <div><small>Bonus du Jour</small><b id="mCom">0 F</b></div>
                     <div><small>Livraisons terminées</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -348,7 +348,7 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Total des bonus livreurs </small><b id="stat-total" style="color:white">0 F</b></div>
+                    <div><small>Total des bonus livreurs </small><b id="cpt-com" style="color:white">0 F</b></div>
                     <div><small>Valeur totale colis</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE tableau (format excel)</button>
