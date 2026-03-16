@@ -185,8 +185,8 @@
                     <div><small>Courses Faites</small><br><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
+            <h5 class="label-mini" style="margin-top:20px">HISTORIQUE RÉCENT</h5>
             <div id="list-bilan-today"></div>
-            <div id="archive-history"></div>
         </div>
 
         <!-- CREER MISSION -->
@@ -237,7 +237,7 @@
         <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-bleu)">ARCHIVES GÉNÉRALES</h4>
-            <input type="text" id="archiveSearchInput" placeholder="Rechercher dans l'historique..." onkeyup="renderUI()">
+            <input type="text" id="archiveSearchInput" placeholder="Rechercher par nom ou livreur..." onkeyup="renderUI()">
             <div id="list-archives-global"></div>
         </div>
     </div>
@@ -271,7 +271,8 @@
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         const target = document.getElementById(`sec-${sec}`);
         if(target) target.classList.add('active-sec');
-        document.getElementById(`nav-${sec}`).classList.add('active');
+        const btn = document.getElementById(`nav-${sec}`);
+        if(btn) btn.classList.add('active');
     };
 
     window.updateFrais = () => {
@@ -295,7 +296,6 @@
             userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
             document.getElementById('user-role').innerText = userRole.toUpperCase();
             
-            // Affichage conditionnel des menus
             const isAdmin = (userRole === 'admin' || userRole === 'finance');
             document.getElementById('nav-creer').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('nav-compta').style.display = isAdmin ? 'block' : 'none';
@@ -335,7 +335,6 @@
         });
         alert("Mission lancée !");
         ouvrir('missions');
-        // Reset form
         document.getElementById('mNom').value = "";
         document.getElementById('mRetrait').value = "";
     };
@@ -401,7 +400,7 @@
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `Bilan_CT241_${new Date().toLocaleDateString()}.csv`;
+        a.download = `Archives_Logistique_${new Date().toLocaleDateString()}.csv`;
         a.click();
     };
 
@@ -417,16 +416,19 @@
         listAct.innerHTML = ""; listBilLivreur.innerHTML = ""; listCompta.innerHTML = ""; listArch.innerHTML = "";
         
         const myName = auth.currentUser?.email.split('@')[0].toUpperCase();
-        const today = new Date().toLocaleDateString('fr-FR');
+        const todayStr = new Date().toLocaleDateString('fr-FR');
         
         let bonusDay = 0, countDay = 0, caDay = 0, volDay = 0;
         const archMap = {};
 
-        allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+        // Tri par date décroissante
+        const sorted = [...allMissions].sort((a,b) => (b.clotureTs || b.timestamp) - (a.clotureTs || a.timestamp));
+
+        sorted.forEach(m => {
             const isMatchMission = m.nom.toLowerCase().includes(searchMissions) || m.livreur.toLowerCase().includes(searchMissions);
             const isMatchArchive = m.nom.toLowerCase().includes(searchArchive) || m.livreur.toLowerCase().includes(searchArchive);
 
-            // 1. FLUX ACTIF
+            // --- 1. MISSIONS ACTIVES ---
             if(m.etape < 2 && isMatchMission) {
                 let actionHtml = "";
                 if(m.etape === 0) {
@@ -454,28 +456,37 @@
                     </div>`;
             }
 
-            // 2. TERMINÉS (Archives / Bilan)
+            // --- 2. MISSIONS TERMINÉES ---
             if(m.etape === 2) {
-                // Pour le livreur
-                if(m.livreur === myName && m.dateStr === today) {
-                    countDay++;
-                    bonusDay += (m.bonus || 0);
-                    listBilLivreur.innerHTML += `
-                        <div class="archive-item">
-                            <div class="archive-header"><span>${m.nom}</span><span style="color:var(--gabon-vert)">+${m.bonus || 0} F</span></div>
-                        </div>`;
+                // Pour le livreur (Bilan Personnel)
+                if(m.livreur === myName) {
+                    if(m.dateStr === todayStr) {
+                        countDay++;
+                        bonusDay += (m.bonus || 0);
+                    }
+                    // Historique récent du livreur (limité aux 10 derniers ou recherche)
+                    if(m.nom.toLowerCase().includes(searchMissions)) {
+                        listBilLivreur.innerHTML += `
+                            <div class="archive-item" onclick="voirDetails('${m.key}')">
+                                <div class="archive-header">
+                                    <span>${m.nom} (${m.dateStr})</span>
+                                    <span style="color:var(--gabon-vert)">+${m.bonus || 0} F</span>
+                                </div>
+                            </div>`;
+                    }
                 }
 
-                // Pour l'admin
+                // Pour l'Admin / Finance
                 if(userRole === 'admin' || userRole === 'finance') {
-                    if(m.dateStr === today) {
+                    if(m.dateStr === todayStr) {
                         caDay += (m.frais || 0);
                         volDay += (m.retrait || 0);
                         listCompta.innerHTML += `
-                            <div class="archive-item">
+                            <div class="archive-item" onclick="voirDetails('${m.key}')">
                                 <div class="archive-header"><span>${m.nom} (${m.livreur})</span><span>${m.frais} F</span></div>
                             </div>`;
                     }
+                    
                     if(isMatchArchive) {
                         if(!archMap[m.dateStr]) archMap[m.dateStr] = [];
                         archMap[m.dateStr].push(m);
@@ -484,26 +495,32 @@
             }
         });
 
-        // Update stats UI
-        if(document.getElementById('Cpt-com')) {
-            document.getElementById('Cpt-com').innerText = bonusDay + " F";
-            document.getElementById('stat-count').innerText = countDay;
-        }
-        if(document.getElementById('stat-total')) {
-            document.getElementById('stat-total').innerText = caDay.toLocaleString() + " F";
-            document.getElementById('cpt-vol').innerText = volDay.toLocaleString() + " F";
-        }
+        // Mise à jour des compteurs visuels
+        if(document.getElementById('Cpt-com')) document.getElementById('Cpt-com').innerText = bonusDay + " F";
+        if(document.getElementById('stat-count')) document.getElementById('stat-count').innerText = countDay;
+        if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = caDay.toLocaleString() + " F";
+        if(document.getElementById('cpt-vol')) document.getElementById('cpt-vol').innerText = volDay.toLocaleString() + " F";
 
-        // Render Archives Globales
-        Object.keys(archMap).forEach(date => {
-            let h = `<div class="date-divider">${date}</div>`;
+        // Construction HTML des Archives Globales (Groupées par Date)
+        const dateKeys = Object.keys(archMap).sort((a,b) => {
+             // Tri des clés de date string vers date obj
+             const parse = (s) => new Date(s.split('/').reverse().join('-'));
+             return parse(b) - parse(a);
+        });
+
+        dateKeys.forEach(date => {
+            let sectionHtml = `<div class="date-divider">${date}</div>`;
             archMap[date].forEach(m => {
-                h += `<div class="archive-item" onclick="voirDetails('${m.key}')" style="cursor:pointer">
-                        <div class="archive-header"><span>${m.nom}</span><span>${m.retrait} F</span></div>
-                        <small>${m.livreur} • Code: ${m.codeSMS || 'N/A'}</small>
-                      </div>`;
+                sectionHtml += `
+                    <div class="archive-item" onclick="voirDetails('${m.key}')" style="cursor:pointer">
+                        <div class="archive-header">
+                            <span><b>${m.nom}</b> • ${m.livreur}</span>
+                            <span style="color:var(--gabon-bleu)">${m.retrait} F</span>
+                        </div>
+                        <small style="font-size:10px; color:#64748b">Frais: ${m.frais} F | Code: ${m.codeSMS || '?'}</small>
+                    </div>`;
             });
-            listArch.innerHTML += h;
+            listArch.innerHTML += sectionHtml;
         });
     };
 </script>
