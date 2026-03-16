@@ -231,17 +231,17 @@
         <p id="pr-date"></p>
         <p>--------------------------------</p>
         <div style="text-align:left">
-            <p>Destinataire: <span id="pr-nom" style="font-weight:bold"></span></p>
-            <p>N° Téléphone: <span id="pr-tel"></span></p>
+            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
+            <p>Téléphone: <span id="pr-tel"></span></p>
             <p>Quartier: <span id="pr-lieu"></span></p>
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
-        <h3 style="margin:5px 0">prix du colis</h3>
+        <h3 style="margin:5px 0">valeur marchandise </h3>
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
-            <p>Reçu par le Client</p>
+            <p> Bien reçu par le destinataire</p>
             <br><br><br>
         </div>
         <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
@@ -277,7 +277,7 @@
 
         <nav id="navbar">
             <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS <span id="count-missions"></span></button>
-            <button onclick="ouvrir('bilan')" id="nav-bilan" style="display:none">MON BILAN</button>
+            <button onclick="ouvrir('bilan')" id="nav-bilan">MON BILAN</button>
             <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">NOUVEAU</button>
             <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">ADMIN</button>
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
@@ -303,22 +303,8 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus du Jour</small><b id="mCom">0 F</b></div>
-                    <div><small>Livraisons terminees</small><b id="stat-count" style="color:white">0</b></div>
-                </div>
-            </div>
-            <div id="list-bilan-today"></div>
-            <div id="archive-history"></div>
-        </div>
-
-         <!-- BILAN (ADMIN) -->
-        <div id="sec-bilan" class="section">
-            <div class="stats-banner">
-                <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
-                <small>Session Active (Aujourd'hui)</small>
-                <div class="stats-grid">
-                    <div><small>MONTANT BONUS </small><b id="Cpt-Com">0 F</b></div>
-                    <div><small>Total valeur colis</small><b id="Cpt*Retrait" style="color:white">0</b></div>
+                    <div><small>Bonus du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
@@ -327,31 +313,30 @@
 
         <!-- CREER -->
         <div id="sec-creer" class="section">
-            <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">mise en livraison</h4>
-            <input type="text" id="mNom" placeholder="Nom du destinataire">
-            <input type="tel" id="mTel" placeholder="N° Téléphone (ex: 077.../066...)">
-            <input type="tel" id="mTel" placeholder=" itinéraire de livraison (lien whatsapp...)">
+            <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
+            <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
+            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077.../066...)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="2000">Libreville Centre (2000 F)</option>
-                    <option value="2500">Owendo / Akanda (2500 F)</option>
-                    <option value="2000">PK0-12 / bikele (2000 F)</option>
+                    <option value="2000">Libreville centre / nzeng-ayong              
+                    <option value="2500"> akanda / OWENDO                             
+                    <option value="2000">PK 0-12 / bikele                                                                                                   
                 </select>
             </div>
 
-            <span class="label-mini">Détails valeur du produi</span>
-            <input type="number" id="mRetrait" placeholder="prix du colis(FCFA)">
+            <span class="label-mini">Détails colis</span>
+            <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
             <div class="finance-row">
                 <div>
                     <span class="label-mini">Frais de livraison (en CFA)</span>
                     <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Bonus livreur (apres la 18° livraison)</span>
-                    <input type="number" id="mCom" value="700">
+                    <span class="label-mini">bonus (en CFA)</span>
+                    <input type="number" id="mCom" value="390">
                 </div>
             </div>
             <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
@@ -362,10 +347,10 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Montant de bonus livreurs</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>gains du jour</small><b id="cpt-liv" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>total des livraisons </small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Volume valeur marchandises </small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
-                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE TABLEAU (EXCEL)</button>
+                <button class="btn-export" onclick="exportToCSV()">📥 sauvegarder le BILAN  (format excel)</button>
             </div>
             <div id="list-compta-daily"></div>
         </div>
