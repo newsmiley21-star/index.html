@@ -603,7 +603,7 @@
             } else {
                 if(m.livreur === myName) {
                     if(isToday) { 
-                        dailyGains += m.fraisLivraison; 
+                        dailyGains += m.Com; 
                         dailyCount++; 
                         listBilToday.innerHTML += createRow(m, "livreur"); 
                     } else {
@@ -614,8 +614,8 @@
                 }
                 
                 if(userRole === 'admin' && isToday) { 
-                    adminCom += m.com; 
-                    adminVol += m.retrait; 
+                    adminCom += m.Livraison; 
+                    adminVol += stat-count; 
                     listCpt.innerHTML += createRow(m, "admin"); 
                 }
                 
@@ -665,7 +665,7 @@
         document.getElementById('stat-count').innerText = dailyCount;
         if(userRole === 'admin') {
             document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " F";
-            document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
+            document.getElementById('cpt-liv').innerText = adminVol.toLocaleString() + " F";
         }
         const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
         document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
