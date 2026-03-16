@@ -237,11 +237,11 @@
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
         <p>--------------------------------</p>
-        <h3 style="margin:5px 0">valeur marchandise </h3>
+        <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
-            <p> Bien reçu par le destinataire</p>
+            <p>Signature Client</p>
             <br><br><br>
         </div>
         <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -315,27 +315,27 @@
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077.../066...)">
+            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="2000">Libreville centre / nzeng-ayong              
-                    <option value="2500"> akanda / OWENDO                             
-                    <option value="2000">PK 0-12 / bikele                                                                                                   
+                    <option value="1000">Libreville Centre (1000 F)</option>
+                    <option value="1500">Owendo / Akanda (1500 F)</option>
+                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
                 </select>
             </div>
 
-            <span class="label-mini">Détails colis</span>
-            <input type="number" id="mretrait" placeholder="valeur marchandise (FCFA)">
+            <span class="label-mini">Détails financiers</span>
+            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Frais de livraison (en CFA)</span>
-                    <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
+                    <span class="label-mini">Livreur (F)</span>
+                    <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">bonus (en CFA)</span>
+                    <span class="label-mini">Commission (F)</span>
                     <input type="number" id="mCom" value="390">
                 </div>
             </div>
@@ -347,10 +347,10 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>total des livraisons </small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>Volume valeur marchandises </small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
-                <button class="btn-export" onclick="exportToCSV()">📥 sauvegarder le BILAN  (format excel)</button>
+                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
             <div id="list-compta-daily"></div>
         </div>
