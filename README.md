@@ -231,8 +231,8 @@
         <p id="pr-date"></p>
         <p>--------------------------------</p>
         <div style="text-align:left">
-            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
-            <p>Téléphone: <span id="pr-tel"></span></p>
+            <p>destinataire: <span id="pr-nom" style="font-weight:bold"></span></p>
+            <p>N° Téléphone: <span id="pr-tel"></span></p>
             <p>Quartier: <span id="pr-lieu"></span></p>
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>total du Jour</small><b id="cpt-com">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -316,26 +316,27 @@
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
             <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
+            <input type="tel" id="mTel" placeholder="itinéraire livraison(copier le lien)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville Centre (1000 F)</option>
-                    <option value="1500">Owendo / Akanda (1500 F)</option>
-                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
+                    <option value="2000">Libreville  (2000CFA -3*colis moyens maxi)</option>
+                    <option value="2500">Owendo / Akanda (2500CFA -2*colis moyens maxi)</option>
+                    <option value="2000">PK0-12/ bikele (2000CFA -2*colis moyens maxi)</option>
                 </select>
             </div>
 
-            <span class="label-mini">Détails financiers</span>
-            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+            <span class="label-mini">Détails marchandises </span>
+            <input type="number" id="mRetrait" placeholder="valeur du colis 📦 (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Livreur (F)</span>
-                    <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
+                    <span class="label-mini">Frais de livraison (en CFA)</span>
+                    <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Commission (F)</span>
+                    <span class="label-mini">Commission (en CFA)</span>
                     <input type="number" id="mCom" value="390">
                 </div>
             </div>
@@ -347,10 +348,10 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>livraisons Totales</small><b id="stat-total" style="color:white">0 F</b></div>
+                    <div><small>Valeur totale colis</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
-                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
+                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE tableau (format excel)</button>
             </div>
             <div id="list-compta-daily"></div>
         </div>
