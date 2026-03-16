@@ -303,8 +303,8 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
-                    <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>bonus du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>nombre de courses</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
@@ -315,28 +315,29 @@
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
             <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
+            <input type="tel" id="mTel" placeholder="N°Téléphone ">
+            <input type="tel" id="mNom" placeholder="Itinéraire à suivre (lien whatsapp)">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="1000">Libreville Centre (1000 F)</option>
-                    <option value="1500">Owendo / Akanda (1500 F)</option>
-                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
+                    <option value="2000">Libreville Centre (2000 F)</option>
+                    <option value="2500">Owendo / Akanda (2500 F)</option>
+                    <option value="2000">PK0-12 / Bikele (2000 F)</option>
                 </select>
             </div>
 
             <span class="label-mini">Détails financiers</span>
-            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+            <input type="number" id="mRetrait" placeholder="Valeur Colis (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">Livreur (F)</span>
-                    <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
+                    <span class="label-mini">Frais Livraison (CFA)</span>
+                    <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Commission (F)</span>
-                    <input type="number" id="mCom" value="390">
+                    <span class="label-mini">bonus livreur (700F)</span>
+                    <input type="number" id="mCom" value="700">
                 </div>
             </div>
             <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
@@ -347,8 +348,8 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Total Bonus</small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Total Courses</small><b id="cpt-total" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
