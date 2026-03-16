@@ -26,7 +26,6 @@
             margin: 0; padding: 10px; color: var(--dark); min-height: 100vh;
         }
         
-        /* Auth Screen */
         #auth-screen { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: linear-gradient(135deg, var(--gabon-vert), var(--gabon-jaune), var(--gabon-bleu));
@@ -37,20 +36,23 @@
             padding: 40px 30px; border-radius: 28px; width: 85%; max-width: 350px; 
             text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
         }
-        .auth-logo { width: 100%; max-width: 180px; margin-bottom: 20px; }
+
+        .auth-logo {
+            width: 100%; max-width: 220px; height: auto;
+            margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;
+        }
 
         input, select { 
-            width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #edf2f7; 
+            width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #edf2f7; 
             border-radius: 14px; box-sizing: border-box; font-size: 16px; transition: 0.3s;
             background: #f8fafc;
         }
         
         .btn-login { 
             width: 100%; padding: 16px; background: var(--gabon-vert); color: white; 
-            border: none; border-radius: 14px; font-weight: 800; cursor: pointer; margin-top: 10px;
+            border: none; border-radius: 14px; font-weight: 800; cursor: pointer; 
         }
 
-        /* App Layout */
         #main-app { 
             display: none; max-width: 500px; margin: auto; background: var(--white); 
             border-radius: 30px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.06); 
@@ -58,7 +60,7 @@
         }
 
         header { 
-            display: flex; justify-content: space-between; align-items: center; 
+            display: flex; justify-content: space-between; align-items: flex-start; 
             margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;
         }
 
@@ -77,71 +79,179 @@
         .active-sec { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Cards */
         .card { 
             background: var(--white); border: 1px solid #f1f5f9; padding: 15px; 
             border-radius: 18px; margin-bottom: 12px; border-left: 6px solid #cbd5e1;
             position: relative;
         }
-        .card.etape-0 { border-left-color: var(--danger); } 
-        .card.etape-1 { border-left-color: var(--gabon-jaune); } 
-        .card.etape-2 { border-left-color: var(--gabon-vert); } 
+        .card.etape-0 { border-left-color: var(--danger); }
+        .card.etape-1 { border-left-color: var(--gabon-bleu); }
+        .card.etape-2 { border-left-color: var(--gabon-jaune); }
+        .card.etape-3 { border-left-color: var(--gabon-vert); }
 
         .btn-action { 
-            width: 100%; padding: 12px; border: none; border-radius: 12px; 
-            font-weight: 800; cursor: pointer; margin-top: 10px;
+            width: 100%; padding: 14px; border: none; border-radius: 12px; 
+            font-weight: 800; cursor: pointer; margin-top: 10px; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-validate { background: var(--gabon-vert); color: white; }
-        .btn-photo { background: var(--gabon-bleu); color: white; }
-        .btn-delete-mini { 
-            position: absolute; top: 10px; right: 10px; background: #fee2e2; 
-            color: var(--danger); border: none; padding: 5px 8px; border-radius: 8px; 
-            font-size: 10px; font-weight: bold; cursor: pointer;
-        }
+        .btn-validate:active { transform: scale(0.98); opacity: 0.9; }
         
         .stats-banner {
-            background: var(--dark); color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px;
+            background: var(--dark); color: white; padding: 20px; border-radius: 20px;
+            margin-bottom: 20px; position: relative;
         }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .stats-banner small { color: #94a3b8; font-size: 10px; text-transform: uppercase; display: block; }
         .stats-banner b { font-size: 18px; color: var(--gabon-jaune); }
 
-        .label-mini { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-left: 5px; }
+        .btn-refresh-bilan {
+            position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.15);
+            color: white; border: none; border-radius: 10px; padding: 8px 12px;
+            font-size: 9px; font-weight: 800; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-refresh-bilan:active { background: var(--gabon-jaune); color: var(--dark); }
+
         .date-divider {
-            padding: 8px 15px; background: #f1f5f9; border-radius: 10px;
-            font-size: 11px; font-weight: 800; color: #64748b; margin: 20px 0 10px 0;
-            border: 1px solid #e2e8f0;
+            padding: 8px 15px; background: #f8fafc; border-radius: 10px;
+            font-size: 11px; font-weight: 800; color: #64748b; margin: 25px 0 10px 0;
+            border: 1px solid #e2e8f0; display: flex; justify-content: space-between;
         }
 
-        .archive-item { border-bottom: 1px solid #eee; padding: 12px 0; cursor: pointer; position: relative; }
-        .archive-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; padding-right: 30px; }
+        .zone-highlight { background: rgba(58, 117, 196, 0.05); padding: 12px; border-radius: 15px; margin: 10px 0; border: 1px dashed var(--gabon-bleu); }
+        .finance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .label-mini { font-size: 10px; font-weight: 800; color: #64748b; margin-left: 5px; text-transform: uppercase; }
+        
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-left: 5px; vertical-align: middle; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
 
-        /* Modal */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); z-index: 10000;
             display: none; align-items: center; justify-content: center;
         }
         .modal-content {
-            background: white; width: 90%; max-width: 450px; border-radius: 25px; padding: 20px;
-            max-height: 85vh; overflow-y: auto;
+            background: white; width: 90%; max-width: 450px; border-radius: 25px;
+            padding: 20px; max-height: 85vh; overflow-y: auto; position: relative;
+        }
+        .close-modal {
+            position: absolute; top: 15px; right: 15px; font-size: 24px; color: var(--danger); font-weight: bold; cursor: pointer;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row b { color: var(--dark); font-size: 13px; }
+        .detail-row span { color: #64748b; font-size: 13px; }
+
+        .archive-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+        }
+        .archive-header {
+            font-size: 12px; font-weight: bold; color: var(--gabon-bleu);
+            display: flex; justify-content: space-between; margin-bottom: 5px;
+        }
+        .btn-consult, .btn-print-receipt {
+            background: #f1f5f9; color: var(--gabon-bleu); border: none; border-radius: 8px;
+            padding: 6px 12px; font-size: 10px; font-weight: 800; cursor: pointer;
+        }
+        .btn-print-receipt { background: #e0f2fe; margin-left: 5px; }
+        
+        .btn-delete-archive {
+            background: #fef2f2; color: var(--danger); border: none; border-radius: 8px;
+            padding: 6px 10px; font-size: 10px; font-weight: 800; cursor: pointer;
         }
 
-        .maintenance-card {
-            background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 15px; margin-top: 20px;
+        .search-bar {
+            margin-bottom: 15px; position: relative;
         }
-        canvas { display: none; }
+        .search-bar input {
+            padding-left: 40px; background: #fff; border: 1px solid #e2e8f0;
+        }
+        .contact-group {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+        }
+        .btn-contact {
+            padding: 10px; border-radius: 10px; font-size: 10px; font-weight: 800;
+            text-decoration: none; text-align: center; border: 1px solid #e2e8f0;
+        }
+        .btn-whatsapp { background: #25D366; color: white; border: none; }
+        .btn-call { background: #f1f5f9; color: var(--dark); }
+        
+        .loading-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7);
+            z-index: 10001; align-items: center; justify-content: center; font-weight: 800;
+        }
+        .btn-export {
+            background: #000; color: white; padding: 10px; border-radius: 10px; font-size: 11px;
+            border: none; cursor: pointer; margin-top: 10px; width: 100%;
+        }
+        .mission-time {
+            font-size: 9px;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 5px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* --- STYLES IMPRESSION BON --- */
+        #receipt-print {
+            display: none; /* Caché par défaut en mode écran */
+            font-family: 'Courier New', Courier, monospace;
+            width: 300px; padding: 20px;
+            text-align: center; font-size: 12px; color: #000;
+            background: white;
+        }
+
+        @media print {
+            body * { visibility: hidden !important; }
+            #receipt-print, #receipt-print * { visibility: visible !important; display: block !important; }
+            #receipt-print { 
+                position: absolute; 
+                left: 0; top: 0; 
+                width: 100% !important; 
+                margin: 0; padding: 10px; 
+            }
+            @page { margin: 0; size: auto; }
+        }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas"></canvas>
-    <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
+    <div id="loading" class="loading-overlay">TRAITEMENT EN COURS...</div>
+
+    <!-- ZONE IMPRESSION (TICKET CAISSE) -->
+    <div id="receipt-print">
+        <h2 style="margin:5px 0">CT241 OPS</h2>
+        <p>LOGISTIQUE GABON</p>
+        <p>--------------------------------</p>
+        <p><b>BON DE LIVRAISON</b></p>
+        <p id="pr-id" style="font-weight:bold; font-size:18px; margin:10px 0"></p>
+        <p id="pr-date"></p>
+        <p>--------------------------------</p>
+        <div style="text-align:left">
+            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
+            <p>Téléphone: <span id="pr-tel"></span></p>
+            <p>Quartier: <span id="pr-lieu"></span></p>
+            <p>Livreur: <span id="pr-liv"></span></p>
+        </div>
+        <p>--------------------------------</p>
+        <h3 style="margin:5px 0">MONTANT RETRAIT</h3>
+        <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
+        <p>--------------------------------</p>
+        <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
+            <p>Signature Client</p>
+            <br><br><br>
+        </div>
+        <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
+    </div>
 
     <div id="auth-screen">
         <div class="login-card">
-            <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" alt="Logo" class="auth-logo">
-            <h2 style="margin:0; color:var(--gabon-vert)">CT241 OPS</h2>
-            <p style="font-size:11px; margin-bottom:20px">GESTION LOGISTIQUE GABON</p>
+            <img src="https://i.ibb.co/xKY76DgR/Gemini-Generated-Image-1pvtp31pvtp31pvt-1.png" alt="Logo CT241" class="auth-logo">
+            <h2 style="color:var(--gabon-vert); margin:0">CT241 OPS</h2>
+            <p style="font-size: 11px; color: #64748b; margin-bottom: 20px;">PORTAIL LOGISTIQUE GABON</p>
             <input type="email" id="login-email" placeholder="Email">
             <input type="password" id="login-pass" placeholder="Mot de passe">
             <button class="btn-login" id="btnConnect">SE CONNECTER</button>
@@ -150,9 +260,9 @@
 
     <div id="modal-overlay">
         <div class="modal-content">
-            <h3 id="modal-title" style="margin-top:0">Détails de la Mission</h3>
+            <span class="close-modal" onclick="fermerModal()">×</span>
+            <h3 style="color:var(--gabon-bleu); margin-top:0">Détails Mission</h3>
             <div id="modal-body"></div>
-            <button class="btn-action" onclick="fermerModal()" style="background:#f1f5f9; margin-top:15px">FERMER</button>
         </div>
     </div>
 
@@ -160,87 +270,108 @@
         <header>
             <div>
                 <h3 style="margin:0; color:var(--gabon-bleu)">CT241 OPS</h3>
-                <span id="user-role" style="font-size:10px; background:var(--gabon-jaune); padding:2px 8px; border-radius:10px; font-weight:bold">...</span>
+                <span id="user-role" style="font-size:10px; padding:3px 8px; border-radius:10px; background:var(--gabon-jaune); font-weight:800">...</span>
             </div>
-            <button id="btnOut" style="border:1px solid var(--danger); color:var(--danger); background:none; border-radius:8px; padding:5px 10px; font-size:10px">SORTIR</button>
+            <button id="btnOut" style="background:none; color:var(--danger); border:1px solid var(--danger); padding:5px 10px; border-radius:8px; font-size:10px; cursor:pointer">DECONNEXION</button>
         </header>
 
         <nav id="navbar">
-            <button onclick="ouvrir('missions')" id="nav-missions" class="active">FLUX</button>
+            <button onclick="ouvrir('missions')" id="nav-missions" class="active">MISSIONS <span id="count-missions"></span></button>
             <button onclick="ouvrir('bilan')" id="nav-bilan">MON BILAN</button>
-            <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">DÉPLOYER</button>
-            <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">COMPTA</button>
+            <button onclick="ouvrir('creer')" id="nav-creer" style="display:none">NOUVEAU</button>
+            <button onclick="ouvrir('compta')" id="nav-compta" style="display:none">ADMIN</button>
             <button onclick="ouvrir('archives')" id="nav-archives" style="display:none">ARCHIVES</button>
         </nav>
 
+        <!-- MISSIONS -->
         <div id="sec-missions" class="section active-sec">
-            <input type="text" id="searchMissions" placeholder="Rechercher (Client ou livreur)..." onkeyup="renderUI()" style="margin-bottom:15px">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Rechercher une mission active..." onkeyup="filterMissions('searchInput')">
+            </div>
+            <div id="div-validation" style="display:none; margin-bottom:20px;">
+                <h6 style="color:var(--danger); margin:0 0 10px 0; font-size:10px; text-transform:uppercase">⚠️ À Valider par l'Admin</h6>
+                <div id="list-validation"></div>
+                <hr style="border:0; border-top:1px solid #f1f5f9; margin:20px 0">
+            </div>
+            <h6 style="color:var(--gabon-bleu); margin:0 0 10px 0; font-size:10px; text-transform:uppercase">Flux en temps réel</h6>
             <div id="list-active"></div>
         </div>
 
+        <!-- BILAN (LIVREUR) -->
         <div id="sec-bilan" class="section">
             <div class="stats-banner">
-                <small>Mon Historique</small>
+                <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
+                <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus Cumulés</small><br><b id="Cpt-com">0 F</b></div>
-                    <div><small>Missions Finies</small><br><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>Gains du Jour</small><b id="stat-total">0 F</b></div>
+                    <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
             <div id="list-bilan-today"></div>
+            <div id="archive-history"></div>
         </div>
 
+        <!-- CREER -->
         <div id="sec-creer" class="section">
-            <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">NOUVELLE MISSION</h4>
-            <input type="text" id="mNom" placeholder="Nom du Client">
-            <input type="tel" id="mTel" placeholder="Numéro de téléphone">
-            <input type="text" id="mQuartier" placeholder="Quartier / Précisions">
+            <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
+            <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
+            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
             
-            <div style="background: #f1f5f9; padding: 10px; border-radius: 15px; margin: 10px 0;">
-                <span class="label-mini">Zone de livraison</span>
+            <div class="zone-highlight">
+                <span class="label-mini">Zone & Localisation</span>
+                <input type="text" id="mQuartier" placeholder="Quartier précis...">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="2000">Libreville (2000 F)</option>
-                    <option value="2500">Akanda / Owendo (2500 F)</option>
-                    <option value="3000">Zones éloignées (3000 F)</option>
+                    <option value="1000">Libreville Centre (1000 F)</option>
+                    <option value="1500">Owendo / Akanda (1500 F)</option>
+                    <option value="2000">PK / Ntoum / Angondjé (2000 F)</option>
                 </select>
             </div>
 
-            <input type="number" id="mRetrait" placeholder="Valeur marchandise (F)">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div><span class="label-mini">Frais</span><input type="number" id="mLiv" value="2000" readonly></div>
-                <div><span class="label-mini">Bonus</span><input type="number" id="mCom" value="500"></div>
+            <span class="label-mini">Détails financiers</span>
+            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+            <div class="finance-row">
+                <div>
+                    <span class="label-mini">Livreur (F)</span>
+                    <input type="number" id="mLiv" value="1000" readonly style="background:#f1f5f9">
+                </div>
+                <div>
+                    <span class="label-mini">Commission (F)</span>
+                    <input type="number" id="mCom" value="390">
+                </div>
             </div>
-            <button onclick="creerMission()" class="btn-action btn-validate">LANCER LE DÉPLOIEMENT</button>
+            <button id="btnLancer" onclick="creerMission()" class="btn-action btn-validate">LANCER LA MISSION</button>
         </div>
 
+        <!-- COMPTA ADMIN -->
         <div id="sec-compta" class="section">
             <div class="stats-banner" style="background:var(--gabon-vert)">
-                <small>Tableau Admin</small>
+                <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>C.A Livraison</small><br><b id="stat-total" style="color:white">0 F</b></div>
-                    <div><small>Volume Colis</small><br><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Commissions Totales</small><b id="cpt-com" style="color:white">0 F</b></div>
+                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
+                <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
             <div id="list-compta-daily"></div>
-
-            <div class="maintenance-card" id="admin-maintenance" style="display:none">
-                <h5 style="margin:0">OUTILS DE GESTION</h5>
-                <div style="display:flex; gap:10px; margin-top:10px">
-                    <button onclick="exporterDonnees()" class="btn-action" style="background:var(--gabon-bleu); color:white; font-size:10px">EXPORTER CSV</button>
-                    <button onclick="nettoyerBase()" class="btn-action" style="background:var(--danger); color:white; font-size:10px">PURGE ANCIENS</button>
-                </div>
-            </div>
         </div>
 
+        <!-- ARCHIVES -->
         <div id="sec-archives" class="section">
-            <input type="text" id="archiveSearchInput" placeholder="Chercher dans les archives..." onkeyup="renderUI()">
+            <h4 style="margin:0 0 15px 0; color:var(--gabon-bleu)">ARCHIVES GÉNÉRALES</h4>
+            <div class="search-bar">
+                <input type="text" id="archiveSearchInput" placeholder="Rechercher dans l'historique..." onkeyup="filterMissions('archiveSearchInput')">
+            </div>
             <div id="list-archives-global"></div>
         </div>
     </div>
 
+    <input type="file" id="camInput" accept="image/*" capture="camera" style="display:none">
+    <canvas id="canvas" style="display:none"></canvas>
+
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAPCKRy9NTo4X8nn8YpxAbPtX8SlKj-7sQ",
@@ -258,9 +389,10 @@
 
     let userRole = "livreur";
     let allMissions = [];
+    let currentKey = null;
     let lastPhotoData = "";
-    let currentKey = "";
 
+    // --- NAVIGATION ---
     window.ouvrir = (sec) => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -268,30 +400,37 @@
         document.getElementById(`nav-${sec}`).classList.add('active');
     };
 
-    window.updateFrais = () => {
-        document.getElementById('mLiv').value = document.getElementById('mZoneSelect').value;
-    };
-
+    // --- AUTH ---
     document.getElementById('btnConnect').onclick = async () => {
-        const e = document.getElementById('login-email').value;
-        const p = document.getElementById('login-pass').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } catch(err) { alert("Accès refusé"); }
+        toggleLoading(true);
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        if(!email || !pass) { toggleLoading(false); return; }
+        try { 
+            await signInWithEmailAndPassword(auth, email, pass); 
+        } catch(e) { 
+            toggleLoading(false);
+            alert("Accès refusé. Vérifiez vos identifiants."); 
+        }
+    };
+    
+    document.getElementById('btnOut').onclick = () => {
+        if(confirm("Se déconnecter ?")) signOut(auth);
     };
 
-    document.getElementById('btnOut').onclick = () => signOut(auth);
-
-    onAuthStateChanged(auth, (user) => {
-        if(user) {
-            const email = user.email.toLowerCase();
-            userRole = (email.includes('admin') || email.includes('finance')) ? "admin" : "livreur";
+    onAuthStateChanged(auth, (u) => {
+        toggleLoading(false);
+        if(u) {
+            const email = u.email.toLowerCase();
+            userRole = email.includes('admin') ? "admin" : (email.includes('finance') ? "finance" : "livreur");
             document.getElementById('user-role').innerText = userRole.toUpperCase();
-            
-            const isAdmin = (userRole === 'admin');
-            ['nav-creer', 'nav-compta', 'nav-archives'].forEach(id => document.getElementById(id).style.display = isAdmin ? 'block' : 'none');
-            if(isAdmin) document.getElementById('admin-maintenance').style.display = 'block';
-
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            
+            document.getElementById('nav-creer').style.display = (userRole !== 'livreur') ? 'block' : 'none';
+            document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
+            document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
+            document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
 
             onValue(ref(db, 'missions'), (snap) => {
                 const data = snap.val();
@@ -304,32 +443,308 @@
         }
     });
 
+    function toggleLoading(show) {
+        document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+
+    // --- GESTION DES IMPRESSIONS ---
+    window.imprimerBon = (key) => {
+        const m = allMissions.find(x => x.key === key);
+        if(!m) return;
+
+        // Remplissage des données
+        document.getElementById('pr-id').innerText = "ID: #" + m.id;
+        document.getElementById('pr-date').innerText = "Date: " + (m.dateLong || new Date(m.timestamp).toLocaleDateString());
+        document.getElementById('pr-nom').innerText = m.nom;
+        document.getElementById('pr-tel').innerText = m.tel || "N/A";
+        document.getElementById('pr-lieu').innerText = m.lieu || "N/A";
+        document.getElementById('pr-liv').innerText = m.livreur;
+        document.getElementById('pr-montant').innerText = m.retrait.toLocaleString() + " FCFA";
+
+        // Petite pause pour garantir que le DOM est mis à jour avant l'appel système d'impression
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    };
+
+    window.filterMissions = (inputId) => {
+        const term = document.getElementById(inputId).value.toLowerCase();
+        renderUI(term);
+    };
+
+    window.rafraichirBilan = () => {
+        toggleLoading(true);
+        setTimeout(() => {
+            renderUI();
+            toggleLoading(false);
+            alert("Bilan actualisé ! Les missions du jour précédent sont dans l'historique.");
+        }, 800);
+    };
+
+    window.openMaps = (query) => {
+        if(!query) return;
+        window.open(`https://www.google.com/maps/search/${encodeURIComponent(query + " Libreville")}`, '_blank');
+    };
+
+    window.exportToCSV = () => {
+        if(allMissions.length === 0) return;
+        let csv = "ID;Date;Heure;Beneficiaire;Retrait;Livreur;Frais;Commission;Status\n";
+        allMissions.forEach(m => {
+            const status = m.etape === 3 ? "Terminee" : "En cours";
+            csv += `${m.id};${m.dateLong || m.dateHeure};${m.heureSeule || ''};${m.nom};${m.retrait};${m.livreur};${m.fraisLivraison};${m.com};${status}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `Bilan_CT241_${new Date().toLocaleDateString()}.csv`);
+        link.click();
+    };
+
+    window.updateFrais = () => {
+        document.getElementById('mLiv').value = document.getElementById('mZoneSelect').value;
+    };
+
     window.creerMission = () => {
         const nom = document.getElementById('mNom').value;
-        const retrait = parseInt(document.getElementById('mRetrait').value) || 0;
-        if(!nom || retrait <= 0) return alert("Nom et Montant requis");
+        const tel = document.getElementById('mTel').value;
+        const quartier = document.getElementById('mQuartier').value;
+        const retrait = parseInt(document.getElementById('mRetrait').value);
+        const liv = parseInt(document.getElementById('mLiv').value);
+        const com = parseInt(document.getElementById('mCom').value);
 
-        push(ref(db, 'missions'), {
+        if(!nom || !retrait) { alert("Nom et Montant requis"); return; }
+        
+        const now = new Date();
+        const mission = {
             id: Math.floor(1000 + Math.random() * 9000),
-            nom, tel: document.getElementById('mTel').value, 
-            lieu: document.getElementById('mQuartier').value,
-            retrait, frais: parseInt(document.getElementById('mLiv').value), 
-            bonus: parseInt(document.getElementById('mCom').value),
-            livreur: "Libre", etape: 0,
+            nom, tel, lieu: quartier, retrait, 
+            fraisLivraison: liv, com, 
+            livreur: "Libre", etape: 1, 
             timestamp: Date.now(),
-            dateStr: new Date().toLocaleDateString('fr-FR')
+            dateHeure: now.toLocaleString(),
+            dateLong: now.toLocaleDateString('fr-FR'),
+            heureSeule: now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+        };
+
+        push(ref(db, 'missions'), mission);
+        alert("Mission déployée !");
+        ouvrir('missions');
+    };
+
+    window.valider = (key) => { update(ref(db, `missions/${key}`), { etape: 1 }); };
+    window.accepter = (key) => { 
+        const myName = auth.currentUser.email.split('@')[0].toUpperCase();
+        update(ref(db, `missions/${key}`), { livreur: myName }); 
+    };
+
+    window.fermerModal = () => {
+        document.getElementById('modal-overlay').style.display = 'none';
+    };
+
+    window.consulterMission = (key) => {
+        const m = allMissions.find(x => x.key === key);
+        if(!m) return;
+        const body = document.getElementById('modal-body');
+        body.innerHTML = `
+            <div class="detail-row"><b>Bénéficiaire</b> <span>${m.nom}</span></div>
+            <div class="detail-row"><b>ID Mission</b> <span style="color:var(--gabon-bleu); font-weight:800">#${m.id}</span></div>
+            <div class="detail-row"><b>Date Création</b> <span>${m.dateLong || m.dateHeure}</span></div>
+            <div class="detail-row"><b>Téléphone</b> <a href="tel:${m.tel}">${m.tel || 'N/A'}</a></div>
+            <div class="detail-row"><b>Lieu</b> <span>${m.lieu || 'N/A'}</span></div>
+            <div class="detail-row"><b>Montant Retrait</b> <b>${m.retrait.toLocaleString()} F</b></div>
+            <div class="detail-row"><b>Commission</b> <span>${m.com} F</span></div>
+            <div class="detail-row"><b>Livreur</b> <span>${m.livreur}</span></div>
+            <div style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
+                <span class="label-mini">Code SMS Preuve</span>
+                <h2 style="letter-spacing:4px; color:var(--dark); margin:10px 0">${m.codeSMS || 'N/A'}</h2>
+                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:12px; border:2px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1)">` : '<p style="font-size:10px; color:red">Aucune photo</p>'}
+            </div>
+            <button class="btn-action btn-validate" style="background:#000" onclick="imprimerBon('${m.key}')">🖨️ IMPRIMER BON DE LIVRAISON</button>
+        `;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    };
+
+    window.supprimerMission = (key, id) => {
+        if(userRole !== 'admin') return;
+        if(confirm(`Supprimer définitivement #${id} ?`)) {
+            remove(ref(db, `missions/${key}`)).catch(() => alert("Erreur"));
+        }
+    };
+
+    window.renderUI = (filter = "") => {
+        const listVal = document.getElementById('list-validation');
+        const listAct = document.getElementById('list-active');
+        const listBilToday = document.getElementById('list-bilan-today');
+        const listHistory = document.getElementById('archive-history');
+        const listCpt = document.getElementById('list-compta-daily');
+        const listArchivesGlobal = document.getElementById('list-archives-global');
+        
+        listVal.innerHTML = ""; listAct.innerHTML = ""; listBilToday.innerHTML = ""; 
+        listHistory.innerHTML = ""; listCpt.innerHTML = ""; listArchivesGlobal.innerHTML = "";
+
+        const todayStr = new Date().toLocaleDateString('fr-FR');
+        const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
+
+        let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0;
+        const historyGroups = {}, globalArchiveGroups = {};
+
+        allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+            const match = !filter || m.nom.toLowerCase().includes(filter) || String(m.id).includes(filter) || (m.lieu && m.lieu.toLowerCase().includes(filter));
+            const mDateStr = new Date(m.timestamp).toLocaleDateString('fr-FR');
+            const isToday = (mDateStr === todayStr);
+
+            if(m.etape < 3) {
+                if(!match) return;
+                const card = createCard(m, myName);
+                if(m.etape === 0 && userRole === 'admin') listVal.innerHTML += card;
+                else if(m.etape > 0) listAct.innerHTML += card;
+            } else {
+                if(m.livreur === myName) {
+                    if(isToday) { 
+                        dailyGains += m.fraisLivraison; 
+                        dailyCount++; 
+                        listBilToday.innerHTML += createRow(m, "livreur"); 
+                    } else {
+                        if(!historyGroups[mDateStr]) historyGroups[mDateStr] = { sum: 0, items: [] };
+                        historyGroups[mDateStr].sum += m.fraisLivraison;
+                        historyGroups[mDateStr].items.push(m);
+                    }
+                }
+                
+                if(userRole === 'admin' && isToday) { 
+                    adminCom += m.com; 
+                    adminVol += m.retrait; 
+                    listCpt.innerHTML += createRow(m, "admin"); 
+                }
+                
+                if(userRole === 'admin' || userRole === 'finance') {
+                    if(!match) return;
+                    if(!globalArchiveGroups[mDateStr]) globalArchiveGroups[mDateStr] = [];
+                    globalArchiveGroups[mDateStr].push(m);
+                }
+            }
         });
-        alert("Déployée !");
-        ['mNom', 'mRetrait', 'mTel', 'mQuartier'].forEach(id => document.getElementById(id).value = "");
+
+        Object.keys(historyGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
+            let html = `<div class="date-divider"><span>📅 Historique: ${date}</span> <span>${historyGroups[date].sum.toLocaleString()} F</span></div>`;
+            historyGroups[date].items.forEach(item => html += createRow(item, "livreur", true));
+            listHistory.innerHTML += html;
+        });
+
+        Object.keys(globalArchiveGroups).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        }).forEach(date => {
+            let html = `<div class="date-divider"><span>📦 ARCHIVES DU ${date}</span></div>`;
+            globalArchiveGroups[date].forEach(m => {
+                const showDel = userRole === 'admin' ? `<button class="btn-delete-archive" onclick="supprimerMission('${m.key}', '${m.id}')">🗑️</button>` : '';
+                html += `
+                <div class="archive-item">
+                    <div class="archive-header"><span>${m.nom} (#${m.id})</span><span style="color:var(--gabon-vert)">+ ${m.com.toLocaleString()} F</span></div>
+                    <div style="color:#64748b; font-size:10px; display:flex; justify-content:space-between; align-items:flex-end">
+                        <div>Livreur: <b>${m.livreur}</b> | ${m.heureSeule || m.dateHeure}</div>
+                        <div style="display:flex; gap:8px">
+                            ${showDel}
+                            <button class="btn-print-receipt" onclick="imprimerBon('${m.key}')">BON</button>
+                            <button class="btn-consult" onclick="consulterMission('${m.key}')">Détails</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            listArchivesGlobal.innerHTML += html;
+        });
+
+        document.getElementById('stat-total').innerText = dailyGains.toLocaleString() + " F";
+        document.getElementById('stat-count').innerText = dailyCount;
+        if(userRole === 'admin') {
+            document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " F";
+            document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
+        }
+        const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
+        document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
     };
 
-    window.accepter = (key) => {
-        update(ref(db, `missions/${key}`), { livreur: auth.currentUser.email.split('@')[0].toUpperCase(), etape: 1 });
-    };
+    function createCard(m, myName) {
+        let btn = "", contactUI = "";
+        
+        if(m.tel) {
+            contactUI = `
+                <div class="contact-group">
+                    <a href="tel:${m.tel}" class="btn-contact btn-call">📞 APPELER</a>
+                    <a href="https://wa.me/241${m.tel.replace(/\s/g, '')}" target="_blank" class="btn-contact btn-whatsapp">💬 WHATSAPP</a>
+                </div>
+            `;
+        }
 
+        if(m.etape === 0 && userRole === 'admin') {
+            btn = `<button class="btn-action btn-validate" onclick="valider('${m.key}')">VALIDER & PUBLIER</button>`;
+        } 
+        else if(m.etape === 1) {
+            if(m.livreur === "Libre" && userRole === 'livreur') {
+                btn = `<button class="btn-action btn-validate" style="background:var(--gabon-bleu)" onclick="accepter('${m.key}')">ACCEPTER LA COURSE</button>`;
+            } 
+            else if(m.livreur === myName) {
+                btn = `
+                    <button class="btn-action" style="background:#000; color:#fff" onclick="triggerCam('${m.key}')">📸 PRENDRE PHOTO SMS</button>
+                    <input type="text" id="code-${m.key}" placeholder="Saisir Code SMS">
+                    <button class="btn-action btn-validate" onclick="terminer('${m.key}')">ENVOYER POUR ENCAISSEMENT</button>
+                `;
+            } else {
+                btn = `<p style="font-size:10px; color:#64748b; text-align:center">Course prise par <b>${m.livreur}</b></p>`;
+            }
+        } 
+        else if(m.etape === 2 && (userRole === 'admin' || userRole === 'finance')) {
+            btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
+                    <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
+                    <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
+                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
+                   </div>`;
+        }
+
+        const mDate = new Date(m.timestamp);
+        const displayDate = `${mDate.toLocaleDateString('fr-FR')} à ${mDate.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}`;
+
+        return `<div class="card etape-${m.etape}">
+                    <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px">
+                        <span>${m.nom} <span class="mission-time">${displayDate}</span></span> <span style="color:var(--gabon-bleu)">#${m.id}</span>
+                    </div>
+                    <div style="font-size:12px; color:#475569; margin:5px 0; line-height:1.4">
+                        <div onclick="openMaps('${m.lieu}')" style="cursor:pointer; color:var(--gabon-bleu)">📍 <b>${m.lieu || 'Zone...'}</b> 🗺️</div>
+                        💰 Retrait: <b>${m.retrait.toLocaleString()} F</b> | Gain: <b>${m.fraisLivraison.toLocaleString()} F</b>
+                    </div>
+                    ${contactUI}
+                    ${btn}
+                </div>`;
+    }
+
+    function createRow(m, type, isOld = false) {
+        const val = type === 'admin' ? m.com : m.fraisLivraison;
+        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait.toLocaleString()}F`;
+        const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
+        const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
+        const showPrint = (userRole === 'admin' || userRole === 'finance') ? `<span onclick="imprimerBon('${m.key}')" style="font-size:8px; margin-right:8px; text-decoration:underline; cursor:pointer; color:var(--dark)">Bon</span>` : '';
+        
+        return `<div style="padding:12px; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; font-size:11px">
+                    <div><b>${m.nom}</b> <span style="font-size:9px; color:#94a3b8">#${m.id}</span><br>
+                    <small style="color:#94a3b8">${sub} | ${displayDate}</small></div>
+                    <div style="text-align:right">
+                        <b style="color:${color}; font-size:13px">+ ${val.toLocaleString()} F</b><br>
+                        ${showPrint}
+                        <span onclick="consulterMission('${m.key}')" style="font-size:8px; text-decoration:underline; cursor:pointer; color:var(--gabon-bleu)">Détails</span>
+                    </div>
+                </div>`;
+    }
+
+    // --- PHOTO / CAMERA ---
     window.triggerCam = (key) => { currentKey = key; document.getElementById('camInput').click(); };
     document.getElementById('camInput').onchange = (e) => {
         const file = e.target.files[0];
+        if(!file) return;
         const reader = new FileReader();
         reader.onload = (re) => {
             const img = new Image();
@@ -338,8 +753,8 @@
                 const ctx = canvas.getContext('2d');
                 canvas.width = 600; canvas.height = (img.height/img.width)*600;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                lastPhotoData = canvas.toDataURL('image/jpeg', 0.6);
-                alert("Photo capturée !");
+                lastPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+                alert("Photo enregistrée ! Saisissez le code et validez.");
             };
             img.src = re.target.result;
         };
@@ -348,104 +763,13 @@
 
     window.terminer = (key) => {
         const code = document.getElementById(`code-${key}`).value;
-        if(!code || !lastPhotoData) return alert("Code + Photo obligatoires");
-        update(ref(db, `missions/${key}`), { codeSMS: code, photo: lastPhotoData, etape: 2, clotureTs: Date.now(), dateStr: new Date().toLocaleDateString('fr-FR') });
+        if(!code || !lastPhotoData) { alert("Code + Photo requis"); return; }
+        update(ref(db, `missions/${key}`), { codeSMS: code, photo: lastPhotoData, etape: 2 });
         lastPhotoData = "";
     };
 
-    // --- SUPPRESSION ---
-    window.supprimerMission = (key) => {
-        if(confirm("❗ ACTION IRREVERSIBLE : Supprimer cette mission de la base de données ?")) {
-            remove(ref(db, `missions/${key}`)).then(() => {
-                fermerModal();
-                alert("Mission supprimée avec succès.");
-            });
-        }
-    };
+    window.cloturer = (key) => { update(ref(db, `missions/${key}`), { etape: 3 }); };
 
-    window.voirDetails = (key) => {
-        const m = allMissions.find(x => x.key === key);
-        if(!m) return;
-        const body = document.getElementById('modal-body');
-        body.innerHTML = `
-            <div style="font-size:13px; color:#444">
-                <p><b>Statut :</b> ${m.etape === 2 ? 'LIVRÉ' : (m.etape === 1 ? 'EN COURS' : 'DISPONIBLE')}</p>
-                <p><b>Client :</b> ${m.nom} (${m.tel || 'N/A'})</p>
-                <p><b>Quartier :</b> ${m.lieu || 'N/A'}</p>
-                <p><b>Montant :</b> ${m.retrait} F</p>
-                <p><b>Livreur :</b> ${m.livreur}</p>
-                <p><b>Date :</b> ${m.dateStr || 'Ancienne'}</p>
-                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:15px; margin-top:10px">` : ''}
-                
-                ${userRole === 'admin' ? `
-                    <div style="margin-top:20px; padding-top:15px; border-top:1px dashed #ccc">
-                        <button onclick="supprimerMission('${m.key}')" style="background:var(--danger); color:white; border:none; padding:12px; border-radius:12px; width:100%; font-weight:bold">
-                            🗑️ SUPPRIMER LA MISSION
-                        </button>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-        document.getElementById('modal-overlay').style.display = 'flex';
-    };
-
-    window.fermerModal = () => document.getElementById('modal-overlay').style.display = 'none';
-
-    window.renderUI = () => {
-        const search = document.getElementById('searchMissions').value.toLowerCase();
-        const archSearch = document.getElementById('archiveSearchInput').value.toLowerCase();
-        const myName = auth.currentUser?.email.split('@')[0].toUpperCase();
-        
-        const listAct = document.getElementById('list-active');
-        const listBilan = document.getElementById('list-bilan-today');
-        const listCompta = document.getElementById('list-compta-daily');
-        const listArch = document.getElementById('list-archives-global');
-        
-        [listAct, listBilan, listCompta, listArch].forEach(l => l.innerHTML = "");
-
-        let bonusTotal = 0, countTotal = 0, caTotal = 0, volTotal = 0;
-        const archMap = {};
-
-        const sorted = [...allMissions].sort((a,b) => (b.clotureTs || b.timestamp || 0) - (a.clotureTs || a.timestamp || 0));
-
-        sorted.forEach(m => {
-            const isMatchAct = (m.nom + m.livreur).toLowerCase().includes(search);
-            const isMatchArch = (m.nom + m.livreur).toLowerCase().includes(archSearch);
-
-            // Flux Actif
-            if(m.etape < 2 && isMatchAct) {
-                let action = m.etape === 0 ? `<button onclick="accepter('${m.key}')" class="btn-action btn-validate">ACCEPTER</button>` :
-                             (m.livreur === myName ? `<div style="background:#f8fafc; padding:10px; border-radius:12px; margin-top:10px"><button onclick="triggerCam('${m.key}')" class="btn-action btn-photo">📸 PHOTO</button><input type="text" id="code-${m.key}" placeholder="Code SMS" style="text-align:center"><button onclick="terminer('${m.key}')" class="btn-action btn-validate">VALIDER</button></div>` : `<div style="text-align:center; color:var(--gabon-bleu); font-size:10px; margin-top:10px">Par ${m.livreur}</div>`);
-
-                listAct.innerHTML += `<div class="card etape-${m.etape}">
-                    ${userRole === 'admin' ? `<button class="btn-delete-mini" onclick="supprimerMission('${m.key}')">Suppr.</button>` : ''}
-                    <div style="display:flex; justify-content:space-between"><b>${m.nom}</b><small>#${m.id}</small></div>
-                    <p style="font-size:11px; margin:5px 0">📍 ${m.lieu}</p>
-                    <div style="display:flex; justify-content:space-between"><b>${m.retrait} F</b><span onclick="voirDetails('${m.key}')" style="color:var(--gabon-bleu); font-size:10px; text-decoration:underline">Détails</span></div>
-                    ${action}
-                </div>`;
-            }
-
-            // Bilan / Compta / Archives
-            if(m.etape === 2) {
-                const dateKey = m.dateStr || "Anciens";
-                if(m.livreur === myName) { bonusTotal += (m.bonus || 0); countTotal++; listBilan.innerHTML += `<div class="archive-item" onclick="voirDetails('${m.key}')"><div class="archive-header"><span>${m.nom} <small>(${dateKey})</small></span><span style="color:var(--gabon-vert)">+${m.bonus} F</span></div></div>`; }
-                if(userRole === 'admin') { caTotal += (m.frais || 0); volTotal += (m.retrait || 0); listCompta.innerHTML += `<div class="archive-item" onclick="voirDetails('${m.key}')"><div class="archive-header"><span>${m.nom} <small>(${m.livreur})</small></span><span>${m.frais} F</span></div></div>`; }
-                if(userRole === 'admin' && isMatchArch) { if(!archMap[dateKey]) archMap[dateKey] = []; archMap[dateKey].push(m); }
-            }
-        });
-
-        if(document.getElementById('Cpt-com')) document.getElementById('Cpt-com').innerText = bonusTotal.toLocaleString() + " F";
-        if(document.getElementById('stat-count')) document.getElementById('stat-count').innerText = countTotal;
-        if(document.getElementById('stat-total')) document.getElementById('stat-total').innerText = caTotal.toLocaleString() + " F";
-        if(document.getElementById('cpt-vol')) document.getElementById('cpt-vol').innerText = volTotal.toLocaleString() + " F";
-
-        Object.keys(archMap).forEach(d => {
-            let html = `<div class="date-divider">${d}</div>`;
-            archMap[d].forEach(m => html += `<div class="archive-item" onclick="voirDetails('${m.key}')"><div class="archive-header"><span><b>${m.nom}</b> <small>(${m.livreur})</small></span><span>${m.retrait} F</span></div></div>`);
-            listArch.innerHTML += html;
-        });
-    };
 </script>
 </body>
 </html>
