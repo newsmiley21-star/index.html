@@ -111,20 +111,9 @@
         }
 
         .detail-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 14px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
-        
-        #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); display: none; align-items: center;
-            justify-content: center; z-index: 9999;
-        }
-
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--gabon-vert); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-
-    <div id="loading-overlay"><div class="spinner"></div></div>
 
     <div id="auth-screen">
         <div class="auth-card">
@@ -158,8 +147,6 @@
                 <div class="card">
                     <h4 style="margin:0 0 10px">Nouvelle Mission</h4>
                     <input type="text" id="m-nom" placeholder="Nom du bénéficiaire">
-                    <input type="text" id="m-tel" placeholder="Téléphone">
-                    <input type="text" id="m-lieu" placeholder="Lieu de livraison">
                     <input type="number" id="m-retrait" placeholder="Montant à retirer (F)">
                     <button class="btn-action btn-primary" onclick="ajouterMission()">CRÉER LA MISSION</button>
                 </div>
@@ -179,7 +166,6 @@
             </div>
             <div id="list-compta"></div>
         </div>
-
     </div>
 
     <div id="modal-overlay" class="modal" onclick="this.style.display='none'">
@@ -195,32 +181,30 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        // AJOUT DES FONCTIONS DE FILTRAGE
+        // AJOUT DES FONCTIONS DE REQUÊTE UNIQUEMENT
         import { getDatabase, ref, push, onValue, update, remove, query, orderByChild, endAt, get, equalTo } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const firebaseConfig = {
-            databaseURL: "https://votre-projet.firebaseio.com" // REMPLACEZ PAR VOTRE URL
+            databaseURL: "https://votre-projet.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
         let allMissions = [];
+        let userRole = 'livreur';
         let currentKey = "";
         let lastPhotoData = "";
-
-        const toggleLoading = (show) => document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
 
         window.verifierAuth = () => {
             const code = document.getElementById('auth-code').value;
             if(code === "241") { 
                 userRole = 'admin'; 
                 document.getElementById('admin-add').style.display = 'block';
-                document.getElementById('user-tag').innerText = 'ADMINISTRATEUR';
+                document.getElementById('user-tag').innerText = 'ADMIN';
                 entrer();
             } else if(code === "000") {
                 userRole = 'livreur';
-                document.getElementById('user-tag').innerText = 'LIVREUR';
                 entrer();
             } else { alert("Code incorrect"); }
         };
@@ -230,42 +214,27 @@
             document.getElementById('app').style.display = 'block';
         }
 
-        // --- OPTIMISATION : ÉCOUTEUR DES MISSIONS ACTIVES ---
-        // On ne télécharge que les missions dont l'étape est 0, 1 ou 2
-        const missionsActivesQuery = query(
-            ref(db, 'missions'), 
-            orderByChild('etape'), 
-            endAt(2)
-        );
+        // --- FILTRAGE POUR RÉDUIRE LA CONSOMMATION ---
+        const missionsActivesQuery = query(ref(db, 'missions'), orderByChild('etape'), endAt(2));
 
         onValue(missionsActivesQuery, (snap) => {
             const data = snap.val();
-            // On remplace les missions actives par les nouvelles données reçues
             const actives = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
-            // On fusionne avec les archives si elles ont déjà été chargées
-            const archives = allMissions.filter(m => m.etape === 3);
-            allMissions = [...actives, ...archives];
+            const archivesExistantes = allMissions.filter(m => m.etape === 3);
+            allMissions = [...actives, ...archivesExistantes];
             renderUI();
         });
 
-        // --- OPTIMISATION : CHARGEMENT DES ARCHIVES À LA DEMANDE ---
+        // --- CHARGEMENT ARCHIVES À LA DEMANDE ---
         window.chargerArchives = async () => {
-            if (allMissions.some(m => m.etape === 3)) return; // Déjà chargé
-
-            toggleLoading(true);
-            const archivesQuery = query(ref(db, 'missions'), orderByChild('etape'), equalTo(3)); 
-            
-            try {
-                const snap = await get(archivesQuery);
+            if (allMissions.some(m => m.etape === 3)) return;
+            const snap = await get(query(ref(db, 'missions'), orderByChild('etape'), equalTo(3)));
+            if(snap.exists()){
                 const data = snap.val();
-                if(data) {
-                    const archives = Object.keys(data).map(k => ({...data[k], key:k}));
-                    const actives = allMissions.filter(m => m.etape < 3);
-                    allMissions = [...actives, ...archives];
-                    renderUI();
-                }
-            } catch (e) { console.error("Erreur archives:", e); }
-            toggleLoading(false);
+                const archives = Object.keys(data).map(k => ({...data[k], key:k}));
+                allMissions = [...allMissions.filter(m => m.etape < 3), ...archives];
+                renderUI();
+            }
         };
 
         window.ouvrir = (sec) => {
@@ -273,31 +242,21 @@
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
             document.getElementById(`sec-${sec}`).classList.add('active-sec');
             document.getElementById(`nav-${sec}`).classList.add('active');
-
-            if(sec === 'archives' || sec === 'compta') {
-                window.chargerArchives();
-            }
+            if(sec === 'archives' || sec === 'compta') window.chargerArchives();
         };
 
         window.ajouterMission = () => {
             const nom = document.getElementById('m-nom').value;
-            const tel = document.getElementById('m-tel').value;
-            const lieu = document.getElementById('m-lieu').value;
             const retrait = parseInt(document.getElementById('m-retrait').value);
-
             if(!nom || !retrait) return;
-
             const m = {
                 id: Math.floor(1000 + Math.random() * 9000),
-                nom, tel, lieu, retrait,
+                nom, retrait,
                 com: retrait * 0.05,
                 etape: 0,
-                dateHeure: new Date().toLocaleTimeString(),
-                dateLong: new Date().toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}),
-                livreur: "Non assigné",
+                dateHeure: new Date().toLocaleString(),
                 timestamp: Date.now()
             };
-
             push(ref(db, 'missions'), m);
             document.getElementById('m-nom').value = "";
             document.getElementById('m-retrait').value = "";
@@ -315,17 +274,18 @@
             let totalCom = 0;
 
             allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
+                const badge = m.etape === 0 ? 'badge-wait' : (m.etape === 1 ? 'badge-process' : 'badge-done');
+                const label = m.etape === 0 ? 'EN ATTENTE' : (m.etape === 1 ? 'EN COURS' : 'TERMINÉ');
+
                 const html = `
-                    <div class="mission-item" style="border-left-color: ${m.etape === 0 ? '#FCD116' : (m.etape === 1 ? '#3A75C4' : '#009E60')}">
+                    <div class="mission-item">
                         <div class="m-info">
                             <h3>${m.nom}</h3>
-                            <p>${m.retrait.toLocaleString()} F • ${m.lieu || 'GABON'}</p>
-                            <span onclick="consulterMission('${m.key}')" style="font-size:10px; text-decoration:underline; color:var(--gabon-bleu); cursor:pointer">Voir détails</span>
+                            <p>${m.retrait.toLocaleString()} F • <span onclick="consulterMission('${m.key}')" style="text-decoration:underline; cursor:pointer">Détails</span></p>
                         </div>
                         <div class="m-status">
-                            ${m.etape === 0 ? `<button class="badge badge-wait" onclick="prendre('${m.key}')">ACCEPTER</button>` : ''}
-                            ${m.etape === 1 ? `<button class="badge badge-process" onclick="triggerCam('${m.key}')">TERMINER</button>` : ''}
-                            ${m.etape >= 2 ? `<span class="badge badge-done">LIVRÉ</span>` : ''}
+                            ${m.etape === 0 ? `<button class="badge badge-wait" onclick="prendre('${m.key}')">PRENDRE</button>` : `<span class="badge ${badge}">${label}</span>`}
+                            ${m.etape === 1 ? `<button class="badge badge-process" onclick="triggerCam('${m.key}')">FINIR</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -335,28 +295,17 @@
 
                 if(m.etape >= 2) {
                     totalCom += m.com;
-                    listCompta.innerHTML += `
-                        <div class="detail-row" style="font-size:12px">
-                            <span>${m.nom}</span>
-                            <b style="color:var(--gabon-vert)">+${m.com} F</b>
-                        </div>
-                    `;
+                    listCompta.innerHTML += `<div class="detail-row"><span>${m.nom}</span><b>${m.com} F</b></div>`;
                 }
             });
-
             document.getElementById('stats-com').innerText = totalCom.toLocaleString() + " F";
         }
 
-        window.prendre = (key) => {
-            const nomLivreur = prompt("Nom du livreur ?");
-            if(nomLivreur) update(ref(db, `missions/${key}`), { etape: 1, livreur: nomLivreur });
-        };
-
+        window.prendre = (key) => update(ref(db, `missions/${key}`), { etape: 1 });
         window.triggerCam = (key) => { currentKey = key; document.getElementById('camInput').click(); };
 
         document.getElementById('camInput').onchange = (e) => {
             const file = e.target.files[0];
-            if(!file) return;
             const reader = new FileReader();
             reader.onload = (re) => {
                 const img = new Image();
@@ -366,16 +315,8 @@
                     canvas.width = 600; canvas.height = (img.height/img.width)*600;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     lastPhotoData = canvas.toDataURL('image/jpeg', 0.6);
-                    
-                    const code = prompt("Saisissez le code SMS de preuve :");
-                    if(code) {
-                        update(ref(db, `missions/${currentKey}`), { 
-                            codeSMS: code, 
-                            photo: lastPhotoData, 
-                            etape: 3 // Passage direct en archive
-                        });
-                        alert("Mission clôturée !");
-                    }
+                    const code = prompt("Code SMS ?");
+                    if(code) update(ref(db, `missions/${currentKey}`), { codeSMS: code, photo: lastPhotoData, etape: 3 });
                 };
                 img.src = re.target.result;
             };
@@ -385,23 +326,14 @@
         window.consulterMission = (key) => {
             const m = allMissions.find(x => x.key === key);
             if(!m) return;
-            const body = document.getElementById('modal-body');
-            body.innerHTML = `
-                <div class="detail-row"><b>Bénéficiaire</b> <span>${m.nom}</span></div>
-                <div class="detail-row"><b>ID Mission</b> <span style="color:var(--gabon-bleu); font-weight:800">#${m.id}</span></div>
-                <div class="detail-row"><b>Date</b> <span>${m.dateLong || m.dateHeure}</span></div>
-                <div class="detail-row"><b>Lieu</b> <span>${m.lieu || 'N/A'}</span></div>
-                <div class="detail-row"><b>Montant</b> <b>${m.retrait.toLocaleString()} F</b></div>
-                <div class="detail-row"><b>Livreur</b> <span>${m.livreur}</span></div>
-                <div style="margin-top:15px; background:#f8fafc; padding:15px; border-radius:15px; text-align:center">
-                    <span style="font-size:10px; text-transform:uppercase; opacity:0.6">Preuve SMS</span>
-                    <h2 style="letter-spacing:4px; margin:5px 0">${m.codeSMS || '---'}</h2>
-                    ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:12px; margin-top:10px">` : ''}
-                </div>
+            document.getElementById('modal-body').innerHTML = `
+                <div class="detail-row"><b>Nom</b> <span>${m.nom}</span></div>
+                <div class="detail-row"><b>Retrait</b> <span>${m.retrait} F</span></div>
+                <div class="detail-row"><b>Code</b> <span>${m.codeSMS || '---'}</span></div>
+                ${m.photo ? `<img src="${m.photo}" style="width:100%; border-radius:15px; margin-top:10px">` : ''}
             `;
             document.getElementById('modal-overlay').style.display = 'flex';
         };
-
     </script>
 </body>
 </html>
