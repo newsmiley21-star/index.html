@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus du Jour +18</small><b id="Cpt-com">0 F</b></div>
+                    <div><small>Bonus du Jour +18</small><b id="livreur-gains">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -329,7 +329,7 @@
             </div>
 
             <span class="label-mini">Détails financiers</span>
-            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
+            <input type="number" id="mRetrait" placeholder="valeur colis 📦 (FCFA)">
             <div class="finance-row">
                 <div>
                     <span class="label-mini">frais livraison (CFA)</span>
@@ -348,8 +348,8 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Bonus Totaux</small><b id="cpt-com" style="color:white">0 F</b></div>
-                    <div><small>C.A </small><b id="Stat-total" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Bonus Totaux</small><b id="admin-bonus" style="color:white">0 F</b></div>
+                    <div><small>Chiffre d'affaires </small><b id="admin-ca" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
@@ -587,6 +587,9 @@
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
         let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0;
+        let totalBonus = 0; // Cumul commissions
+        let totalCA = 0;    // Cumul frais de livraison
+        let lGains = 0, lCount = 0; // Stats livreur
         const historyGroups = {}, globalArchiveGroups = {};
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
@@ -594,6 +597,21 @@
             const mDateStr = new Date(m.timestamp).toLocaleDateString('fr-FR');
             const isToday = (mDateStr === todayStr);
 
+            if(m.etape === 3) {
+                    // Calculs Globaux Admin
+                    totalCA += (m.fraisLivraison || 0); // Chiffre d'Affaire = Frais de livraison
+                    totalBonus += (m.com || 0);        // Bonus = Commissions
+
+                    if(userRole === 'admin') {
+                       listCpt.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:11px">💰 ${m.nom} (Frais: ${m.fraisLivraison} / Com: ${m.com})</div>`;
+                    }
+
+                    // Calculs Livreur Connecté
+                    if(m.livreur === myName) {
+                        lGains += (m.fraisLivraison || 0);
+                        lCount++;
+                        listBil.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:11px">✅ ${m.nom} (+${m.fraisLivraison} F)</div>`;
+                    }
             if(m.etape < 3) {
                 if(!match) return;
                 const card = createCard(m, myName);
@@ -614,7 +632,7 @@
                 
                 if(userRole === 'admin' && isToday) { 
                     adminCom += m.com; 
-                    adminVol += m.retrait; 
+                    adminChiffre d'affaires += m.fraisLivraison; 
                     listCpt.innerHTML += createRow(m, "admin"); 
                 }
                 
@@ -625,6 +643,14 @@
                 }
             }
         });
+        
+            // MISE À JOUR AFFICHAGE
+            if(document.getElementById('admin-bonus')) document.getElementById('admin-bonus').innerText = totalBonus.toLocaleString() + " F";
+            if(document.getElementById('admin-ca')) document.getElementById('admin-ca').innerText = totalCA.toLocaleString() + " F";
+            
+            if(document.getElementById('livreur-gains')) document.getElementById('livreur-gains').innerText = lGains.toLocaleString() + " F";
+            if(document.getElementById('livreur-count')) document.getElementById('livreur-count').innerText = lCount;
+        }
 
         Object.keys(historyGroups).sort((a,b) => {
             const dateA = a.split('/').reverse().join('');
