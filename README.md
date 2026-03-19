@@ -348,8 +348,8 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Livraisons Totales</small><b id="stat-total" style="color:white">0 F</b></div>
-                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Livraisons Totales</small><b id="stat-count" style="color:white">0</b></div>
+                    <div><small>Volume v.marchandises</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
                     <div><small>Ratio livraisons</small><b id="cpt-count" style="color:var(--gabon-jaune)">0 F</b></div>
                     <div><small>Total chiffre d'affaires</small><b id="stat-total" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
@@ -754,7 +754,7 @@
             img.onload = () => {
                 const canvas = document.getElementById('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 300; canvas.height = (img.height/img.width)*600;
+                canvas.width = 300; canvas.height = (img.height/img.width)*300;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 lastPhotoData = canvas.toDataURL('image/jpeg', 0.3);
                 alert("Photo enregistrée ! Saisissez le code et validez.");
