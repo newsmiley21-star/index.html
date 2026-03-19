@@ -433,10 +433,21 @@
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
             document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
-           // On n'écoute que le dossier des missions actives
+        let allArchives = [];
+      // 1. Écoute des missions actives (toujours fluide et rapide)
        onValue(ref(db, 'missions'), (snap) => {
           const data = snap.val();
           allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+       renderUI();
+    });
+
+// 2. Écoute des archives (uniquement pour l'affichage historique)
+let allArchives = [];
+onValue(ref(db, 'archives'), (snap) => {
+    const data = snap.val();
+    allArchives = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+    // On ne lance renderUI ici que si vous avez un mode "Vue Archive"
+});
          renderUI();
     });
 
@@ -785,19 +796,35 @@
         lastPhotoData = "";
     };
 window.cloturer = async (key) => {
+    // 1. Demander confirmation pour éviter les erreurs de manipulation
+    if(!confirm("Confirmer l'encaissement et l'archivage définitif ?")) return;
+    
     toggleLoading(true);
-    const m = allMissions.find(x => x.key === key);
-    
-    // 1. On copie la mission dans un nouveau dossier "archives"
-    await push(ref(db, 'archives'), { ...m, etape: 3 });
-    
-    // 2. On la supprime du dossier "missions" pour libérer de la place
-    await remove(ref(db, `missions/${key}`));
-    
-    toggleLoading(false);
-    alert("Mission archivée et retirée du flux actif !");
+    try {
+        // 2. Trouver la mission dans la liste active
+        const m = allMissions.find(x => x.key === key);
+        
+        if(m) {
+            // 3. ON POUSSE dans 'archives' (cela crée une nouvelle entrée sans effacer les autres)
+            const archiveRef = ref(db, 'archives');
+            await push(archiveRef, { 
+                ...m, 
+                etape: 3, 
+                dateArchivage: new Date().toLocaleString() 
+            });
+            
+            // 4. ON SUPPRIME de 'missions' (pour libérer de la place et de la data)
+            await remove(ref(db, `missions/${key}`));
+            
+            alert("Mission archivée avec succès !");
+        }
+    } catch (error) {
+        console.error("Erreur d'archivage:", error);
+        alert("Une erreur est survenue lors de l'archivage.");
+    } finally {
+        toggleLoading(false);
+    }
 };
-
 </script>
 </body>
 </html>
