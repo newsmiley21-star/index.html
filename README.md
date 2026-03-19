@@ -433,10 +433,23 @@
             document.getElementById('nav-compta').style.display = (userRole === 'admin') ? 'block' : 'none';
             document.getElementById('nav-archives').style.display = (userRole === 'admin' || userRole === 'finance') ? 'block' : 'none';
             document.getElementById('div-validation').style.display = (userRole === 'admin') ? 'block' : 'none';
+           // On n'écoute que le dossier des missions actives
+       onValue(ref(db, 'missions'), (snap) => {
+          const data = snap.val();
+          allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+         renderUI();
+    });
 
-            onValue(ref(db, 'missions'), (snap) => {
-                const data = snap.val();
-                allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
+         // Pour les archives, on ne crée pas d'écouteur automatique (on économise la data !)
+      window.chargerArchives = () => {
+        toggleLoading(true);
+        // On ne récupère les archives qu'une seule fois quand on clique sur le bouton
+        get(ref(db, 'archives')).then((snap) => {
+        const data = snap.val();
+        // Logique pour afficher les archives...
+        toggleLoading(false);
+     });
+   };
                 renderUI();
             });
         } else {
@@ -771,8 +784,19 @@
         update(ref(db, `missions/${key}`), { codeSMS: code, photo: lastPhotoData, etape: 2 });
         lastPhotoData = "";
     };
-
-    window.cloturer = (key) => { update(ref(db, `missions/${key}`), { etape: 3 }); };
+window.cloturer = async (key) => {
+    toggleLoading(true);
+    const m = allMissions.find(x => x.key === key);
+    
+    // 1. On copie la mission dans un nouveau dossier "archives"
+    await push(ref(db, 'archives'), { ...m, etape: 3 });
+    
+    // 2. On la supprime du dossier "missions" pour libérer de la place
+    await remove(ref(db, `missions/${key}`));
+    
+    toggleLoading(false);
+    alert("Mission archivée et retirée du flux actif !");
+};
 
 </script>
 </body>
