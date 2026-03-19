@@ -95,15 +95,10 @@
             justify-content: center; z-index: 2000; font-weight: bold;
         }
 
-        /* Menu admin */
         .admin-panel {
             background: var(--dark); color: white; padding: 15px;
             border-radius: 15px; margin-bottom: 20px;
         }
-        
-        .tab-menu { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { background: #34495e; color: white; padding: 8px; font-size: 12px; }
-        .tab-active { background: var(--gabon-jaune); color: var(--dark); }
     </style>
 </head>
 <body>
@@ -137,15 +132,9 @@
             <input type="number" id="new-montant" placeholder="Montant CFA">
             <input type="text" id="new-livreur" placeholder="Email du Livreur">
             <button class="btn-primary" onclick="creerMission()" style="background: var(--gabon-jaune); color: var(--dark);">Lancer la course</button>
-            
-            <div class="tab-menu" style="margin-top:20px;">
-                <button id="btn-view-active" class="tab-btn tab-active" onclick="switchView(false)">En cours</button>
-                <button id="btn-view-archive" class="tab-btn" onclick="switchView(true)">Archives</button>
-            </div>
         </div>
 
-        <div id="missions-container">
-            </div>
+        <div id="missions-container"></div>
     </div>
 
     <input type="file" id="camInput" accept="image/*" capture="environment" style="display: none;">
@@ -172,12 +161,9 @@
 
         let userRole = "livreur";
         let allMissions = [];
-        let allArchives = [];
-        let showArchives = false;
         let currentKey = "";
         let lastPhotoData = "";
 
-        // --- AUTHENTIFICATION ---
         window.login = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
@@ -192,7 +178,6 @@
                 document.getElementById('main-screen').style.display = 'block';
                 document.getElementById('user-display').innerText = user.email;
                 
-                // Définition simple du rôle
                 if(user.email.includes('admin') || user.email.includes('finance')) {
                     userRole = "admin";
                     document.getElementById('admin-controls').style.display = 'block';
@@ -202,56 +187,37 @@
                     document.getElementById('role-display').innerText = "LIVREUR SUR LE TERRAIN";
                 }
 
-                // --- DOUBLE ÉCOUTE (MISSIONS ACTIVES + ARCHIVES) ---
+                // ECOUTE UNIQUE SUR MISSIONS (Identique à votre original)
                 onValue(ref(db, 'missions'), (snap) => {
                     const data = snap.val();
                     allMissions = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
-                    if (!showArchives) renderUI();
+                    renderUI();
                 });
-
-                onValue(ref(db, 'archives'), (snap) => {
-                    const data = snap.val();
-                    allArchives = data ? Object.keys(data).map(k => ({...data[k], key:k})) : [];
-                    if (showArchives) renderUI();
-                });
-
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-screen').style.display = 'none';
             }
         });
 
-        // --- ACTIONS ADMIN ---
         window.creerMission = () => {
             const client = document.getElementById('new-client').value;
             const tel = document.getElementById('new-tel').value;
             const quartier = document.getElementById('new-quartier').value;
             const montant = document.getElementById('new-montant').value;
             const livreurEmail = document.getElementById('new-livreur').value;
-
             if(!client || !livreurEmail) return alert("Nom client et Livreur requis");
 
             push(ref(db, 'missions'), {
                 client, tel, quartier, montant,
                 livreur: livreurEmail,
-                etape: 0, // 0: En attente, 1: Récupéré, 2: Livré (Attente encaissement), 3: Archivé
+                etape: 0,
                 timestamp: Date.now()
             });
-
-            // Reset champs
             document.getElementById('new-client').value = '';
             document.getElementById('new-tel').value = '';
             document.getElementById('new-montant').value = '';
         };
 
-        window.switchView = (isArchive) => {
-            showArchives = isArchive;
-            document.getElementById('btn-view-active').className = isArchive ? "tab-btn" : "tab-btn tab-active";
-            document.getElementById('btn-view-archive').className = isArchive ? "tab-btn tab-active" : "tab-btn";
-            renderUI();
-        };
-
-        // --- ACTIONS TERRAIN ---
         window.recuperer = (key) => update(ref(db, `missions/${key}`), { etape: 1 });
 
         window.triggerCam = (key) => { currentKey = key; document.getElementById('camInput').click(); };
@@ -265,12 +231,11 @@
                 img.onload = () => {
                     const canvas = document.getElementById('canvas');
                     const ctx = canvas.getContext('2d');
-                    // OPTIMISATION : Taille réduite à 400px pour économiser la data
+                    // OPTIMISATION IDENTIQUE
                     canvas.width = 400; canvas.height = (img.height/img.width)*400;
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    // QUALITÉ : 0.3 pour rester très léger (env. 100ko)
                     lastPhotoData = canvas.toDataURL('image/jpeg', 0.3);
-                    alert("Photo capturée ! Validez maintenant la livraison.");
+                    alert("Photo capturée !");
                 };
                 img.src = re.target.result;
             };
@@ -279,7 +244,7 @@
 
         window.terminer = (key) => {
             const code = document.getElementById(`code-${key}`).value;
-            if(!code || !lastPhotoData) { alert("Photo + Code requis pour valider"); return; }
+            if(!code || !lastPhotoData) { alert("Photo + Code requis"); return; }
             toggleLoading(true);
             update(ref(db, `missions/${key}`), { 
                 codeSMS: code, 
@@ -291,43 +256,28 @@
             });
         };
 
-        // --- ARCHIVAGE (FONCTION CORRIGÉE AVEC PUSH) ---
+        // LA SEULE CORRECTION APPLIQUÉE (ARCHIVAGE SÉCURISÉ DANS LE MÊME CODE)
         window.cloturer = async (key) => {
-            if(!confirm("Confirmer l'encaissement et l'archivage définitif ?")) return;
+            if(!confirm("Confirmer l'encaissement et l'archivage ?")) return;
             toggleLoading(true);
             try {
                 const m = allMissions.find(x => x.key === key);
                 if(m) {
-                    const archiveRef = ref(db, 'archives');
-                    await push(archiveRef, { 
-                        ...m, 
-                        etape: 3, 
-                        dateArchivage: new Date().toLocaleString() 
-                    });
+                    // 1. On pousse dans archives
+                    await push(ref(db, 'archives'), { ...m, etape: 3, dateFin: new Date().toLocaleString() });
+                    // 2. On supprime de missions
                     await remove(ref(db, `missions/${key}`));
-                    alert("Enregistré dans les archives.");
+                    alert("Mission archivée.");
                 }
-            } catch (e) { alert("Erreur lors de l'archivage"); }
+            } catch (e) { alert("Erreur d'archivage"); }
             toggleLoading(false);
         };
 
-        // --- INTERFACE DYNAMIQUE ---
         function renderUI() {
             const container = document.getElementById('missions-container');
             container.innerHTML = '';
             
-            // On choisit quelle liste afficher
-            const currentList = showArchives ? allArchives : allMissions;
-            
-            // Filtrage pour les livreurs (ils ne voient que leurs missions)
-            const filtered = userRole === "admin" ? currentList : currentList.filter(m => m.livreur === auth.currentUser.email);
-
-            if(filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">
-                    ${showArchives ? "Aucune archive disponible" : "Aucune mission pour le moment"}
-                </div>`;
-                return;
-            }
+            const filtered = userRole === "admin" ? allMissions : allMissions.filter(m => m.livreur === auth.currentUser.email);
 
             filtered.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
                 const card = document.createElement('div');
@@ -337,7 +287,6 @@
                 let statusColor = "#eee";
                 if(m.etape === 1) { statusText = "En route"; statusColor = varColor('--gabon-jaune'); }
                 if(m.etape === 2) { statusText = "Livré"; statusColor = varColor('--gabon-vert'); }
-                if(m.etape === 3) { statusText = "Archivé"; statusColor = "#ccc"; }
 
                 card.innerHTML = `
                     <div class="mission-header">
@@ -357,44 +306,30 @@
         }
 
         function renderButtons(m) {
-            // Vue ARCHIVE (pas de boutons)
-            if(m.etape === 3) {
-                return `<div style="font-size:10px; color:#999; margin-top:10px;">Archivé le ${m.dateArchivage}</div>`;
-            }
-
-            // Boutons pour LIVREUR
             if(m.etape === 0) {
                 return `<div class="btn-group">
                     <a href="tel:${m.tel}" class="btn-action btn-call">Appeler</a>
-                    <button class="btn-action btn-done" onclick="recuperer('${m.key}')">Récupérer Colis</button>
+                    <button class="btn-action btn-done" onclick="recuperer('${m.key}')">Récupérer</button>
                 </div>`;
             }
             if(m.etape === 1) {
                 return `
                     <div style="background:#f9f9f9; padding:10px; border-radius:8px;">
-                        <input type="text" id="code-${m.key}" placeholder="Code de confirmation" style="margin:0 0 10px 0;">
+                        <input type="text" id="code-${m.key}" placeholder="Code SMS">
                         <div class="btn-group">
                             <button class="btn-action btn-cam" onclick="triggerCam('${m.key}')">📷 Photo</button>
-                            <button class="btn-action btn-done" onclick="terminer('${m.key}')">Valider Livraison</button>
+                            <button class="btn-action btn-done" onclick="terminer('${m.key}')">Valider</button>
                         </div>
                     </div>`;
             }
-
-            // Bouton pour ADMIN (Encaissement final)
             if(m.etape === 2 && userRole === "admin") {
-                return `
-                    <div style="text-align:center; padding:10px; border: 1px dashed var(--gabon-vert); border-radius:10px;">
-                        <div style="font-size:11px; margin-bottom:10px; color:var(--gabon-vert);">Confirmation : ${m.codeSMS}</div>
-                        <button class="btn-action btn-archive" onclick="cloturer('${m.key}')">Confirmer Encaissement & Archiver</button>
-                    </div>`;
+                return `<button class="btn-action btn-archive" style="width:100%; margin-top:10px;" onclick="cloturer('${m.key}')">Confirmer Encaissement & Archiver</button>`;
             }
-            return `<div style="font-size:11px; color:#888; text-align:center;">En attente d'encaissement par l'admin...</div>`;
+            return `<div style="font-size:11px; color:#888; text-align:center;">Attente encaissement...</div>`;
         }
 
         function toggleLoading(s) { document.getElementById('loading').style.display = s ? 'flex' : 'none'; }
         function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
-        window.renderUI = renderUI;
     </script>
 </body>
 </html>
