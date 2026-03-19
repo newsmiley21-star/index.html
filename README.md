@@ -587,7 +587,7 @@
         const todayStr = new Date().toLocaleDateString('fr-FR');
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
-        let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0;
+        let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0,adminFrais = 0;
         const historyGroups = {}, globalArchiveGroups = {};
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
@@ -614,7 +614,8 @@
                 }
                 
                 if(userRole === 'admin' && isToday) { 
-                    adminCom += m.Liv; 
+                    adminFrais += m.fraisLivraison;
+                    adminCom += m.com;
                     adminVol += m.retrait; 
                     listCpt.innerHTML += createRow(m, "admin"); 
                 }
@@ -661,11 +662,12 @@
             listArchivesGlobal.innerHTML += html;
         });
 
-        document.getElementById('stat-total').innerText = dailyGains.toLocaleString() + " F";
-        document.getElementById('stat-count').innerText = dailyCount;
+        document.getElementById('cpt-com').innerText = dailyGains.toLocaleString() + " CFA";
+        document.getElementById('stat-count').innerText = dailyCount + " LIVRAISON(s)";
         if(userRole === 'admin') {
-            document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " F";
-            document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " F";
+            document.getElementById('cpt-com').innerText = adminCom.toLocaleString() + " CFA";
+            document.getElementById('cpt-vol').innerText = adminVol.toLocaleString() + " CFA";
+            document.getElementById('cpt-fraisLivraison').innerText = adminFrais.toLocaleString() + " CFA";
         }
         const countActive = allMissions.filter(m => m.etape > 0 && m.etape < 3).length;
         document.getElementById('count-missions').innerHTML = countActive > 0 ? `<span class="badge badge-blue">${countActive}</span>` : "";
@@ -725,8 +727,8 @@
     }
 
     function createRow(m, type, isOld = false) {
-        const val = type === 'admin' ? m.com : m.fraisLivraison;
-        const sub = type === 'admin' ? `Liv: ${m.fraisLivraison}F | ${m.livreur}` : `Retrait: ${m.retrait.toLocaleString()}F`;
+        const val = type === 'admin' ? m.fraisLivraison : m.com;
+        const sub = type === 'admin' ? `Com: ${m.com}F | ${m.livreur}` : `Retrait: ${m.retrait.toLocaleString()}F`;
         const color = isOld ? '#94a3b8' : (type === 'admin' ? 'var(--gabon-bleu)' : 'var(--gabon-vert)');
         const displayDate = m.dateLong || `${new Date(m.timestamp).toLocaleDateString('fr-FR')} ${m.dateHeure}`;
         const showPrint = (userRole === 'admin' || userRole === 'finance') ? `<span onclick="imprimerBon('${m.key}')" style="font-size:8px; margin-right:8px; text-decoration:underline; cursor:pointer; color:var(--dark)">Bon</span>` : '';
