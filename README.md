@@ -231,8 +231,8 @@
         <p id="pr-date"></p>
         <p>--------------------------------</p>
         <div style="text-align:left">
-            <p>Bénéficiaire: <span id="pr-nom" style="font-weight:bold"></span></p>
-            <p>Téléphone: <span id="pr-tel"></span></p>
+            <p>Destinataire: <span id="pr-nom" style="font-weight:bold"></span></p>
+            <p>N° Téléphone: <span id="pr-tel"></span></p>
             <p>Quartier: <span id="pr-lieu"></span></p>
             <p>Livreur: <span id="pr-liv"></span></p>
         </div>
@@ -241,7 +241,7 @@
         <h2 id="pr-montant" style="margin:5px 0; font-size:24px"></h2>
         <p>--------------------------------</p>
         <div style="margin-top:40px; border-top:1px dashed #000; padding-top:10px">
-            <p>Signature Client</p>
+            <p>Bien reçu par le Client</p>
             <br><br><br>
         </div>
         <p style="font-size:10px; margin-top:20px">Merci de votre confiance.</p>
@@ -303,7 +303,7 @@
                 <button class="btn-refresh-bilan" onclick="rafraichirBilan()">🔄 ACTUALISER</button>
                 <small>Session Active (Aujourd'hui)</small>
                 <div class="stats-grid">
-                    <div><small>Bonus du Jour +18</small><b id="livreur-gains">0 F</b></div>
+                    <div><small>Gains du Jour</small><b id="cpt-com">0 F</b></div>
                     <div><small>Courses Faites</small><b id="stat-count" style="color:white">0</b></div>
                 </div>
             </div>
@@ -314,29 +314,29 @@
         <!-- CREER -->
         <div id="sec-creer" class="section">
             <h4 style="margin:0 0 15px 0; color:var(--gabon-vert)">DÉPLOYER UNE MISSION</h4>
-            <input type="text" id="mNom" placeholder="Nom du bénéficiaire">
-            <input type="tel" id="mTel" placeholder="Téléphone (ex: 077...)">
+            <input type="text" id="mNom" placeholder="Nom du Destinataire">
+            <input type="tel" id="mTel" placeholder="N° Téléphone (ex: 077.../066...)">
+             <input type="tel" id="mNom" placeholder=" Lien d'itinéraire.">
             
             <div class="zone-highlight">
                 <span class="label-mini">Zone & Localisation</span>
                 <input type="text" id="mQuartier" placeholder="Quartier précis...">
-                <input type="text" id="mQuartier" placeholder="....Itineraire......">
                 <select id="mZoneSelect" onchange="updateFrais()">
-                    <option value="2000">Libreville  (2000 F)</option>
+                    <option value="2000">Libreville Centre (2000 F)</option>
                     <option value="2500">Owendo / Akanda (2500 F)</option>
-                    <option value="2000">PK0-12 / Bikele  (2000 F)</option>
+                    <option value="2000">PK0-12 / Bikele (2000 F)</option>
                 </select>
             </div>
 
             <span class="label-mini">Détails financiers</span>
-            <input type="number" id="mRetrait" placeholder="valeur colis 📦 (FCFA)">
+            <input type="number" id="mRetrait" placeholder="Montant Retrait (FCFA)">
             <div class="finance-row">
                 <div>
-                    <span class="label-mini">frais livraison (CFA)</span>
+                    <span class="label-mini">frais de livraison  (F)</span>
                     <input type="number" id="mLiv" value="2000" readonly style="background:#f1f5f9">
                 </div>
                 <div>
-                    <span class="label-mini">Com LIVREUR (CFA)</span>
+                    <span class="label-mini">Bonus livreur(Après 18eme liv)</span>
                     <input type="number" id="mCom" value="0">
                 </div>
             </div>
@@ -348,8 +348,10 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Bonus Totaux</small><b id="admin-bonus" style="color:white">0 F</b></div>
-                    <div><small>Chiffre d'affaires </small><b id="admin-ca" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Livraisons Totales</small><b id="stat-total" style="color:white">0 F</b></div>
+                    <div><small>Volume Retraits</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Ratio livraisons</small><b id="cpt-count" style="color:var(--gabon-jaune)">0 F</b></div>
+                    <div><small>Total chiffre d'affaires</small><b id="stat-total" style="color:var(--gabon-jaune)">0 F</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
@@ -587,9 +589,6 @@
         const myName = auth.currentUser ? auth.currentUser.email.split('@')[0].toUpperCase() : "";
 
         let dailyGains = 0, dailyCount = 0, adminCom = 0, adminVol = 0;
-        let totalBonus = 0; // Cumul commissions
-        let totalCA = 0;    // Cumul frais de livraison
-        let lGains = 0, lCount = 0; // Stats livreur
         const historyGroups = {}, globalArchiveGroups = {};
 
         allMissions.sort((a,b) => b.timestamp - a.timestamp).forEach(m => {
@@ -597,21 +596,6 @@
             const mDateStr = new Date(m.timestamp).toLocaleDateString('fr-FR');
             const isToday = (mDateStr === todayStr);
 
-            if(m.etape === 3) {
-                    // Calculs Globaux Admin
-                    totalCA += (m.fraisLivraison || 0); // Chiffre d'Affaire = Frais de livraison
-                    totalBonus += (m.com || 0);        // Bonus = Commissions
-
-                    if(userRole === 'admin') {
-                       listCpt.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:11px">💰 ${m.nom} (Frais: ${m.fraisLivraison} / Com: ${m.com})</div>`;
-                    }
-
-                    // Calculs Livreur Connecté
-                    if(m.livreur === myName) {
-                        lGains += (m.fraisLivraison || 0);
-                        lCount++;
-                        listBil.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:11px">✅ ${m.nom} (+${m.fraisLivraison} F)</div>`;
-                    }
             if(m.etape < 3) {
                 if(!match) return;
                 const card = createCard(m, myName);
@@ -620,7 +604,7 @@
             } else {
                 if(m.livreur === myName) {
                     if(isToday) { 
-                        dailyGains += m.fraisLivraison; 
+                        dailyGains += m.com; 
                         dailyCount++; 
                         listBilToday.innerHTML += createRow(m, "livreur"); 
                     } else {
@@ -631,8 +615,8 @@
                 }
                 
                 if(userRole === 'admin' && isToday) { 
-                    adminCom += m.com; 
-                    adminChiffre d'affaires += m.fraisLivraison; 
+                    adminCom += m.Liv; 
+                    adminVol += m.retrait; 
                     listCpt.innerHTML += createRow(m, "admin"); 
                 }
                 
@@ -643,14 +627,6 @@
                 }
             }
         });
-        
-            // MISE À JOUR AFFICHAGE
-            if(document.getElementById('admin-bonus')) document.getElementById('admin-bonus').innerText = totalBonus.toLocaleString() + " F";
-            if(document.getElementById('admin-ca')) document.getElementById('admin-ca').innerText = totalCA.toLocaleString() + " F";
-            
-            if(document.getElementById('livreur-gains')) document.getElementById('livreur-gains').innerText = lGains.toLocaleString() + " F";
-            if(document.getElementById('livreur-count')) document.getElementById('livreur-count').innerText = lCount;
-        }
 
         Object.keys(historyGroups).sort((a,b) => {
             const dateA = a.split('/').reverse().join('');
@@ -729,7 +705,7 @@
             btn = `<div style="text-align:center; padding:10px; background:#f8fafc; border-radius:10px">
                     <img src="${m.photo}" style="width:100%; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px">
                     <h1 style="margin:5px 0; color:var(--dark); letter-spacing:2px">${m.codeSMS}</h1>
-                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">VALIDER ENCAISSEMENT ✅</button>
+                    <button class="btn-action btn-validate" onclick="cloturer('${m.key}')">confirmer livraison ✅</button>
                    </div>`;
         }
 
@@ -778,9 +754,9 @@
             img.onload = () => {
                 const canvas = document.getElementById('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 600; canvas.height = (img.height/img.width)*600;
+                canvas.width = 300; canvas.height = (img.height/img.width)*600;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                lastPhotoData = canvas.toDataURL('image/jpeg', 0.7);
+                lastPhotoData = canvas.toDataURL('image/jpeg', 0.3);
                 alert("Photo enregistrée ! Saisissez le code et validez.");
             };
             img.src = re.target.result;
