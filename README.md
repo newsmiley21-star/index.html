@@ -348,9 +348,9 @@
             <div class="stats-banner" style="background:var(--gabon-vert)">
                 <small>Tableau de bord Admin</small>
                 <div class="stats-grid">
-                    <div><small>Livraisons Totales</small><b id="cpt-count" style="color:white">0 CFA</b></div>
+                    <div><small>Totaux Bonus</small><b id="cpt-com" style="color:white">0 CFA</b></div>
                     <div><small>Volume v.marchandises</small><b id="cpt-vol" style="color:var(--gabon-jaune)">0 CFA</b></div>
-                    <div><small>Total chiffre d'affaires</small><b id="stat-liv" style="color:var(--gabon-jaune)">0 CFA</b></div>
+                    <div><small>Total chiffre d'affaires</small><b id="cpt-fraisLivraison" style="color:var(--gabon-jaune)">0 CFA</b></div>
                 </div>
                 <button class="btn-export" onclick="exportToCSV()">📥 EXPORTER LE BILAN (CSV)</button>
             </div>
